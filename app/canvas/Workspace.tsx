@@ -69,6 +69,14 @@ export interface WorkspaceProps {
   /** What each connection resolves to, when the scan could establish it. */
   identity: Record<string, string>;
   onIntegrationsChange: (next: IntegrationState) => void;
+  /**
+   * The Feature Registry, rendered by the page.
+   *
+   * Passed in rather than built here: the registry needs the FileSource to
+   * re-scan, and that lives with the loaded project. Workspace stays a switch
+   * over sections rather than gaining a second data pipeline.
+   */
+  registrySection: React.ReactNode;
   onPrefs: (patch: Partial<Prefs>) => void;
   onProfile: (patch: ProfileOverrides) => void;
   onReset: () => void;
@@ -127,6 +135,7 @@ export function Workspace(props: WorkspaceProps) {
     integrations,
     identity,
     onIntegrationsChange,
+    registrySection,
   } = props;
   const { completed } = tasks;
 
@@ -737,6 +746,7 @@ export function Workspace(props: WorkspaceProps) {
     hidden: hiddenSection,
     deliver: isAcademic ? academicDeliverables : commercialDeliverables,
     funnel: <Funnel plan={plan} />,
+    registry: registrySection,
     integrations: (
       <Integrations
         state={integrations}

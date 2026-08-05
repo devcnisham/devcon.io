@@ -29,6 +29,7 @@ const ICONS = {
   hidden: "M3 10s2.5-4.5 7-4.5S17 10 17 10s-2.5 4.5-7 4.5S3 10 3 10z M4 4l12 12",
   anti: "M10 3.5L17 16H3L10 3.5z M10 8v3.5 M10 13.5v.5",
   deliver: "M5 3h7l3 3v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M7 10h6M7 13h4",
+  registry: "M3 5h14v4H3z M3 11h14v4H3z M6 7h.01 M6 13h.01",
   integrations:
     "M10 7.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z M10 2.5v2 M10 15.5v2 M2.5 10h2 M15.5 10h2",
   settings: "M4 6h12 M4 10h12 M4 14h12 M7.5 4.5v3 M12.5 8.5v3 M6.5 12.5v3",
@@ -51,6 +52,7 @@ export function LeftSidebar({
   onSelect,
   collapsed,
   onToggleCollapsed,
+  registryCount,
 }: {
   profile: ProjectProfile;
   plan: Plan;
@@ -59,6 +61,8 @@ export function LeftSidebar({
   onSelect: (s: LeftSection) => void;
   /** Owned by the page so the content area can reserve the right width. */
   collapsed: boolean;
+  /** Registry entries for this project. Undefined hides the badge. */
+  registryCount?: number;
   onToggleCollapsed: () => void;
 }) {
   const items: { key: LeftSection; label: string; count?: number }[] = [
@@ -73,6 +77,7 @@ export function LeftSidebar({
       label: "Deliverables",
       count: profile.academic.deliverables.length,
     },
+    { key: "registry", label: "Registry", count: registryCount },
     { key: "funnel", label: "Funnel" },
     { key: "integrations", label: "Integrations" },
     { key: "settings", label: "Settings" },

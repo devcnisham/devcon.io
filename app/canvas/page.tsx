@@ -47,6 +47,10 @@ import {
   loadIntegrations,
   saveIntegrations,
 } from "@/lib/integrations/store";
+import { FeatureRegistry } from "./FeatureRegistry";
+import { useRegistry } from "@/lib/registry/useRegistry";
+import type { FileSource } from "@/lib/scan/source";
+import { devPathSource } from "@/lib/scan/sources/dev-path";
 import { profileFromDigest } from "@/lib/scan/profile";
 import { type RepoDigest, type ScanResult, isScanError } from "@/lib/scan/types";
 import { track, trackOnce } from "@/lib/telemetry/events";
@@ -111,6 +115,8 @@ function CanvasInner() {
     profile: ProjectProfile;
     digest: RepoDigest;
     evidence: { field: string; because: string }[];
+    /** Kept so the registry can re-scan without re-picking the folder. */
+    source: FileSource | null;
   } | null>(null);
   /** Events are keyed by project, not user — there are no accounts. */
   const projectToken =
@@ -131,6 +137,28 @@ function CanvasInner() {
     setIntegrations(next);
     saveIntegrations(next);
   }, []);
+
+  /**
+   * The Feature Registry for this project.
+   *
+   * Keyed on the same project token as telemetry, so a registry follows the
+   * project rather than the browser tab.
+   */
+  const registry = useRegistry(projectToken);
+
+  const registrySection = (
+    <FeatureRegistry
+      entries={registry.entries}
+      loading={registry.loading}
+      warnings={registry.warnings}
+      onChange={(entry) => void registry.change(entry)}
+      onRemove={(id) => void registry.remove(id)}
+      canScan={Boolean(scanned?.source)}
+      onScan={() => {
+        if (scanned?.source) void registry.scan(scanned.source, scanned.digest);
+      }}
+    />
+  );
 
   const completed = tasks.completed;
 
@@ -218,7 +246,14 @@ function CanvasInner() {
         const data: ScanResult = await res.json();
         if (cancelled || isScanError(data)) return;
         const { profile: p, evidence, alreadyDone } = profileFromDigest(data);
-        setScanned({ profile: p, digest: data, evidence });
+        // A source is available here too — the workspace remembered the path,
+        // so the registry can scan a re-opened workspace without a re-pick.
+        setScanned({
+          profile: p,
+          digest: data,
+          evidence,
+          source: devPathSource(meta.repoPath as string),
+        });
         // Pre-tick what the repo already satisfies, so the plan starts from
         // where the project actually is rather than from zero.
         setTasks((prev) => ({
@@ -714,8 +749,8 @@ function CanvasInner() {
             open={loaderOpen}
             setOpen={setLoaderOpen}
             loaded={scanned?.digest ?? null}
-            onLoaded={(profile, digest, evidence) => {
-              setScanned({ profile, digest, evidence });
+            onLoaded={(profile, digest, evidence, source) => {
+              setScanned({ profile, digest, evidence, source });
               setOverrides({});
               setTasks(emptyTaskState());
               setNodes([]);
@@ -839,6 +874,7 @@ function CanvasInner() {
             integrations={integrations}
             identity={identity}
             onIntegrationsChange={updateIntegrations}
+            registrySection={registrySection}
             onPrefs={(patch) => setPrefs((p) => ({ ...p, ...patch }))}
             onProfile={(patch) => setOverrides((o) => ({ ...o, ...patch }))}
             onReset={() => {
@@ -866,6 +902,7 @@ function CanvasInner() {
             onSelect={setSection}
             collapsed={leftCollapsed}
             onToggleCollapsed={() => setLeftCollapsed((v) => !v)}
+            registryCount={registry.entries.length}
           />
         ) : null}
 

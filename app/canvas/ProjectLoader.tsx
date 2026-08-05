@@ -5,6 +5,7 @@ import type { ProjectProfile } from "@/lib/catalog/types";
 import { buildDigest } from "@/lib/scan/digest";
 import { type Inference, profileFromDigest } from "@/lib/scan/profile";
 import type { FileSource } from "@/lib/scan/source";
+import { devPathSource } from "@/lib/scan/sources/dev-path";
 import { droppedCoverage, droppedSource } from "@/lib/scan/sources/dropped";
 import { folderPickerAvailable, pickFolder } from "@/lib/scan/sources/folder";
 import {
@@ -30,6 +31,12 @@ export function ProjectLoader({
     profile: ProjectProfile,
     digest: import("@/lib/scan/types").RepoDigest,
     ev: Inference["evidence"],
+    /**
+     * The source is handed back so the registry can re-scan without asking the
+     * user to pick the folder again. A folder handle cannot be reconstructed
+     * from a digest, so it has to be kept or it's gone.
+     */
+    source: FileSource,
   ) => void;
   onClear: () => void;
   loaded: import("@/lib/scan/types").RepoDigest | null;
@@ -59,7 +66,7 @@ export function ProjectLoader({
     try {
       const digest = await buildDigest(source);
       const { profile, evidence } = profileFromDigest(digest);
-      onLoaded(profile, digest, evidence);
+      onLoaded(profile, digest, evidence, source);
       setOpen(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not read that project");
@@ -119,7 +126,10 @@ export function ProjectLoader({
         return;
       }
       const { profile, evidence } = profileFromDigest(data);
-      onLoaded(profile, data, evidence);
+      // The route already walked the filesystem; this source re-reads through
+      // it on demand so the registry scanner has the same interface it gets
+      // from every other path.
+      onLoaded(profile, data, evidence, devPathSource(target));
       setOpen(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Scan failed");
