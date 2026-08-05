@@ -246,6 +246,20 @@ export function profileFromDigest(digest: RepoDigest): Inference {
       has_rubric: false,
       group_size: 1,
     },
+    competition: {
+      /**
+       * Never inferred, always empty.
+       *
+       * A repo cannot tell you that you're at a hackathon, how long is left,
+       * or which sponsor prizes you're entering — those are facts about an
+       * event, not about code. The scan says nothing rather than guessing, and
+       * a competition profile has to be set explicitly.
+       */
+      hours_remaining: null,
+      submission: [],
+      sponsor_tracks: [],
+      has_judging_criteria: false,
+    },
     commercial: {
       // Payments wired is the closest a scan gets to "someone might pay".
       // Whether anyone actually has is not visible from the filesystem.

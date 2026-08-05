@@ -1,3 +1,4 @@
+import { article } from "../catalog/conditions";
 import { PROVIDERS } from "../catalog/providers";
 import type { Plan, ProjectProfile, Step } from "../catalog/types";
 
@@ -75,10 +76,8 @@ function needsLine(profile: ProjectProfile): string {
   return `${phrases.slice(0, -1).join(", ")} and ${phrases.at(-1)}`;
 }
 
-/** "a academic project" is the kind of thing an agent notices and a user trusts less. */
-function article(word: string): string {
-  return /^[aeiou]/i.test(word) ? "an" : "a";
-}
+// `article` is shared with the condition DSL, which had the same bug in the
+// hidden-drawer copy. Engine may import from catalog; the reverse would cycle.
 
 /**
  * Name the services a repo is actually wired to, from its env key prefixes.

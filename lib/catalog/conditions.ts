@@ -1,4 +1,15 @@
-import type { Condition, Context, Deliverable, ProjectProfile } from "./types";
+import type {
+  Condition,
+  Context,
+  Deliverable,
+  ProjectProfile,
+  Submission,
+} from "./types";
+
+/** "a academic project" is the kind of slip that makes a user trust the rest less. */
+export function article(word: string): string {
+  return /^[aeiou]/i.test(word) ? "an" : "a";
+}
 
 function leaf(
   test: (p: ProjectProfile) => boolean,
@@ -21,8 +32,8 @@ export const always = (): Condition =>
 export const context = (c: Context): Condition =>
   leaf(
     (p) => p.context === c,
-    `this is a ${c} project`,
-    `this isn't a ${c} project`,
+    `this is ${article(c)} ${c} project`,
+    `this isn't ${article(c)} ${c} project`,
   );
 
 type NeedKey = keyof ProjectProfile["needs"];
@@ -95,6 +106,46 @@ export const isSolo = (): Condition =>
     (p) => p.academic.group_size <= 1,
     "you're working solo",
     "this is a group project",
+  );
+
+// ------------------------------------------------ competition-track leaves
+
+const SUBMISSION_LABEL: Record<Submission, string> = {
+  repo: "a repo link",
+  video: "a demo video",
+  writeup: "a written submission",
+  "live-demo": "a live, reachable deployment",
+};
+
+export const submission = (s: Submission): Condition =>
+  leaf(
+    (p) => p.competition.submission.includes(s),
+    `your submission needs ${SUBMISSION_LABEL[s]}`,
+    `your submission doesn't need ${SUBMISSION_LABEL[s]}`,
+  );
+
+export const hasSponsorTracks = (): Condition =>
+  leaf(
+    (p) => p.competition.sponsor_tracks.length > 0,
+    "you're going for sponsor prizes",
+    "you're not going for any sponsor prizes",
+  );
+
+export const hasJudgingCriteria = (): Condition =>
+  leaf(
+    (p) => p.competition.has_judging_criteria,
+    "the judges publish their criteria",
+    "you haven't supplied any judging criteria",
+  );
+
+/** Null hours means "not time-boxed", which must NOT read as "no time left". */
+export const underHours = (n: number): Condition =>
+  leaf(
+    (p) =>
+      p.competition.hours_remaining !== null &&
+      p.competition.hours_remaining <= n,
+    `you have ${n} hours or less left`,
+    `you have more than ${n} hours left`,
   );
 
 // ------------------------------------------------- commercial-track leaves

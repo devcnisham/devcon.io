@@ -1,5 +1,6 @@
 import { ACADEMIC_STEPS } from "./steps/academic";
 import { COMMERCIAL_STEPS } from "./steps/commercial";
+import { COMPETITION_STEPS } from "./steps/competition";
 import type { Step } from "./types";
 
 /**
@@ -9,7 +10,11 @@ import type { Step } from "./types";
  * pass over one list, gated by the `context` predicate on each step. Forking
  * the engine per track is the failure mode this arrangement exists to avoid.
  */
-export const ALL_STEPS: Step[] = [...ACADEMIC_STEPS, ...COMMERCIAL_STEPS];
+export const ALL_STEPS: Step[] = [
+  ...ACADEMIC_STEPS,
+  ...COMPETITION_STEPS,
+  ...COMMERCIAL_STEPS,
+];
 
 export interface CatalogProblem {
   stepId: string;

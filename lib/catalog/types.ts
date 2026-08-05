@@ -8,6 +8,8 @@ export type StepKind = "do" | "avoid";
 export type Criticality = "must" | "should" | "nice";
 export type Deliverable = "code" | "report" | "demo" | "viva";
 export type SkillLevel = "first-time" | "some-experience" | "professional";
+/** What the submission portal asks for. Competition's answer to `Deliverable`. */
+export type Submission = "repo" | "video" | "writeup" | "live-demo";
 
 export const PHASE_ORDER: Phase[] = ["foundation", "core", "harden", "deliver"];
 
@@ -35,6 +37,23 @@ export interface ProjectProfile {
     tech_constraints: string | null;
     has_rubric: boolean;
     group_size: number;
+  };
+
+  /** Populated only when context === "competition". */
+  competition: {
+    /**
+     * Hours left in the event, or null when it isn't time-boxed.
+     *
+     * A snapshot taken at project creation, not a live clock — there is no
+     * backend to tick it. It gates the triage step, which only makes sense for
+     * someone who joined late or is entering the last stretch.
+     */
+    hours_remaining: number | null;
+    submission: Submission[];
+    /** Sponsor prizes being targeted. Each usually mandates a specific service. */
+    sponsor_tracks: string[];
+    /** Judges score against published criteria. */
+    has_judging_criteria: boolean;
   };
 
   /** Populated only when context === "commercial". */

@@ -27,7 +27,18 @@ describe("catalog invariants", () => {
     // A cross-track dependency would make a plan unsatisfiable: the dependency
     // is hidden by the context predicate, so the dependent can never unblock.
     const byId = new Map(ALL_STEPS.map((s) => [s.id, s]));
-    const trackOf = (s: Step) => (s.id.startsWith("c-") ? "commercial" : "academic");
+    /**
+     * Track is inferred from the id prefix — there's no `track` field, because
+     * `applies_when` is the real gate and a second source of truth would drift
+     * from it. `comp-` must be tested BEFORE `c-`: "comp-repo".startsWith("c-")
+     * is false, but the ordering is load-bearing enough to be explicit.
+     */
+    const trackOf = (s: Step) =>
+      s.id.startsWith("comp-")
+        ? "competition"
+        : s.id.startsWith("c-")
+          ? "commercial"
+          : "academic";
 
     const crossings = ALL_STEPS.flatMap((s) =>
       s.requires

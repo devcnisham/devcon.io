@@ -34,6 +34,12 @@ export const EMPTY_PROFILE: ProjectProfile = {
     has_rubric: false,
     group_size: 1,
   },
+  competition: {
+    hours_remaining: null,
+    submission: [],
+    sponsor_tracks: [],
+    has_judging_criteria: false,
+  },
   commercial: {
     has_paying_users: false,
     is_client_work: false,

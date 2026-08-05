@@ -1,6 +1,13 @@
 import type { ProjectProfile } from "@/lib/catalog/types";
 
-/** Academic fixtures still need the block; none of it applies to them. */
+/** Academic fixtures still need both blocks; neither applies to them. */
+const NOT_COMPETITION: ProjectProfile["competition"] = {
+  hours_remaining: null,
+  submission: [],
+  sponsor_tracks: [],
+  has_judging_criteria: false,
+};
+
 const NOT_COMMERCIAL: ProjectProfile["commercial"] = {
   has_paying_users: false,
   is_client_work: false,
@@ -42,6 +49,7 @@ export const FINAL_YEAR_SOLO: ProjectProfile = {
     has_rubric: true,
     group_size: 1,
   },
+  competition: NOT_COMPETITION,
   commercial: NOT_COMMERCIAL,
   builder: { skill_level: "first-time", solo_or_team: "solo" },
 };
@@ -66,6 +74,7 @@ export const GROUP_COURSEWORK: ProjectProfile = {
     has_rubric: true,
     group_size: 4,
   },
+  competition: NOT_COMPETITION,
   commercial: NOT_COMMERCIAL,
   builder: { skill_level: "some-experience", solo_or_team: "team" },
 };
@@ -91,6 +100,7 @@ export const PERSONAL_PROJECT: ProjectProfile = {
     has_rubric: false,
     group_size: 1,
   },
+  competition: NOT_COMPETITION,
   commercial: NOT_COMMERCIAL,
   builder: { skill_level: "first-time", solo_or_team: "solo" },
 };

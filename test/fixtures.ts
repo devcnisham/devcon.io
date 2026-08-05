@@ -27,6 +27,13 @@ const NO_ACADEMIC: ProjectProfile["academic"] = {
   group_size: 1,
 };
 
+const NO_COMPETITION: ProjectProfile["competition"] = {
+  hours_remaining: null,
+  submission: [],
+  sponsor_tracks: [],
+  has_judging_criteria: false,
+};
+
 const NO_NEEDS: ProjectProfile["needs"] = {
   auth: false,
   payments: false,
@@ -49,6 +56,7 @@ export const COMMERCIAL_SAAS: ProjectProfile = {
     handles_pii: true,
   },
   academic: NO_ACADEMIC,
+  competition: NO_COMPETITION,
   commercial: { ...NO_COMMERCIAL, has_paying_users: true },
   builder: { skill_level: "professional", solo_or_team: "solo" },
 };
@@ -58,6 +66,7 @@ export const COMMERCIAL_CLIENT_WORK: ProjectProfile = {
   one_liner: "A client build that gets handed over",
   needs: { ...NO_NEEDS, auth: true },
   academic: NO_ACADEMIC,
+  competition: NO_COMPETITION,
   commercial: {
     has_paying_users: false,
     is_client_work: true,
@@ -73,12 +82,57 @@ export const COMMERCIAL_BARE: ProjectProfile = {
   one_liner: "A bare commercial project",
   needs: NO_NEEDS,
   academic: NO_ACADEMIC,
+  competition: NO_COMPETITION,
+  commercial: NO_COMMERCIAL,
+  builder: { skill_level: "first-time", solo_or_team: "solo" },
+};
+
+/**
+ * A weekend hackathon, chasing sponsor prizes, with a video submission.
+ * Switches on almost every competition predicate at once.
+ */
+export const HACKATHON_TEAM: ProjectProfile = {
+  context: "competition",
+  one_liner: "A realtime AI notetaker, 36 hours, team of four",
+  // `payments` is on so the anti-step that tells a team NOT to wire Stripe is
+  // reachable. Every `needs` flag a competition anti-step gates on has to be
+  // switched on somewhere, or that anti-step is dead catalog nothing tests.
+  needs: { ...NO_NEEDS, auth: true, payments: true, realtime: true, ai: true },
+  academic: NO_ACADEMIC,
+  competition: {
+    hours_remaining: 30,
+    submission: ["repo", "video", "writeup"],
+    sponsor_tracks: ["Anthropic", "Supabase"],
+    has_judging_criteria: true,
+  },
+  commercial: NO_COMMERCIAL,
+  builder: { skill_level: "some-experience", solo_or_team: "team" },
+};
+
+/**
+ * Solo, late, no prizes, no criteria, and the rules demand a live URL.
+ * The inverse of HACKATHON_TEAM on every axis that matters — which is what
+ * makes the pair able to prove exclusion rather than just selection.
+ */
+export const HACKATHON_SOLO_LATE: ProjectProfile = {
+  context: "competition",
+  one_liner: "A solo entry, joined late",
+  needs: NO_NEEDS,
+  academic: NO_ACADEMIC,
+  competition: {
+    hours_remaining: 8,
+    submission: ["live-demo"],
+    sponsor_tracks: [],
+    has_judging_criteria: false,
+  },
   commercial: NO_COMMERCIAL,
   builder: { skill_level: "first-time", solo_or_team: "solo" },
 };
 
 export const ALL_FIXTURES: Record<string, ProjectProfile> = {
   ...FIXTURES,
+  HACKATHON_TEAM,
+  HACKATHON_SOLO_LATE,
   COMMERCIAL_SAAS,
   COMMERCIAL_CLIENT_WORK,
   COMMERCIAL_BARE,
