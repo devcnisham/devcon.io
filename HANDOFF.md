@@ -101,10 +101,10 @@ Resend, Sentry, PostHog.
 - **No prompt has been run through an agent.** The catalog rubric says a
   prompt isn't verified until it's been pasted into two agents against a real
   repo and produced working output. **Zero of 45 do-steps meet that bar.**
-- **`pnpm test` passes but proves nothing.** Vitest is installed; there are
-  **zero test files**. A green run is vacuous — do not read it as a signal.
-  The engine is the thing that most needs tests: fixture profiles, snapshot
-  plans, and a determinism assertion.
+- **Engine tests exist and were mutation-tested** (34, in `test/`). They are
+  not a snapshot suite — each claim was verified by breaking the
+  implementation and confirming a test caught it. Everything *outside* the
+  engine is still untested: scanner, prompt assembly, telemetry, UI.
 - **Provider free tiers are seeded, not audited.** `last_verified` is the
   seed date.
 - **No pricing.** Deferred deliberately. Direction recorded: one-time
@@ -245,7 +245,7 @@ closed by building more features.
 pnpm dev        # localhost:3000
 pnpm build      # typecheck + build — the real gate
 pnpm lint       # biome (a11y noise from scaffolded SVGs is expected)
-pnpm test       # vitest — ZERO test files. Green means nothing.
+pnpm test       # vitest — 34 engine tests, mutation-verified
 ```
 
 Scan a repo: `curl 'localhost:3000/api/scan?path=/abs/path'`
