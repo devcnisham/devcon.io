@@ -49,11 +49,12 @@ Break these and things fail in non-obvious ways.
 ## Working agreement
 
 - `pnpm build` is the gate — it runs TypeScript. Lint has known a11y noise
-  from scaffolded SVGs. `pnpm test` runs 34 mutation-verified engine tests.
+  from scaffolded SVGs. `pnpm test` runs 79 mutation-verified tests.
 - **A green suite is not evidence a suite works.** Every assertion in
   `test/` was checked by breaking the implementation and confirming a test
-  caught it — that found one test passing against a deleted invariant. Do
-  the same for anything new.
+  caught it. That found a test passing against a deleted invariant, and a
+  real bug that flagged working steps as broken. Do the same for anything
+  new — see the testing-discipline section in `HANDOFF.md`.
 - **State what isn't done** rather than implying completeness. Several
   surfaces say so in the product; keep that.
 - The moat is the catalog and the measured loop, not the UI. Don't add

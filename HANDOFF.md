@@ -1,8 +1,11 @@
 # DevCon — Handoff
 
-> Last updated: end of the session that instrumented the funnel.
+> Last updated: end of the session that wrote the test suites.
 > Branch: `devcon-engine-and-catalogs` · remote: `github.com/devcnisham/devcon.io`
 > **Read this first. Then `docs/gaps-plan.md` for what to do next.**
+>
+> Everything is committed and pushed. Working tree clean apart from
+> `nisham/` and `sumayya/`, which are deliberately untracked.
 
 ---
 
@@ -101,10 +104,10 @@ Resend, Sentry, PostHog.
 - **No prompt has been run through an agent.** The catalog rubric says a
   prompt isn't verified until it's been pasted into two agents against a real
   repo and produced working output. **Zero of 45 do-steps meet that bar.**
-- **Engine tests exist and were mutation-tested** (34, in `test/`). They are
-  not a snapshot suite — each claim was verified by breaking the
-  implementation and confirming a test caught it. Everything *outside* the
-  engine is still untested: scanner, prompt assembly, telemetry, UI.
+- **79 tests, all mutation-verified** (`test/`). Engine, catalog, scanner,
+  prompt assembly, telemetry. Not a snapshot suite — every claim was checked
+  by breaking the implementation and confirming a test caught it.
+  **Still untested: the UI and the two dev-only API routes.**
 - **Provider free tiers are seeded, not audited.** `last_verified` is the
   seed date.
 - **No pricing.** Deferred deliberately. Direction recorded: one-time
@@ -191,18 +194,57 @@ the app. Commit them yourself if they belong here.
 
 ---
 
+## Testing discipline — read before adding tests
+
+**A green suite is not evidence a suite works.** Every assertion in `test/`
+was mutation-tested: break the implementation, confirm a test catches it.
+That practice has paid for itself twice.
+
+- It found a test **passing against a deleted invariant** — the `id`
+  tie-break in `orderSteps` could be removed with all 33 tests still green,
+  because no two steps in a single plan share a `(phase, weight)`. The 16
+  collisions are all *across* tracks, and only one track is ever selected, so
+  catalog data never exercises it. Replaced with a direct `orderSteps` test on
+  synthetic tied steps.
+- It found a **real bug in `rankCatalogIssues`** — a step everyone copied and
+  completed still scored 0.5 and was reported as broken, because
+  `step_opened` wasn't recorded. That event only fires in the Prompts section,
+  so completing from the task list tripped it. A fix list containing working
+  steps is a fix list nobody trusts.
+
+Do the same for anything new. Two lines of shell:
+
+```bash
+sed -i '' 's/<the invariant>/<broken>/' lib/…   # break it
+pnpm test                                        # expect a failure
+git checkout lib/…                               # restore
+```
+
+---
+
 ## Where the last session stopped
 
-**Just finished:** instrumenting the funnel (item 1 of `docs/gaps-plan.md`).
-Events fire, `trackOnce` dedupes, the Funnel section renders the north star,
-the ranked catalog fix list, un-hidden steps, and the per-step table.
+**Finished this session:**
 
-**Verified working:** copied two prompts without completing them → recorded as
-2 × `prompt_copied`, 0 × `step_completed`, which is exactly the diagnostic
-case the taxonomy exists to capture.
+1. **Funnel instrumented** (item 1 of `docs/gaps-plan.md`). Events fire,
+   `trackOnce` dedupes, the Funnel section renders the north star, ranked fix
+   list, un-hidden steps and the per-step table. Verified by copying two
+   prompts without completing them → `2 × prompt_copied, 0 × step_completed`,
+   exactly the diagnostic case the taxonomy exists to capture.
+2. **Handoff audited against the repo** — found and fixed five factual errors,
+   including a listed `lib/engine/select.ts` that has never existed.
+3. **79 tests written and mutation-verified** across engine, catalog, scanner,
+   prompt assembly and telemetry.
 
-**Not yet done in that flow:** hadn't visually confirmed the Funnel section
-renders those two events in the table. Everything builds clean.
+**Bugs those found and fixed:** the `rankCatalogIssues` false-positive above;
+`clipboard.writeText` rejecting unhandled *and* recording a failed copy as a
+successful one; StrictMode double-firing `plan_generated`, which is the north
+star's denominator.
+
+**Loose end, small:** never visually confirmed the Funnel table renders with
+real events in it. The aggregation is tested; the rendering is not.
+
+**Nothing is half-done.** Build passes, tests pass, everything is pushed.
 
 ---
 
