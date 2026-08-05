@@ -20,6 +20,7 @@ import type { Prefs, ProfileOverrides } from "@/lib/settings/types";
 import { track } from "@/lib/telemetry/events";
 import { Funnel } from "./Funnel";
 import { Integrations } from "./Integrations";
+import type { IntegrationState } from "@/lib/integrations/store";
 import type { LeftSection } from "./LeftSidebar";
 import { Prompts } from "./Prompts";
 import { Settings } from "./Settings";
@@ -63,6 +64,11 @@ export interface WorkspaceProps {
   detected?: { envKeys: string[] };
   /** Project token — events are keyed by it, since there are no accounts. */
   project: string;
+  /** Connected services, shared with the canvas rather than owned here. */
+  integrations: IntegrationState;
+  /** What each connection resolves to, when the scan could establish it. */
+  identity: Record<string, string>;
+  onIntegrationsChange: (next: IntegrationState) => void;
   onPrefs: (patch: Partial<Prefs>) => void;
   onProfile: (patch: ProfileOverrides) => void;
   onReset: () => void;
@@ -117,6 +123,11 @@ function StatusPill({
 
 export function Workspace(props: WorkspaceProps) {
   const { profile, plan, tasks, ready, section } = props;
+  const {
+    integrations,
+    identity,
+    onIntegrationsChange,
+  } = props;
   const { completed } = tasks;
 
   const [showAllNext, setShowAllNext] = useState(false);
@@ -726,7 +737,13 @@ export function Workspace(props: WorkspaceProps) {
     hidden: hiddenSection,
     deliver: isAcademic ? academicDeliverables : commercialDeliverables,
     funnel: <Funnel plan={plan} />,
-    integrations: <Integrations />,
+    integrations: (
+      <Integrations
+        state={integrations}
+        onChange={onIntegrationsChange}
+        identity={identity}
+      />
+    ),
     settings: (
       <Settings
         profile={profile}

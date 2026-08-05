@@ -13,13 +13,48 @@ export interface EnvVar {
   where_to_get: string;
 }
 
-export interface McpServer {
+/**
+ * An MCP server entry for a provider.
+ *
+ * Two transports, kept apart in the type because they emit different config and
+ * confusing them fails silently. A remote entry written without a `type` is read
+ * as a stdio server, and the client skips it with "has a url but no type" —
+ * config that looks correct in the panel and connects to nothing.
+ */
+export type McpServer = McpStdioServer | McpRemoteServer;
+
+export interface McpStdioServer {
+  transport: "stdio";
   name: string;
   /** Pasted into the agent's MCP config. Never contains a secret value. */
   command: string;
   args: string[];
-  /** Env var NAMES the server needs. Values stay with the user, always. */
+  /**
+   * Env var NAMES the server needs. Values stay with the user, always.
+   *
+   * Emitted as `${NAME}`, which MCP clients expand from the user's own
+   * environment. The previous `<your NAME>` placeholder was worse than useless:
+   * the server starts, then fails on its first authenticated call, so the config
+   * reads as working right up until it doesn't.
+   */
   env?: string[];
+}
+
+export interface McpRemoteServer {
+  /** `sse` only where a service still exposes nothing else — it's deprecated. */
+  transport: "http" | "sse";
+  name: string;
+  url: string;
+  /**
+   * Header templates, e.g. `{ Authorization: "Bearer ${GITHUB_TOKEN}" }`.
+   * Names and `${…}` references only — same rule as `env`, no values.
+   */
+  headers?: Record<string, string>;
+  /**
+   * The server runs OAuth on first connect, so the config carries no key at all.
+   * True for most hosted servers now, and the reason remote beats stdio here.
+   */
+  oauth?: boolean;
 }
 
 export interface Provider {
@@ -89,9 +124,15 @@ export const CAPABILITY_ORDER: Capability[] = [
 const V = "2026-08-04";
 
 /**
- * Seed provider catalog. NOT YET VERIFIED — free tiers and API shapes have not
- * been re-checked against the live services, so `last_verified` is the seed
- * date, not a real audit.
+ * Seed provider catalog. Free tiers are NOT YET VERIFIED — they have not been
+ * re-checked against the live services, so `last_verified` is the seed date,
+ * not a real audit.
+ *
+ * The `mcp_server` entries are the exception: every endpoint below was checked
+ * against the vendor's own docs on 2026-08-05. That is a narrower claim than
+ * `last_verified` makes, and deliberately not folded into it — three of the
+ * five original entries were stale or dead, and a date covering both would
+ * have hidden that.
  */
 export const PROVIDERS: Provider[] = [
   // ------------------------------------------------------------- database
@@ -113,10 +154,13 @@ export const PROVIDERS: Provider[] = [
       },
     ],
     mcp_server: {
+      transport: "http",
       name: "supabase",
-      command: "npx",
-      args: ["-y", "@supabase/mcp-server-supabase@latest"],
-      env: ["SUPABASE_ACCESS_TOKEN"],
+      // Hosted server. A personal access token used to be required and no
+      // longer is — OAuth on first connect. `read_only=true` is deliberate:
+      // an agent with write access to your database is not a default.
+      url: "https://mcp.supabase.com/mcp?read_only=true",
+      oauth: true,
     },
     docs_url: "https://supabase.com/docs",
     last_verified: V,
@@ -134,6 +178,14 @@ export const PROVIDERS: Provider[] = [
     env_vars: [
       { key: "DATABASE_URL", where_to_get: "Dashboard → Connection string" },
     ],
+    mcp_server: {
+      transport: "http",
+      name: "neon",
+      // The local stdio server was removed in Feb 2026 and the npm package is
+      // deprecated — remote is the only supported path now.
+      url: "https://mcp.neon.tech/mcp",
+      oauth: true,
+    },
     docs_url: "https://neon.tech/docs",
     last_verified: V,
   },
@@ -187,6 +239,13 @@ export const PROVIDERS: Provider[] = [
       },
       { key: "CLERK_SECRET_KEY", where_to_get: "Dashboard → API keys" },
     ],
+    mcp_server: {
+      transport: "http",
+      name: "clerk",
+      // Streamable HTTP only — Clerk exposes no stdio server.
+      url: "https://mcp.clerk.com/mcp",
+      oauth: true,
+    },
     docs_url: "https://clerk.com/docs",
     last_verified: V,
   },
@@ -257,10 +316,13 @@ export const PROVIDERS: Provider[] = [
       },
     ],
     mcp_server: {
+      transport: "http",
       name: "stripe",
-      command: "npx",
-      args: ["-y", "@stripe/mcp", "--tools=all"],
-      env: ["STRIPE_SECRET_KEY"],
+      // Hosted, OAuth. The stdio form took STRIPE_SECRET_KEY through the config
+      // file — a live payments key, in the one place this product refuses to
+      // put one.
+      url: "https://mcp.stripe.com",
+      oauth: true,
     },
     docs_url: "https://stripe.com/docs",
     last_verified: V,
@@ -415,6 +477,14 @@ export const PROVIDERS: Provider[] = [
     env_vars: [
       { key: "CLOUDINARY_URL", where_to_get: "Dashboard → Account details" },
     ],
+    mcp_server: {
+      // SSE because that is all Cloudinary exposes. Deprecated transport, kept
+      // rather than dropped — an sse entry that works beats no entry.
+      transport: "sse",
+      name: "cloudinary",
+      url: "https://asset-management.mcp.cloudinary.com/sse",
+      oauth: true,
+    },
     docs_url: "https://cloudinary.com/documentation",
     last_verified: V,
   },
@@ -512,10 +582,13 @@ export const PROVIDERS: Provider[] = [
       { key: "GITHUB_TOKEN", where_to_get: "Settings → Developer settings → PAT" },
     ],
     mcp_server: {
+      transport: "http",
       name: "github",
-      command: "npx",
-      args: ["-y", "@modelcontextprotocol/server-github"],
-      env: ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+      // GitHub's own server. `@modelcontextprotocol/server-github` — what this
+      // used to emit — is archived and unmaintained, so the old config
+      // installed a dead package.
+      url: "https://api.githubcopilot.com/mcp",
+      oauth: true,
     },
     docs_url: "https://docs.github.com",
     last_verified: V,
@@ -528,9 +601,20 @@ export const PROVIDERS: Provider[] = [
     free_tier: "Unlimited repos, 400 CI minutes",
     tradeoffs: {
       pro: ["Self-hosted instances are common in universities"],
-      con: ["Smaller ecosystem of integrations"],
+      con: [
+        "Smaller ecosystem of integrations",
+        "MCP server needs Premium or Ultimate — not on free",
+      ],
     },
     env_vars: [{ key: "GITLAB_TOKEN", where_to_get: "Preferences → Access tokens" }],
+    mcp_server: {
+      transport: "http",
+      name: "gitlab",
+      // Swap the host for your own instance if the university self-hosts —
+      // the path is the same.
+      url: "https://gitlab.com/api/v4/mcp",
+      oauth: true,
+    },
     docs_url: "https://docs.gitlab.com",
     last_verified: V,
   },
@@ -548,9 +632,12 @@ export const PROVIDERS: Provider[] = [
     },
     env_vars: [{ key: "LINEAR_API_KEY", where_to_get: "Settings → API" }],
     mcp_server: {
+      transport: "http",
       name: "linear",
-      command: "npx",
-      args: ["-y", "mcp-remote", "https://mcp.linear.app/sse"],
+      // Native remote. The old entry shimmed through `mcp-remote` to the /sse
+      // endpoint, which Linear is removing.
+      url: "https://mcp.linear.app/mcp",
+      oauth: true,
     },
     docs_url: "https://linear.app/docs",
     last_verified: V,
@@ -567,10 +654,10 @@ export const PROVIDERS: Provider[] = [
     },
     env_vars: [{ key: "NOTION_API_KEY", where_to_get: "Integrations → New" }],
     mcp_server: {
+      transport: "http",
       name: "notion",
-      command: "npx",
-      args: ["-y", "@notionhq/notion-mcp-server"],
-      env: ["NOTION_TOKEN"],
+      url: "https://mcp.notion.com/mcp",
+      oauth: true,
     },
     docs_url: "https://developers.notion.com",
     last_verified: V,
@@ -609,24 +696,118 @@ export function providersFor(capability: Capability): Provider[] {
   return PROVIDERS.filter((p) => p.capability === capability);
 }
 
+export type McpClient = "claude-code" | "cursor" | "vscode";
+
+export const MCP_CLIENT_LABEL: Record<McpClient, string> = {
+  "claude-code": "Claude Code",
+  cursor: "Cursor",
+  vscode: "VS Code",
+};
+
+/** Where each client reads the file from, shown above the block. */
+export const MCP_CLIENT_PATH: Record<McpClient, string> = {
+  "claude-code": ".mcp.json",
+  cursor: ".cursor/mcp.json",
+  vscode: ".vscode/mcp.json",
+};
+
 /**
- * Build the MCP config block for the connected providers.
+ * One server's entry.
  *
- * Emits env var NAMES only — the user fills values in their own agent config.
- * DevCon never sees, stores, or transmits a secret value.
+ * `type` is written on BOTH transports on purpose. It's required for remote
+ * entries and optional for stdio, but being explicit means a block copied
+ * between the three clients keeps working — VS Code wants it either way.
  */
-export function buildMcpConfig(connected: Set<string>): string {
-  const servers: Record<string, unknown> = {};
-  for (const p of PROVIDERS) {
-    if (!connected.has(p.id) || !p.mcp_server) continue;
-    const { name, command, args, env } = p.mcp_server;
-    servers[name] = {
-      command,
-      args,
-      ...(env?.length
-        ? { env: Object.fromEntries(env.map((k) => [k, `<your ${k}>`])) }
+function serverEntry(s: McpServer): Record<string, unknown> {
+  if (s.transport === "stdio") {
+    return {
+      type: "stdio",
+      command: s.command,
+      args: s.args,
+      ...(s.env?.length
+        ? { env: Object.fromEntries(s.env.map((k) => [k, `\${${k}}`])) }
         : {}),
     };
   }
-  return JSON.stringify({ mcpServers: servers }, null, 2);
+  return {
+    type: s.transport,
+    url: s.url,
+    ...(s.headers ? { headers: s.headers } : {}),
+  };
+}
+
+/**
+ * Build the MCP config block for the connected providers.
+ *
+ * Emits env var NAMES only — never a value. What changed is that the names are
+ * now `${NAME}` references the client resolves, rather than `<your NAME>` prose
+ * the client pastes verbatim into an auth header.
+ */
+export function buildMcpConfig(
+  connected: Set<string>,
+  client: McpClient = "claude-code",
+  providers: Provider[] = PROVIDERS,
+): string {
+  const servers: Record<string, unknown> = {};
+  for (const p of providers) {
+    if (!connected.has(p.id) || !p.mcp_server) continue;
+    servers[p.mcp_server.name] = serverEntry(p.mcp_server);
+  }
+  // VS Code reads `servers`; Claude Code and Cursor read `mcpServers`.
+  const root = client === "vscode" ? { servers } : { mcpServers: servers };
+  return JSON.stringify(root, null, 2);
+}
+
+/**
+ * The same servers as runnable `claude mcp add` commands.
+ *
+ * A JSON block still has to land in the right file at the right nesting level,
+ * and that step is where a correct config most often stops working. These run
+ * as-is.
+ */
+export function buildMcpCliCommands(
+  connected: Set<string>,
+  providers: Provider[] = PROVIDERS,
+): string[] {
+  const out: string[] = [];
+  for (const p of providers) {
+    const s = p.mcp_server;
+    if (!connected.has(p.id) || !s) continue;
+
+    if (s.transport === "stdio") {
+      // `--env` must not sit directly before the server name — the CLI reads
+      // the name as another KEY=value pair and rejects it. `--transport` in
+      // between is what keeps this valid.
+      const env = (s.env ?? []).map((k) => `--env ${k}=$${k} `).join("");
+      out.push(
+        `claude mcp add ${env}--transport stdio ${s.name} -- ${s.command} ${s.args.join(" ")}`,
+      );
+    } else {
+      const headers = Object.entries(s.headers ?? {})
+        .map(([h, v]) => ` --header "${h}: ${v}"`)
+        .join("");
+      out.push(
+        `claude mcp add --transport ${s.transport} ${s.name} ${s.url}${headers}`,
+      );
+    }
+  }
+  return out;
+}
+
+/** Connected providers that still need a key in the environment before they run. */
+export function mcpKeysNeeded(
+  connected: Set<string>,
+  providers: Provider[] = PROVIDERS,
+): string[] {
+  const keys = new Set<string>();
+  for (const p of providers) {
+    const s = p.mcp_server;
+    if (!connected.has(p.id) || !s) continue;
+    if (s.transport === "stdio") for (const k of s.env ?? []) keys.add(k);
+    else
+      for (const v of Object.values(s.headers ?? {})) {
+        for (const m of v.matchAll(/\$\{([A-Z0-9_]+)\}/g)) keys.add(m[1]);
+      }
+  }
+  return [...keys].sort();
 }

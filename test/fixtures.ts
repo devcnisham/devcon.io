@@ -1,5 +1,5 @@
 import type { ProjectProfile } from "@/lib/catalog/types";
-import { FIXTURES } from "@/lib/fixtures/profiles";
+import { FIXTURES } from "./profiles";
 
 /**
  * Profiles spanning the space, for snapshotting plans and proving the

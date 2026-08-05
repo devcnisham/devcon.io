@@ -24,6 +24,7 @@ function digest(over: Partial<RepoDigest> = {}): RepoDigest {
     migrations: [],
     fileCount: 50,
     hasGit: true,
+    gitRemote: null,
     hasReadme: true,
     hasTests: false,
     skipped: [],

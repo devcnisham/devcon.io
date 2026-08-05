@@ -1,11 +1,33 @@
 # DevCon — Handoff
 
-> Last updated: end of the session that wrote the test suites.
+> Last updated: end of the session that made ingest real and fixed the MCP output.
 > Branch: `devcon-engine-and-catalogs` · remote: `github.com/devcnisham/devcon.io`
 > **Read this first. Then `docs/gaps-plan.md` for what to do next.**
 >
-> Everything is committed and pushed. Working tree clean apart from
-> `nisham/` and `sumayya/`, which are deliberately untracked.
+> **This session's work is NOT committed.** Working tree has the changes below
+> plus `nisham/` and `sumayya/`, which are deliberately untracked.
+
+---
+
+## Read this before trusting the ordered plan
+
+**The competition track does not exist.** `Context` in
+`lib/catalog/types.ts` allows `"competition"`, but no step references it, there
+is no `competition` block on `ProjectProfile`, and there are no conditions for
+it. A competition profile produces **0 steps, 0 anti-steps, 58 hidden** — run
+`buildPlan` with one and see.
+
+That blocks items 2 and 3 of `docs/gaps-plan.md`, both of which assume ~10
+competition steps exist and are merely unverified. They are not unverified.
+They are absent. Building that track is the real next task.
+
+While confirming it, three further errors in `docs/gaps-plan.md` surfaced:
+
+- It says "53 steps". There are **58** (45 do + 13 anti).
+- It says commercial is 31 and academic 22. Commercial is **36**, academic 22.
+- G1 says "the engine already excludes unverified steps from plans, so this
+  gates itself." **It does not.** `Step` has no `verified_at` field and
+  `buildPlan` filters on nothing but `applies_when`. Nothing gates itself.
 
 ---
 
@@ -222,6 +244,82 @@ git checkout lib/…                               # restore
 
 ---
 
+## What this session changed
+
+### 1. Ingest is real, and the sample projects are gone
+
+Before: three fixture profiles rendered when nothing was loaded, and the only
+way to load a real repo was `/api/scan`, which is **dev-only and 404s in
+production**. A deployed DevCon could scan nothing at all.
+
+Now there is a source interface (`lib/scan/source.ts`) and one scanner
+(`lib/scan/digest.ts`) behind four ingest paths:
+
+| Source | File | Works in prod | Notes |
+|---|---|---|---|
+| Browser folder picker | `sources/folder.ts` | yes | Chromium only. Reads on the user's machine; nothing uploaded. |
+| Public GitHub repo | `sources/github.ts` | yes | Anonymous API, one recursive tree call. Public only — a private repo would need a token, and no field takes one. |
+| Dropped files | `sources/dropped.ts` | yes | Universal fallback. Reports `manifest-only` when it can't see a tree. |
+| Local path | `sources/node-fs.ts` | **no** | Dev route, unchanged guard. |
+
+The dev route is now ~60 lines that call `buildDigest(nodeSource(root))`. It
+produces a *better* digest than the old bespoke walk: it finds the git remote,
+and on the vespor monorepo it reports 5 `.env` files as never-read where the
+old code saw 1.
+
+Fixtures moved to `test/profiles.ts`. The app ships no sample project;
+`app/canvas/EmptyState.tsx` asks for a real one.
+
+**Gotcha worth knowing:** `EMPTY_PROFILE` does *not* select nothing. Every
+track has steps gated on `context` alone, so any complete profile builds a
+plan — an empty profile rendered 13 commercial steps behind the empty state.
+The plan is therefore gated on `scanned`, not on the profile being empty.
+
+### 2. The generated MCP config was broken, and is not now
+
+Three of the five servers were stale or dead, and all five emitted
+`"env": {"KEY": "<your KEY>"}` — a literal string the client passes through as
+the credential, so every server started and then failed its first
+authenticated call. Config that reads as working right up until it isn't.
+
+- `${NAME}` references now, which MCP clients expand from the environment.
+- Remote entries carry `"type"`. Without it a `url` entry is read as stdio and
+  **silently skipped**.
+- `@modelcontextprotocol/server-github` was archived → GitHub's own hosted
+  server. Linear's `mcp-remote` shim → native remote. Stripe's stdio form took
+  a live `STRIPE_SECRET_KEY` through the config file → hosted OAuth.
+- 9 servers now, up from 5. All OAuth, so `mcpKeysNeeded()` returns nothing.
+- Per-client output (Claude Code / Cursor / VS Code — VS Code reads `servers`,
+  not `mcpServers`) plus runnable `claude mcp add` commands.
+
+Every endpoint was checked against vendor docs on 2026-08-05. That is
+deliberately **not** folded into `last_verified`, which still means free tiers
+and is still just the seed date.
+
+### 3. Connected services are on the canvas
+
+`Step.serves?: Capability[]` is catalog data — 13 steps tagged — so a service
+node draws edges to the steps it actually wires up rather than to a guess.
+Integration state moved out of the panel into `lib/integrations/store.ts` so
+the canvas can see it. The scan's git remote names the real repository on the
+card (`devcnisham/devcon.io`, not "GitHub").
+
+### 4. Smaller fixes
+
+- Docs sidebar starts **closed** and no longer reserves its gutter.
+- `navigator.clipboard.writeText` in Integrations was unhandled — the same bug
+  already fixed in Prompts. Extracted to `lib/clipboard.ts` and used by both.
+- `context()` in the condition DSL still reads "a academic project". Not fixed
+  — see below.
+
+**Tests: 134, up from 79.** All new ones mutation-verified. That found four
+assertions passing against nothing (every shipped MCP server is remote, so the
+stdio paths were never exercised) and two real bugs: `droppedCoverage`
+misreading a flat directory drop, and a migration count that agreed with the
+wrong implementation because every fixture directory held one file.
+
+---
+
 ## Where the last session stopped
 
 **Finished this session:**
@@ -244,7 +342,29 @@ star's denominator.
 **Loose end, small:** never visually confirmed the Funnel table renders with
 real events in it. The aggregation is tested; the rendering is not.
 
-**Nothing is half-done.** Build passes, tests pass, everything is pushed.
+## Loose ends from THIS session
+
+Stated rather than left to be discovered:
+
+1. **Nothing is committed.** Build and 134 tests pass; the tree is dirty.
+2. **`context()` reads "a academic project"** — `lib/catalog/conditions.ts`
+   builds `a ${c}` with no article logic, so the hidden drawer says "this isn't
+   a academic project". `lib/engine/prompt.ts` already has an `article()`
+   helper for exactly this; it just isn't shared. One-line fix, not done.
+3. **The folder picker and file drop have not been driven by hand.** The digest
+   builder behind them has 15 tests, and the GitHub path was run end-to-end
+   against `vercel/next-learn` (311 files, correct deps and needs). The two
+   browser-only sources are typed and unit-tested but nobody has clicked them.
+4. **`identityFromScan` only knows git hosts.** A connected Vercel or Supabase
+   card still says "not linked to a specific project yet", because knowing
+   which Vercel project this is needs an authenticated call DevCon can't make.
+   Left absent rather than guessed.
+5. **`project-management` is the one capability no step serves**, asserted in
+   `test/integrations.test.ts`. Connect Linear and its node draws no edges. That
+   is honest — no catalog step wires up a tracker — but it looks like a bug.
+6. **The GitHub source is rate-limited to 60 requests/hour** unauthenticated,
+   and each file read is a request. A large repo can exhaust it; the error says
+   so and points at the folder picker.
 
 ---
 
@@ -255,7 +375,8 @@ From `docs/gaps-plan.md`. The order is forced, not preference.
 | # | Work | Why here |
 |---|---|---|
 | 1 | ~~Instrument the funnel~~ | **Done.** |
-| 2 | **Verify the competition prompts through a real agent** | Running a cohort on unverified prompts makes failure un-diagnosable between "plan wrong" and "prompt wrong". ~10 steps. Set `verified_at`. |
+| 1.5 | **Build the competition track** | Newly discovered blocker. It does not exist — see the top of this file. Items 2 and 3 both assume it does. Needs a `competition` block on `ProjectProfile`, condition leaves, ~10 do-steps + ~7 anti-steps, and a fixture. |
+| 2 | **Verify the competition prompts through a real agent** | Blocked on 1.5. Running a cohort on unverified prompts makes failure un-diagnosable between "plan wrong" and "prompt wrong". Also needs a `verified_at` field, which does not exist yet either. |
 | 3 | **Run one hackathon cohort**, 10–50 teams | The only thing that closes the dominant gap. |
 | 4 | Read drop-off → fix the catalog | The flywheel, with real input for the first time. |
 | 5 | Accounts + return loop | **Only if the cohort shows it's needed.** |

@@ -1,5 +1,7 @@
 // Core catalog types. See docs/v1.0.0-solo-team-plan.md
 
+import type { Capability } from "./providers";
+
 export type Context = "academic" | "competition" | "commercial";
 export type Phase = "foundation" | "core" | "harden" | "deliver";
 export type StepKind = "do" | "avoid";
@@ -89,6 +91,14 @@ export interface Step {
   est_minutes: number;
   /** Percentage of final grade, when the brief supplies a rubric. */
   mark_weight?: number;
+  /**
+   * Capabilities this step actually wires up.
+   *
+   * Catalog data, not inference — it decides which connected service a step is
+   * drawn against on the canvas. Deriving it from the title or the `needs`
+   * predicate would be a guess, and a wrong edge on a graph reads as a fact.
+   */
+  serves?: Capability[];
 }
 
 export interface HiddenStep {

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Plan, ProjectProfile, Step } from "@/lib/catalog/types";
+import { copyText } from "@/lib/clipboard";
 import {
   AGENT_LABEL,
   type AgentTarget,
@@ -65,16 +66,7 @@ export function Prompts({
       .sort((a, b) => rank(a) - rank(b));
   }, [plan.steps, completed, ready, active, showDone]);
 
-  /**
-   * Copy, and only record it if the clipboard actually took it.
-   *
-   * `writeText` rejects when the document isn't focused, on a non-secure
-   * origin, or when permission is denied. Two things were wrong before:
-   * the rejection was unhandled (crashing the dev overlay), and the event
-   * fired regardless — so a failed copy was counted as a successful one.
-   * That corrupts `prompt_copied`, which is the signal this instrumentation
-   * exists to produce.
-   */
+  /** Copy, and only record it if the clipboard actually took it. */
   const copy = async (step: Step) => {
     const text = buildPrompt(
       step,
@@ -86,26 +78,10 @@ export function Prompts({
       detected,
     );
 
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      // Older/blocked path: a hidden textarea still works when the async
-      // clipboard API refuses.
-      try {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.select();
-        const ok = document.execCommand("copy");
-        document.body.removeChild(ta);
-        if (!ok) throw new Error("execCommand failed");
-      } catch {
-        setFailedId(step.id);
-        setTimeout(() => setFailedId(null), 2400);
-        return; // No event — nothing reached the clipboard.
-      }
+    if (!(await copyText(text))) {
+      setFailedId(step.id);
+      setTimeout(() => setFailedId(null), 2400);
+      return; // No event — nothing reached the clipboard.
     }
 
     // Recorded separately from completion on purpose — the gap between the two

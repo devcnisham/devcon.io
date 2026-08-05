@@ -5,12 +5,21 @@ import {
   CAPABILITY_LABEL,
   CAPABILITY_ORDER,
   type Capability,
+  MCP_CLIENT_LABEL,
+  MCP_CLIENT_PATH,
+  type McpClient,
   PROVIDERS,
   type Provider,
+  buildMcpCliCommands,
   buildMcpConfig,
   makeCustomProvider,
+  mcpKeysNeeded,
   providersFor,
 } from "@/lib/catalog/providers";
+import { copyText } from "@/lib/clipboard";
+import type { IntegrationState } from "@/lib/integrations/store";
+
+const MCP_CLIENTS: McpClient[] = ["claude-code", "cursor", "vscode"];
 
 /** Deterministic tint per provider, so each row is recognisable at a glance. */
 const TINTS = [
@@ -50,14 +59,26 @@ type Status = "idle" | "connecting" | "connected";
  * transmits, or displays a secret VALUE. Every field is a key NAME plus a
  * user-set "configured" boolean. There is deliberately nowhere to paste a key.
  */
-export function Integrations() {
+export function Integrations({
+  state,
+  onChange,
+  identity = {},
+}: {
+  state: IntegrationState;
+  onChange: (next: IntegrationState) => void;
+  /** What each connection resolves to, when the scan could establish it. */
+  identity?: Record<string, string>;
+}) {
+  // Transient only — which rows are mid-animation. The durable list of what's
+  // connected lives in `state`, so the canvas sees the same thing.
   const [status, setStatus] = useState<Record<string, Status>>({});
-  const [configured, setConfigured] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"none" | "config" | "cli" | "failed">(
+    "none",
+  );
+  const [mcpClient, setMcpClient] = useState<McpClient>("claude-code");
 
-  const [custom, setCustom] = useState<Provider[]>([]);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState({
     name: "",
@@ -66,11 +87,10 @@ export function Integrations() {
     capability: "database" as Capability,
   });
 
+  const custom = state.custom;
+  const configured = useMemo(() => new Set(state.configured), [state.configured]);
   const all = useMemo(() => [...PROVIDERS, ...custom], [custom]);
-  const connected = useMemo(
-    () => new Set(all.filter((p) => status[p.id] === "connected").map((p) => p.id)),
-    [all, status],
-  );
+  const connected = useMemo(() => new Set(state.connected), [state.connected]);
 
   const optionsFor = (c: Capability) => [
     ...providersFor(c),
@@ -85,22 +105,29 @@ export function Integrations() {
    * an unmade decision.
    */
   const connect = (p: Provider) => {
-    if (status[p.id] === "connected") {
+    if (connected.has(p.id)) {
       setStatus((s) => ({ ...s, [p.id]: "idle" }));
+      onChange({
+        ...state,
+        connected: state.connected.filter((id) => id !== p.id),
+      });
       return;
     }
-    setStatus((s) => {
-      const next = { ...s };
-      for (const sibling of optionsFor(p.capability)) next[sibling.id] = "idle";
-      next[p.id] = "connecting";
-      return next;
-    });
+
+    setStatus((s) => ({ ...s, [p.id]: "connecting" }));
     // No OAuth to run — this is the local record of a decision, not an auth
     // handshake. The brief pause is honest about there being a step here later.
-    setTimeout(
-      () => setStatus((s) => ({ ...s, [p.id]: "connected" })),
-      420,
-    );
+    setTimeout(() => {
+      setStatus((s) => ({ ...s, [p.id]: "idle" }));
+      const siblings = new Set(optionsFor(p.capability).map((s) => s.id));
+      onChange({
+        ...state,
+        connected: [
+          ...state.connected.filter((id) => !siblings.has(id)),
+          p.id,
+        ],
+      });
+    }, 420);
   };
 
   const filtered = useMemo(() => {
@@ -126,34 +153,48 @@ export function Integrations() {
     return out;
   }, [all, connected, configured]);
 
-  const mcpConfig = useMemo(() => buildMcpConfig(connected), [connected]);
+  const mcpConfig = useMemo(
+    () => buildMcpConfig(connected, mcpClient),
+    [connected, mcpClient],
+  );
+  const mcpCommands = useMemo(() => buildMcpCliCommands(connected), [connected]);
+  const mcpKeys = useMemo(() => mcpKeysNeeded(connected), [connected]);
   const mcpCount = all.filter(
     (p) => connected.has(p.id) && p.mcp_server,
+  ).length;
+  const oauthCount = all.filter(
+    (p) => connected.has(p.id) && p.mcp_server?.transport !== "stdio" && p.mcp_server?.oauth,
   ).length;
 
   const submitCustom = () => {
     const name = draft.name.trim();
     if (!name) return;
-    setCustom((prev) => [
-      ...prev,
-      makeCustomProvider({
-        capability: draft.capability,
-        name,
-        about: draft.about.trim(),
-        envKeys: draft.envKeys
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      }),
-    ]);
+    onChange({
+      ...state,
+      custom: [
+        ...state.custom,
+        makeCustomProvider({
+          capability: draft.capability,
+          name,
+          about: draft.about.trim(),
+          envKeys: draft.envKeys
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+        }),
+      ],
+    });
     setDraft({ name: "", about: "", envKeys: "", capability: "database" });
     setAdding(false);
   };
 
   /* --------------------------------------------------------------- a row */
   const Row = ({ p }: { p: Provider }) => {
-    const st = status[p.id] ?? "idle";
+    const st: Status = connected.has(p.id)
+      ? "connected"
+      : (status[p.id] ?? "idle");
     const open = expanded === p.id;
+    const linked = identity[p.id];
 
     return (
       <li
@@ -187,8 +228,16 @@ export function Integrations() {
               ) : null}
             </span>
             <span className="mt-0.5 block truncate text-xs text-neutral-500">
-              {p.about}
-              {p.custom ? "" : ` · ${p.free_tier}`}
+              {/* The actual repo or project, when the scan could read it off
+                  disk. "GitHub" is a category; the slug is this project. */}
+              {linked ? (
+                <span className="font-mono text-amber-300/90">{linked}</span>
+              ) : (
+                <>
+                  {p.about}
+                  {p.custom ? "" : ` · ${p.free_tier}`}
+                </>
+              )}
             </span>
           </button>
 
@@ -243,11 +292,11 @@ export function Integrations() {
                         <button
                           type="button"
                           onClick={() =>
-                            setConfigured((s) => {
-                              const n = new Set(s);
-                              if (n.has(key)) n.delete(key);
-                              else n.add(key);
-                              return n;
+                            onChange({
+                              ...state,
+                              configured: configured.has(key)
+                                ? state.configured.filter((k) => k !== key)
+                                : [...state.configured, key],
                             })
                           }
                           className="flex w-full items-start gap-2 text-left"
@@ -489,9 +538,33 @@ export function Integrations() {
             MCP servers
           </h2>
           <p className="mb-3 text-sm text-neutral-500">
-            Paste into your agent&apos;s MCP config. With these connected, your
-            agent can do the step instead of only writing code about it.
+            With these connected, your agent can do the step instead of only
+            writing code about it.
           </p>
+
+          {/* Each client reads a different file, and VS Code reads a different
+              top-level key. One block labelled "your agent's MCP config" was
+              wrong for two of the three. */}
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            {MCP_CLIENTS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setMcpClient(c)}
+                className={`rounded-lg border px-2.5 py-1 text-xs transition-colors ${
+                  mcpClient === c
+                    ? "border-sky-400/40 bg-sky-400/15 text-sky-200"
+                    : "border-white/12 bg-white/[0.03] text-neutral-400 hover:text-neutral-200"
+                }`}
+              >
+                {MCP_CLIENT_LABEL[c]}
+              </button>
+            ))}
+            <code className="ml-1 font-mono text-[11px] text-neutral-600">
+              {MCP_CLIENT_PATH[mcpClient]}
+            </code>
+          </div>
+
           <div className="overflow-hidden rounded-xl border border-white/12 bg-black/40">
             <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
               <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500">
@@ -499,19 +572,75 @@ export function Integrations() {
               </span>
               <button
                 type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(mcpConfig);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1600);
+                onClick={async () => {
+                  const ok = await copyText(mcpConfig);
+                  setCopied(ok ? "config" : "failed");
+                  setTimeout(() => setCopied("none"), ok ? 1600 : 2400);
                 }}
                 className="rounded-md border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs text-neutral-200 transition-colors hover:bg-white/12"
               >
-                {copied ? "Copied" : "Copy"}
+                {copied === "config"
+                  ? "Copied"
+                  : copied === "failed"
+                    ? "Copy failed"
+                    : "Copy"}
               </button>
             </div>
             <pre className="overflow-x-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-neutral-300">
               {mcpConfig}
             </pre>
+          </div>
+
+          {/* The JSON still has to land in the right file at the right nesting
+              level, which is where a correct config most often stops working.
+              These run as-is. */}
+          {mcpClient === "claude-code" && mcpCommands.length ? (
+            <div className="mt-3 overflow-hidden rounded-xl border border-white/12 bg-black/40">
+              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500">
+                  or run these
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await copyText(mcpCommands.join("\n"));
+                    setCopied(ok ? "cli" : "failed");
+                    setTimeout(() => setCopied("none"), ok ? 1600 : 2400);
+                  }}
+                  className="rounded-md border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs text-neutral-200 transition-colors hover:bg-white/12"
+                >
+                  {copied === "cli" ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <pre className="overflow-x-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-neutral-300">
+                {mcpCommands.join("\n")}
+              </pre>
+            </div>
+          ) : null}
+
+          <div className="mt-3 space-y-1.5 text-xs">
+            {oauthCount > 0 ? (
+              <p className="text-emerald-400/90">
+                {oauthCount} of these sign in with OAuth in your agent — no key
+                goes in the config at all.
+              </p>
+            ) : null}
+            {mcpKeys.length ? (
+              <p className="text-neutral-500">
+                Export before starting your agent:{" "}
+                {mcpKeys.map((k) => (
+                  <code key={k} className="mr-1.5 font-mono text-amber-300/90">
+                    {k}
+                  </code>
+                ))}
+                <span className="block pt-1">
+                  The config references these as{" "}
+                  <code className="font-mono">{"${NAME}"}</code>, so your agent
+                  reads the value from your environment and DevCon never holds
+                  it.
+                </span>
+              </p>
+            ) : null}
           </div>
         </section>
       ) : null}

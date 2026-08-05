@@ -40,16 +40,18 @@ Break these and things fail in non-obvious ways.
 - `lib/catalog/` — types, the condition DSL, step catalogs, providers
 - `lib/engine/` — plan (selection lives inline in `buildPlan`, there is no
   `select.ts`), order, explain, layout, prompt
-- `lib/scan/` — repo digest → profile + completion detection
+- `lib/scan/` — source interface, one digest builder, four ingest sources
+  (browser folder picker, public GitHub, dropped files, dev-only local path)
 - `lib/telemetry/` — event taxonomy, funnel aggregation, fix-list ranking
 - `app/canvas/` — canvas + workspace UI
-- `app/api/scan`, `app/api/verify` — **dev-only**, 404 in production
+- `app/api/scan`, `app/api/verify` — **dev-only**, 404 in production. Production
+  ingest goes through the browser sources, not here.
 - `docs/gaps-plan.md` — what to do next and why, in dependency order
 
 ## Working agreement
 
 - `pnpm build` is the gate — it runs TypeScript. Lint has known a11y noise
-  from scaffolded SVGs. `pnpm test` runs 79 mutation-verified tests.
+  from scaffolded SVGs. `pnpm test` runs 134 mutation-verified tests.
 - **A green suite is not evidence a suite works.** Every assertion in
   `test/` was checked by breaking the implementation and confirming a test
   caught it. That found a test passing against a deleted invariant, and a

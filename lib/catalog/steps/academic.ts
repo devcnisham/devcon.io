@@ -90,6 +90,7 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Repo exists with a first commit" },
       { text: "README has setup, run, and project-description headings" },
     ],
+    serves: ["version-control"],
     est_minutes: 25,
   },
   {
@@ -124,6 +125,7 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Entities and relationships written down" },
       { text: "Schema created and migrating cleanly" },
     ],
+    serves: ["database"],
     est_minutes: 90,
     mark_weight: 10,
   },
@@ -158,6 +160,7 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Sign in and sign out work" },
       { text: "Protected pages redirect when signed out" },
     ],
+    serves: ["auth"],
     est_minutes: 90,
     mark_weight: 5,
   },

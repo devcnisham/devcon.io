@@ -94,6 +94,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Migrations run cleanly from empty" },
       { text: "Every table that holds user data has an owner column" },
     ],
+    serves: ["database"],
     est_minutes: 120,
   },
 
@@ -113,6 +114,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Protected routes reject signed-out users server-side, not just in the UI" },
       { text: "Session expiry behaves sensibly rather than throwing" },
     ],
+    serves: ["auth"],
     est_minutes: 180,
   },
   {
@@ -130,6 +132,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "The webhook is idempotent — replaying it doesn't duplicate rows" },
       { text: "Deleting the account cleans up or anonymises their rows" },
     ],
+    serves: ["auth", "database"],
     est_minutes: 120,
   },
   {
@@ -163,6 +166,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "The success page does not grant access by itself" },
       { text: "Cancelled checkout returns the user somewhere sensible" },
     ],
+    serves: ["payments"],
     est_minutes: 180,
   },
   {
@@ -181,6 +185,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Access is granted by the webhook, not the success redirect" },
       { text: "Tested with the provider's CLI replaying real events" },
     ],
+    serves: ["payments"],
     est_minutes: 240,
   },
   {
@@ -198,6 +203,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "One function answers 'can this user do this?'" },
       { text: "Expiry and cancellation are handled, not just activation" },
     ],
+    serves: ["payments", "database"],
     est_minutes: 120,
   },
   {
@@ -215,6 +221,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Receipt and password reset both arrive, not in spam" },
       { text: "A send failure is logged rather than swallowed" },
     ],
+    serves: ["email"],
     est_minutes: 120,
   },
   {
@@ -232,6 +239,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "A per-user cap exists and has been tested by hitting it" },
       { text: "An account-level ceiling alerts you before the invoice does" },
     ],
+    serves: ["llm"],
     est_minutes: 180,
   },
   {
@@ -249,6 +257,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Reads are authorised, not just unguessable" },
       { text: "File type and size limits enforced server-side" },
     ],
+    serves: ["file-storage"],
     est_minutes: 120,
   },
 
@@ -319,6 +328,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Refund or chargeback revokes access" },
       { text: "The user is told before access disappears" },
     ],
+    serves: ["payments"],
     est_minutes: 150,
   },
   {

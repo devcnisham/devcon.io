@@ -1,4 +1,4 @@
-import type { ProjectProfile } from "../catalog/types";
+import type { ProjectProfile } from "@/lib/catalog/types";
 
 /** Academic fixtures still need the block; none of it applies to them. */
 const NOT_COMMERCIAL: ProjectProfile["commercial"] = {
@@ -9,9 +9,17 @@ const NOT_COMMERCIAL: ProjectProfile["commercial"] = {
 };
 
 /**
- * Fixture profiles spanning the space. These drive both the tests and — until
- * intake exists — the UI, so the canvas renders a real plan rather than mock
- * data. Building the UI validates the engine as a side effect.
+ * Fixture profiles spanning the space.
+ *
+ * These used to drive the UI as well, so the canvas had something to render
+ * before intake existed. It has intake now — a folder picker, a file drop, a
+ * public GitHub repo, and the local dev route — so the app ships no sample
+ * project at all and these are test data only.
+ *
+ * They stay because the engine tests need profiles that differ along every
+ * axis a predicate reads: context, needs, group size, deliverables. Without
+ * that spread, the exclusion-testability rule in catalog.test.ts — no step is
+ * shown by every profile — has nothing to test against.
  */
 
 export const FINAL_YEAR_SOLO: ProjectProfile = {

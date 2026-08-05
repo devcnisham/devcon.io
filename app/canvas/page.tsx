@@ -26,7 +26,7 @@ import {
 import { layoutSteps } from "@/lib/engine/layout";
 import { unblockedSteps } from "@/lib/engine/order";
 import { buildPlan, marksAvailable, planMinutes } from "@/lib/engine/plan";
-import { FIXTURES } from "@/lib/fixtures/profiles";
+import { EMPTY_PROFILE } from "@/lib/scan/empty";
 import {
   DEFAULT_PREFS,
   type Prefs,
@@ -39,6 +39,14 @@ import {
   emptyTaskState,
 } from "@/lib/tasks/types";
 import { useSearchParams } from "next/navigation";
+import {
+  EMPTY_INTEGRATIONS,
+  type IntegrationState,
+  connectedProviders,
+  identityFromScan,
+  loadIntegrations,
+  saveIntegrations,
+} from "@/lib/integrations/store";
 import { profileFromDigest } from "@/lib/scan/profile";
 import { type RepoDigest, type ScanResult, isScanError } from "@/lib/scan/types";
 import { track, trackOnce } from "@/lib/telemetry/events";
@@ -47,31 +55,34 @@ import { Dock, type DockItem } from "./Dock";
 import { ProjectLoader } from "./ProjectLoader";
 import { DocWindowNode, type DocNodeData } from "./DocWindowNode";
 import { DocsSidebar } from "./DocsSidebar";
+import { EmptyState } from "./EmptyState";
 import {
   LEFT_COLLAPSED,
   LEFT_WIDTH,
   LeftSidebar,
   type LeftSection,
 } from "./LeftSidebar";
+import { IntegrationNode, type IntegrationNodeData } from "./IntegrationNode";
 import { StepNode, type StepNodeData } from "./StepNode";
 import { ViewTabs, type ViewKey } from "./ViewTabs";
 import { Workspace } from "./Workspace";
 
-const nodeTypes = { step: StepNode, doc: DocWindowNode };
-
-type FixtureKey = keyof typeof FIXTURES;
-type AnyNode = Node<StepNodeData> | Node<DocNodeData>;
-
-const FIXTURE_LABELS: Record<FixtureKey, string> = {
-  FINAL_YEAR_SOLO: "Final year · solo",
-  GROUP_COURSEWORK: "Group coursework · 4",
-  PERSONAL_PROJECT: "Personal project",
+const nodeTypes = {
+  step: StepNode,
+  doc: DocWindowNode,
+  integration: IntegrationNode,
 };
+
+type AnyNode =
+  | Node<StepNodeData>
+  | Node<DocNodeData>
+  | Node<IntegrationNodeData>;
+
+const integrationNodeId = (providerId: string) => `svc:${providerId}`;
 
 const docNodeId = (docId: string) => `doc:${docId}`;
 
 function CanvasInner() {
-  const [fixtureKey, setFixtureKey] = useState<FixtureKey>("FINAL_YEAR_SOLO");
   // Task state and docs are local-only until PlanStore lands.
   const [tasks, setTasks] = useState<TaskState>(emptyTaskState);
   const [docs, setDocs] = useState<DocNode[]>(SEED_DOCS);
@@ -79,31 +90,66 @@ function CanvasInner() {
   const [view, setView] = useState<ViewKey>("canvas");
   const [section, setSection] = useState<LeftSection>("overview");
   const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [docsPinned, setDocsPinned] = useState(true);
+  /**
+   * Closed until asked for.
+   *
+   * It opened by default and covered the right of the canvas before anyone had
+   * a reason to want it. The floating trigger in DocsSidebar is how it comes
+   * back, so nothing is lost by starting hidden.
+   */
+  const [docsPinned, setDocsPinned] = useState(false);
   const searchParams = useSearchParams();
   /**
-   * Events are keyed by project, not user — there are no accounts. Falls back
-   * to the fixture name so sample projects still produce a readable funnel.
+   * The scanned repo. There is no longer a fallback.
+   *
+   * The three sample profiles used to render here when nothing was loaded,
+   * which meant the first thing anyone saw was a plan for a library management
+   * system they had never heard of. A real project or an empty state — a
+   * convincing plan for a project that doesn't exist is worse than no plan.
    */
-  const projectToken = searchParams.get("w") ?? `fixture:${fixtureKey}`;
-  // A real scanned repo, when one is loaded. Overrides the sample fixtures.
   const [scanned, setScanned] = useState<{
     profile: ProjectProfile;
     digest: RepoDigest;
     evidence: { field: string; because: string }[];
   } | null>(null);
+  /** Events are keyed by project, not user — there are no accounts. */
+  const projectToken =
+    searchParams.get("w") ?? (scanned ? `repo:${scanned.digest.root}` : "none");
+  /** Lifted so the canvas empty state can open the loader too. */
+  const [loaderOpen, setLoaderOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [overrides, setOverrides] = useState<ProfileOverrides>({});
+
+  /**
+   * Connected services. Lifted out of the Integrations panel so the canvas can
+   * draw them — a connection the workflow can't see isn't part of the workflow.
+   */
+  const [integrations, setIntegrations] =
+    useState<IntegrationState>(EMPTY_INTEGRATIONS);
+  useEffect(() => setIntegrations(loadIntegrations()), []);
+  const updateIntegrations = useCallback((next: IntegrationState) => {
+    setIntegrations(next);
+    saveIntegrations(next);
+  }, []);
 
   const completed = tasks.completed;
 
   /**
-   * Fixture plus whatever Settings has changed. Merged here rather than
-   * mutating the fixture so switching fixtures cleanly discards edits — and so
-   * the engine still receives one plain, complete profile.
+   * The scanned profile plus whatever Settings has changed. Merged here rather
+   * than mutated in place, so a re-scan cleanly discards edits — and so the
+   * engine still receives one plain, complete profile.
+   *
+   * `EMPTY_PROFILE` is a shape, not a sample. It exists only so the hooks below
+   * don't have to be conditional on whether a repo is loaded.
+   *
+   * It does NOT select nothing — every track has steps gated on `context`
+   * alone, by design, so any complete profile produces a plan. That's why the
+   * plan below is gated on `scanned` instead: an empty profile rendered 13
+   * commercial steps behind the empty state, which is exactly the invented
+   * project removing the fixtures was meant to stop.
    */
   const profile: ProjectProfile = useMemo(() => {
-    const base = scanned?.profile ?? FIXTURES[fixtureKey];
+    const base = scanned?.profile ?? EMPTY_PROFILE;
     return {
       ...base,
       one_liner: overrides.one_liner ?? base.one_liner,
@@ -125,10 +171,15 @@ function CanvasInner() {
       },
     };
     // `scanned` must be here — without it the memo never recomputes after a
-    // scan lands, so the header updates but the plan keeps showing the fixture.
-  }, [fixtureKey, overrides, scanned]);
+    // scan lands, so the header updates but the plan stays empty.
+  }, [overrides, scanned]);
 
-  const plan = useMemo(() => buildPlan(profile), [profile]);
+  /** No project, no plan. Not an empty plan for an imaginary one. */
+  const plan = useMemo(
+    () =>
+      scanned ? buildPlan(profile) : { steps: [], antiSteps: [], hidden: [] },
+    [profile, scanned],
+  );
 
   /**
    * Denominator for the north star: of the projects that got a plan, how many
@@ -332,6 +383,25 @@ function CanvasInner() {
     [nodes],
   );
 
+  const services = useMemo(
+    () => connectedProviders(integrations),
+    [integrations],
+  );
+
+  /**
+   * What each connection points at.
+   *
+   * The scan's git remote wins over anything typed by hand, because it was read
+   * off disk rather than asserted — if the two disagree, the repo is right.
+   */
+  const identity = useMemo(
+    () => ({
+      ...integrations.identity,
+      ...identityFromScan(scanned?.digest.gitRemote ?? null),
+    }),
+    [integrations.identity, scanned],
+  );
+
   /**
    * Rebuild step nodes when the plan or completion changes, but PRESERVE any
    * position the user dragged to — and leave doc windows untouched.
@@ -365,9 +435,34 @@ function CanvasInner() {
         } as Node<StepNodeData>;
       });
 
-      return [...stepNodes, ...docWindows];
+      /**
+       * A column of connected services to the left of the plan.
+       *
+       * Left, because step layout centres on x=0 and doc windows already take
+       * x=-640 — services sit further out at -980 so nothing lands underneath
+       * anything else.
+       */
+      const serviceNodes = services.map((p, i) => {
+        const id = integrationNodeId(p.id);
+        const existing = kept.get(id);
+        return {
+          id,
+          type: "integration",
+          position: existing?.position ?? { x: -980, y: i * 190 },
+          selected: existing?.selected ?? false,
+          data: {
+            provider: p,
+            identity: identity[p.id] ?? null,
+            serves: plan.steps
+              .filter((s) => s.serves?.includes(p.capability))
+              .map((s) => s.title),
+          },
+        } as Node<IntegrationNodeData>;
+      });
+
+      return [...stepNodes, ...serviceNodes, ...docWindows];
     });
-  }, [plan.steps, completed, ready, setNodes]);
+  }, [plan.steps, completed, ready, setNodes, services, identity]);
 
   /** Keep open doc windows in sync with edits made anywhere. */
   useEffect(() => {
@@ -399,26 +494,53 @@ function CanvasInner() {
   }, [layoutNonce, setNodes]);
 
   useEffect(() => {
-    setEdges(
-      plan.steps.flatMap((step) =>
-        step.requires.map((dep) => ({
-          id: `${dep}->${step.id}`,
-          source: dep,
-          target: step.id,
-          // Each side has its own handle now, so dependency edges must name the
-          // pair explicitly — otherwise routing changes between renders.
-          sourceHandle: "bottom-s",
-          targetHandle: "top-t",
+    const dependencyEdges = plan.steps.flatMap((step) =>
+      step.requires.map((dep) => ({
+        id: `${dep}->${step.id}`,
+        source: dep,
+        target: step.id,
+        // Each side has its own handle now, so dependency edges must name the
+        // pair explicitly — otherwise routing changes between renders.
+        sourceHandle: "bottom-s",
+        targetHandle: "top-t",
+        type: "smoothstep",
+        animated: ready.has(step.id),
+        style: {
+          stroke: ready.has(step.id) ? "#a16207" : "#333",
+          strokeWidth: 1.5,
+        },
+      })),
+    );
+
+    /**
+     * Service → step, drawn from the step's own `serves` field.
+     *
+     * Dashed and a different colour on purpose: a dependency edge means "this
+     * must happen first", and a service edge means "this is what you're wiring
+     * to". Drawing them the same would put services into the reading of the
+     * critical path, which they are not part of.
+     */
+    const serviceEdges = services.flatMap((p) =>
+      plan.steps
+        .filter((s) => s.serves?.includes(p.capability))
+        .map((s) => ({
+          id: `${integrationNodeId(p.id)}->${s.id}`,
+          source: integrationNodeId(p.id),
+          target: s.id,
+          sourceHandle: "right-s",
+          targetHandle: "left-t",
           type: "smoothstep",
-          animated: ready.has(step.id),
           style: {
-            stroke: ready.has(step.id) ? "#a16207" : "#333",
-            strokeWidth: 1.5,
+            stroke: "#10b981",
+            strokeWidth: 1.25,
+            strokeDasharray: "5 4",
+            opacity: 0.55,
           },
         })),
-      ),
     );
-  }, [plan.steps, ready, setEdges]);
+
+    setEdges([...dependencyEdges, ...serviceEdges]);
+  }, [plan.steps, ready, setEdges, services]);
 
   /**
    * User-drawn connections are visual only — they do NOT write back into
@@ -589,6 +711,8 @@ function CanvasInner() {
           ) : null}
 
           <ProjectLoader
+            open={loaderOpen}
+            setOpen={setLoaderOpen}
             loaded={scanned?.digest ?? null}
             onLoaded={(profile, digest, evidence) => {
               setScanned({ profile, digest, evidence });
@@ -604,23 +728,6 @@ function CanvasInner() {
             }}
           />
 
-          {!scanned ? (
-            <select
-              value={fixtureKey}
-              onChange={(e) => {
-                setFixtureKey(e.target.value as FixtureKey);
-                setTasks(emptyTaskState());
-                setNodes([]);
-              }}
-              className="rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-neutral-300"
-            >
-              {(Object.keys(FIXTURES) as FixtureKey[]).map((k) => (
-                <option key={k} value={k}>
-                  {FIXTURE_LABELS[k]}
-                </option>
-              ))}
-            </select>
-          ) : null}
         </div>
       </header>
 
@@ -647,6 +754,13 @@ function CanvasInner() {
               "radial-gradient(circle at 50% 45%, transparent 35%, rgba(0,0,0,0.55) 100%)",
           }}
         />
+
+        {!scanned ? (
+          <EmptyState
+            onOpen={() => setLoaderOpen(true)}
+            hasDevScan={process.env.NODE_ENV !== "production"}
+          />
+        ) : null}
 
         {view === "canvas" ? (
           <ReactFlow
@@ -713,13 +827,18 @@ function CanvasInner() {
             ready={ready}
             section={section}
             insetLeft={(leftCollapsed ? LEFT_COLLAPSED : LEFT_WIDTH) + 24}
-            // 288 panel + 12 inset each side.
-            insetRight={312}
+            // 288 panel + 12 inset each side, but only while it's actually
+            // there — reserving the gutter for a hidden panel left a dead strip
+            // down the right of the workspace.
+            insetRight={docsPinned ? 312 : 24}
             prefs={prefs}
             detected={
               scanned ? { envKeys: scanned.digest.envKeys } : undefined
             }
             project={projectToken}
+            integrations={integrations}
+            identity={identity}
+            onIntegrationsChange={updateIntegrations}
             onPrefs={(patch) => setPrefs((p) => ({ ...p, ...patch }))}
             onProfile={(patch) => setOverrides((o) => ({ ...o, ...patch }))}
             onReset={() => {
