@@ -162,9 +162,22 @@ export function rankCatalogIssues(
     const skipRate = s.reached ? s.skipped / s.reached : 0;
     const openRate = s.reached ? s.opened / s.reached : 0;
 
+    /**
+     * "Nobody opened it" only means something if nobody acted on it either.
+     *
+     * Copying or completing IS engagement — the title plainly earned
+     * attention. Counting a low open rate against a step people copied and
+     * finished flagged working steps as broken, and `step_opened` only fires
+     * in the Prompts section anyway, so anyone completing from the task list
+     * or the NOW card would trip it. That would fill the fix list with noise
+     * and make the one list that's supposed to be evidence-ranked untrusted.
+     */
+    const engaged = s.copied > 0 || s.completed > 0;
+    const ignoredPenalty = engaged ? 0 : (1 - openRate) * 0.5;
+
     // Copy-without-completion dominates: it is the least ambiguous signal.
     const score =
-      copyFailRate * 3 + stuckRate * 2 + skipRate * 1.5 + (1 - openRate) * 0.5;
+      copyFailRate * 3 + stuckRate * 2 + skipRate * 1.5 + ignoredPenalty;
 
     if (score < 0.15) continue;
 
