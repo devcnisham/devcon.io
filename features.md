@@ -43,7 +43,7 @@ per track.
 | Provider catalog | ⏳ Testing | 30 providers across 8 capabilities. Free tiers are seeded, not audited. |
 | Catalog validation | ✅ Completed | Duplicate ids, dangling dependencies, cycles, rubric rules |
 | `serves` capability tagging | ✅ Completed | 13 steps declare which service they wire up |
-| Prompt verification | 📋 Planned | **The blocking gap.** 0 of 62 do-steps have been through two agents. |
+| Prompt verification | 🚧 Building | 4 competition steps run through one agent against a scratch repo (`partial` — the rubric asks for two). 0 of 62 fully verified. |
 
 ## Project ingest
 
@@ -93,6 +93,8 @@ routes, models and components plug into the same shape.
 | Feature | Status | Notes |
 |---|---|---|
 | Prompt assembly | ✅ Completed | Template assembly with real profile, deps, services and anti-steps |
+| Execution modes | ✅ Completed | Steps declare `agent` / `needs-input` / `human`. A human step has no prompt at all — `buildPrompt` throws — and gets a checklist. |
+| Step inputs | ✅ Completed | `needs-input` steps collect the rubric, sponsor rules or demo outline. Blank fields are named as missing so the agent asks instead of inventing. |
 | Per-agent preambles | ✅ Completed | Claude Code, Cursor, Lovable, v0, generic |
 | Detected-service injection | ✅ Completed | Names Clerk/Supabase/Stripe rather than saying "your auth provider" |
 | Safe clipboard copy | ✅ Completed | Only records `prompt_copied` when the clipboard actually took it |

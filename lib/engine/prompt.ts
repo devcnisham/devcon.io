@@ -1,5 +1,6 @@
 import { article } from "../catalog/conditions";
 import { PROVIDERS } from "../catalog/providers";
+import { executionOf } from "../catalog/types";
 import type { Plan, ProjectProfile, Step } from "../catalog/types";
 
 export type AgentTarget = "claude-code" | "cursor" | "lovable" | "v0" | "generic";
@@ -135,7 +136,26 @@ export function buildPrompt(
    * most useful fact it had, thrown away.
    */
   detected?: { envKeys: string[] },
+  /**
+   * Answers to a `needs-input` step's questions, keyed by `StepInput.key`.
+   *
+   * Missing or blank answers are NOT silently omitted — the prompt says which
+   * ones are missing and that the agent should ask rather than invent. That is
+   * the whole reason this parameter exists: `comp-read-judging` used to tell an
+   * agent to check every judging criterion while never supplying one, and the
+   * only honest options are to carry them or to say they are absent.
+   */
+  answers: Record<string, string> = {},
 ): string {
+  if (executionOf(step) === "human") {
+    // Never generate one. A prompt for "rehearse the demo out loud" or "get
+    // four people to push" is a paste button that wastes the person's time and
+    // makes every other prompt less trustworthy.
+    throw new Error(
+      `${step.id} is human work — there is no prompt. Use buildChecklist().`,
+    );
+  }
+
   const done = plan.steps.filter((s) => completed.has(s.id));
   const deps = step.requires
     .map((id) => plan.steps.find((s) => s.id === id))
@@ -174,6 +194,32 @@ export function buildPrompt(
     "",
     step.why,
   ];
+
+  /**
+   * What the human supplied, and what they didn't.
+   *
+   * Both halves matter. The supplied text is usually the most specific thing in
+   * the whole prompt — an actual rubric beats every generic instruction around
+   * it. The missing half has to be stated too, or the agent fills the gap with
+   * a plausible invention and the output looks right and isn't.
+   */
+  if (step.inputs?.length) {
+    const given = step.inputs.filter((i) => answers[i.key]?.trim());
+    const missing = step.inputs.filter((i) => !answers[i.key]?.trim());
+
+    for (const input of given) {
+      lines.push("", `## ${input.label}`, answers[input.key].trim());
+    }
+
+    if (missing.length) {
+      lines.push(
+        "",
+        "## Not supplied — ask, don't guess",
+        ...missing.map((i) => `- ${i.label}`),
+        "This information isn't in the project and can't be inferred from it. Ask me for it rather than assuming an answer.",
+      );
+    }
+  }
 
   /**
    * Dependencies, split by whether they are actually finished.
@@ -262,4 +308,34 @@ export function buildPrompt(
   );
 
   return lines.filter((l, i, arr) => !(l === "" && arr[i - 1] === "")).join("\n");
+}
+
+/**
+ * What a `human` step gets instead of a prompt.
+ *
+ * Copyable, because the useful thing to do with "get everyone to push" is drop
+ * it in the team chat — not paste it into an agent. Same content the prompt
+ * would have carried minus everything addressed to a machine: no preamble, no
+ * "verify each of these before telling me it's finished", no budget line
+ * negotiating with a model.
+ */
+export function buildChecklist(step: Step, profile: ProjectProfile): string {
+  const lines = [
+    `## ${step.title}`,
+    "",
+    step.why,
+    "",
+    `_${profile.one_liner}_`,
+  ];
+
+  if (step.done_when.length) {
+    lines.push("", "Done when:", ...step.done_when.map((d) => `- [ ] ${d.text}`));
+  }
+
+  lines.push(
+    "",
+    `About ${step.est_minutes} minutes. Nobody's coding agent can do this one — it needs a person.`,
+  );
+
+  return lines.join("\n");
 }

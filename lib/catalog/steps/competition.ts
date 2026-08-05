@@ -46,6 +46,22 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "Every criterion has something in your build that answers it" },
       { text: "Prizes you are NOT chasing are written down as not chasing" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "criteria",
+        label: "The judging criteria, pasted from the event page",
+        placeholder:
+          "Innovation 25% · Technical difficulty 25% · Impact 25% · Demo 25%",
+        multiline: true,
+      },
+      {
+        key: "prizes",
+        label: "Prizes you're entering",
+        placeholder:
+          "Grand prize, Best use of AI",
+      },
+    ],
     est_minutes: 20,
   },
   {
@@ -78,6 +94,16 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "The required service is named for each prize you're entering" },
       { text: "Any 'must be used meaningfully' wording is understood, not skimmed" },
       { text: "API keys obtained and working before you need them" },
+    ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "rules",
+        label: "The sponsor prize rules, pasted verbatim",
+        placeholder:
+          "Must use the X API in a way that is core to the project, not decorative. Show it in the demo video.",
+        multiline: true,
+      },
     ],
     est_minutes: 30,
   },
@@ -112,6 +138,7 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "Each person owns files nobody else is editing" },
       { text: "The interface between your pieces is agreed in writing" },
     ],
+    execution: "human",
     est_minutes: 20,
   },
 
@@ -281,6 +308,22 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "Run twice out loud, with a timer, inside the limit" },
       { text: "A recording exists as a backup in case the live demo dies" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "shows",
+        label: "What the demo shows, start to finish",
+        placeholder:
+          "Open the app, paste a meeting transcript, hit Summarise, read out the action items",
+        multiline: true,
+      },
+      {
+        key: "limit",
+        label: "Time limit",
+        placeholder:
+          "3 minutes",
+      },
+    ],
     est_minutes: 45,
   },
   {
@@ -297,6 +340,7 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "Under the length limit, uploaded, and the link opens" },
       { text: "Audio is audible — screen recordings usually aren't" },
     ],
+    execution: "human",
     est_minutes: 45,
   },
   {
@@ -313,6 +357,16 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "Every field the portal asks for is filled" },
       { text: "It names the problem before the technology" },
       { text: "Sponsor tech is named explicitly if you're entering those prizes" },
+    ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "fields",
+        label: "The fields the submission portal asks for",
+        placeholder:
+          "Elevator pitch, problem, what it does, how we built it, challenges, what's next",
+        multiline: true,
+      },
     ],
     est_minutes: 40,
   },
@@ -347,6 +401,7 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "Every required link opens in a private window" },
       { text: "Confirmation screenshotted" },
     ],
+    execution: "human",
     est_minutes: 20,
   },
 

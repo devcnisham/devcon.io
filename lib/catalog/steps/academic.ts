@@ -41,6 +41,16 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Every rubric line has a feature or deliverable against it" },
       { text: "You can name the single highest-value item" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "rubric",
+        label: "The marking rubric, pasted from the brief",
+        placeholder:
+          "Implementation 40% · Report 30% · Demo 20% · Viva 10%",
+        multiline: true,
+      },
+    ],
     est_minutes: 30,
     mark_weight: 0,
   },
@@ -57,6 +67,16 @@ export const ACADEMIC_STEPS: Step[] = [
     done_when: [
       { text: "Mandated stack or language written down" },
       { text: "Any forbidden libraries or services listed" },
+    ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "brief",
+        label: "The parts of the brief that constrain you",
+        placeholder:
+          "Must be written in Java. No external web frameworks. Must run offline.",
+        multiline: true,
+      },
     ],
     est_minutes: 20,
   },
@@ -107,6 +127,7 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Each person has a named area" },
       { text: "Written down somewhere everyone can see" },
     ],
+    execution: "human",
     est_minutes: 20,
   },
 
@@ -250,6 +271,16 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Design decisions explained with reasoning" },
       { text: "Word count met" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "sections",
+        label: "The sections the brief requires, and the word count",
+        placeholder:
+          "Introduction, Literature review, Design, Implementation, Evaluation, Conclusion — 8000 words",
+        multiline: true,
+      },
+    ],
     est_minutes: 360,
     mark_weight: 30,
   },
@@ -268,6 +299,22 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Run twice out loud, inside the time limit" },
       { text: "Backup recording made in case something breaks" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "shows",
+        label: "What the demo shows, start to finish",
+        placeholder:
+          "Log in, add a book, issue it to a member, show the overdue report",
+        multiline: true,
+      },
+      {
+        key: "limit",
+        label: "Time limit",
+        placeholder:
+          "10 minutes",
+      },
+    ],
     est_minutes: 90,
   },
   {
@@ -285,6 +332,7 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Likely examiner questions written out with answers" },
       { text: "You can justify each major design decision" },
     ],
+    execution: "human",
     est_minutes: 120,
     mark_weight: 10,
   },
@@ -303,6 +351,7 @@ export const ACADEMIC_STEPS: Step[] = [
       { text: "Submitted at least a day before the deadline" },
       { text: "Confirmation receipt saved" },
     ],
+    execution: "human",
     est_minutes: 30,
   },
 

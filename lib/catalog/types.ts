@@ -92,6 +92,39 @@ export interface DoneWhen {
   text: string;
 }
 
+/**
+ * Who can actually do this step.
+ *
+ * Verifying the competition prompts against a real repo found that six of the
+ * fifteen selected steps were not agent work at all, and every one of them
+ * still shipped a "paste this into your coding agent" prompt. `comp-read-judging`
+ * asked an agent to check that every judging criterion was answered — while
+ * never supplying the criteria, because the profile only carries a boolean.
+ *
+ * The product's claim is a context-rich prompt per step. For a third of that
+ * track the claim was false, and no wording fixes it: the agent is missing
+ * information, or the task is not typing at all.
+ *
+ * - `agent` — the prompt already carries everything needed. Default.
+ * - `needs-input` — an agent CAN do it, but only after a human supplies
+ *   something DevCon cannot know: the judging criteria, the sponsor's rules,
+ *   what the demo shows. The prompt is generated once those are filled in.
+ * - `human` — nobody's agent can do this. Rehearsing out loud, recording a
+ *   video, getting four people to push. Shows a checklist and no prompt.
+ */
+export type StepExecution = "agent" | "needs-input" | "human";
+
+/** One thing a `needs-input` step must be told before its prompt is worth having. */
+export interface StepInput {
+  key: string;
+  /** Shown above the field. */
+  label: string;
+  /** Shown inside it — a concrete example, not a restatement of the label. */
+  placeholder: string;
+  /** Longer fields get a textarea. */
+  multiline?: boolean;
+}
+
 export interface Step {
   id: string;
   title: string;
@@ -132,6 +165,21 @@ export interface Step {
    * than showing it. The UI surfaces it; the engine ignores it.
    */
   verification?: Verification;
+  /** Who can do this. Defaults to `agent` — see StepExecution. */
+  execution?: StepExecution;
+  /** Required when `execution === "needs-input"`. Ignored otherwise. */
+  inputs?: StepInput[];
+}
+
+/** Defaulted here so callers never branch on `undefined`. */
+export function executionOf(step: Step): StepExecution {
+  return step.execution ?? "agent";
+}
+
+/** Whether pasting this into a coding agent is a reasonable thing to offer. */
+export function hasPrompt(step: Step): boolean {
+  // Anti-steps are not work, so there is nothing to paste for them either.
+  return step.kind === "do" && executionOf(step) !== "human";
 }
 
 export interface Verification {

@@ -19,13 +19,23 @@ repo. All three had shipped and none had ever been read by an agent.
 |---|---|---|---|
 | P1 | **"Already built (don't redo)" listed steps that were not built.** Unfinished dependencies were filed under that heading and tagged `— NOT yet done` in the body. The heading and the body said opposite things, and an agent skimming headings reads the heading. Every competition foundation prompt carried it above a step nobody had started. | High | Fixed |
 | P2 | **The prompt contradicted itself about auth and payments.** The profile line says "It needs users to sign in, payments…" because the builder said so. The anti-steps saying *don't build either* are `core` phase, and anti-steps were filtered to the current phase — so a `foundation` prompt showed the need and hid the instruction. An agent reading it would go and build auth, which is the exact outcome the competition track exists to prevent. | **Critical** | Fixed |
-| P3 | **Steps no agent can execute still generate a paste-into-your-agent prompt.** `comp-read-judging` asks the agent to check every criterion is answered, but the criteria are never supplied and the profile only carries a boolean. Same for `comp-sponsor-requirements` (needs the sponsor's actual rules), `comp-split-work`, `comp-demo-script`, `comp-submission-video`, `comp-submit-early` — 6 of 15 selected steps are human or team coordination. Pasting them into a coding agent produces nothing. | High | **Open** |
+| P3 | **Steps no agent can execute still generated a paste-into-your-agent prompt.** `comp-read-judging` asked the agent to check every criterion is answered, but the criteria were never supplied and the profile only carries a boolean. Same for `comp-sponsor-requirements`, `comp-split-work`, `comp-demo-script`, `comp-submission-video`, `comp-submit-early` — 6 of 15 selected steps were human or team coordination. | High | Fixed |
 
-**P3 is the finding that matters.** The product's claim is "a context-rich prompt
-per step to paste into a coding agent". For a third of the competition track
-that is not true, and no amount of prompt polish fixes it — those steps need a
-different affordance (a checklist, a form, a place to paste the criteria in),
-not a prompt.
+**P3 was the finding that mattered**, and it was not a wording problem. Steps
+now declare `execution`:
+
+- `agent` — the prompt carries everything needed. The default.
+- `needs-input` — an agent can do it once a human supplies something DevCon
+  cannot know. The card shows fields for exactly those; blank ones are named in
+  the prompt as missing, with "ask me rather than assuming an answer", because
+  an agent told to check criteria it was never given invents plausible ones.
+- `human` — `buildPrompt` **throws**. There is no paste button. It renders a
+  checklist instead, copyable so it can go in the team chat.
+
+The same defect existed on the academic track (`module-ownership`, `viva-prep`,
+`submit-early` were human; `read-rubric`, `confirm-constraints`,
+`project-report`, `demo-script` needed the brief), and was fixed there too —
+fixing one track's symptom would have left two shipping the same lie.
 
 ## MCP config generation — `lib/catalog/providers/index.ts`
 
@@ -106,12 +116,10 @@ rule that prevents it.
 
 ## Open items, in priority order
 
-1. **P3 — six competition steps are not agent work** but ship an agent prompt.
-   The largest correctness gap in the product's core claim.
-2. **U3 — nothing in the catalog checks the demo actually renders.**
+1. **U3 — nothing in the catalog checks the demo actually renders.**
    `comp-guard-happy-path` covers crashes, `comp-demo-environment` covers the
    machine. Neither catches "it works and looks wrong on a projector".
-3. **R4 — annotation false positives in string literals.** Accepted cost of
+2. **R4 — annotation false positives in string literals.** Accepted cost of
    regex parsing; revisit only if it becomes noisy in practice.
 
 ## What this report is evidence of

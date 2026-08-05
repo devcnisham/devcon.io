@@ -1,11 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Plan, ProjectProfile, Step } from "@/lib/catalog/types";
+import {
+  type Plan,
+  type ProjectProfile,
+  type Step,
+  executionOf,
+} from "@/lib/catalog/types";
 import { copyText } from "@/lib/clipboard";
 import {
   AGENT_LABEL,
   type AgentTarget,
+  buildChecklist,
   buildPrompt,
 } from "@/lib/engine/prompt";
 import { track } from "@/lib/telemetry/events";
@@ -47,6 +53,14 @@ export function Prompts({
   const [agent, setAgent] = useState<AgentTarget>(defaultAgent);
   const [openId, setOpenId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  /**
+   * Answers to `needs-input` steps, keyed `${stepId}:${inputKey}`.
+   *
+   * Local and unsaved on purpose for now — a judging rubric pasted here is the
+   * event's text, not the builder's, and persisting it is a decision to make
+   * deliberately rather than by default.
+   */
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [failedId, setFailedId] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
 
@@ -66,9 +80,18 @@ export function Prompts({
       .sort((a, b) => rank(a) - rank(b));
   }, [plan.steps, completed, ready, active, showDone]);
 
-  /** Copy, and only record it if the clipboard actually took it. */
-  const copy = async (step: Step) => {
-    const text = buildPrompt(
+  /**
+   * What this step actually offers.
+   *
+   * A `human` step has no prompt — `buildPrompt` throws for one, deliberately,
+   * so a caller cannot render a paste button for "rehearse the demo out loud".
+   */
+  const textFor = (step: Step): string => {
+    if (executionOf(step) === "human") return buildChecklist(step, profile);
+    const supplied = Object.fromEntries(
+      (step.inputs ?? []).map((i) => [i.key, answers[`${step.id}:${i.key}`] ?? ""]),
+    );
+    return buildPrompt(
       step,
       profile,
       plan,
@@ -76,7 +99,13 @@ export function Prompts({
       agent,
       new Set(),
       detected,
+      supplied,
     );
+  };
+
+  /** Copy, and only record it if the clipboard actually took it. */
+  const copy = async (step: Step) => {
+    const text = textFor(step);
 
     if (!(await copyText(text))) {
       setFailedId(step.id);
@@ -99,7 +128,8 @@ export function Prompts({
         <h2 className="mb-1 text-base font-semibold text-neutral-100">Prompts</h2>
         <p className="mb-4 text-sm text-neutral-500">
           One per step, carrying your stack, what&apos;s already built, and
-          what&apos;s explicitly out of scope. Paste into whatever agent you use.
+          what&apos;s explicitly out of scope. Paste into whatever agent you use
+          — except the steps marked as yours, which no agent can do.
         </p>
 
         <div className="flex flex-wrap items-center gap-1.5">
@@ -130,7 +160,7 @@ export function Prompts({
           const blocked = !ready.has(step.id) && !isDone;
           const open = openId === step.id;
           const text = open
-            ? buildPrompt(step, profile, plan, completed, agent, new Set(), detected)
+            ? textFor(step)
             : "";
 
           return (
@@ -167,10 +197,23 @@ export function Prompts({
                       {step.title}
                     </span>
                   </span>
-                  <span className="mt-0.5 block font-mono text-[10px] text-neutral-500">
-                    {step.phase} · {formatEstimate(step.est_minutes)}
-                    {step.mark_weight ? ` · ${step.mark_weight}%` : ""}
-                    {blocked ? " · blocked" : ""}
+                  <span className="mt-0.5 flex items-center gap-2 font-mono text-[10px] text-neutral-500">
+                    <span>
+                      {step.phase} · {formatEstimate(step.est_minutes)}
+                      {step.mark_weight ? ` · ${step.mark_weight}%` : ""}
+                      {blocked ? " · blocked" : ""}
+                    </span>
+                    {/* The mode is visible before expanding, so nobody opens a
+                        card expecting a prompt and finds a checklist. */}
+                    {executionOf(step) === "human" ? (
+                      <span className="rounded bg-white/[0.07] px-1.5 py-0.5 uppercase tracking-wide text-neutral-400">
+                        you, not an agent
+                      </span>
+                    ) : executionOf(step) === "needs-input" ? (
+                      <span className="rounded bg-amber-400/15 px-1.5 py-0.5 uppercase tracking-wide text-amber-300/90">
+                        needs your input
+                      </span>
+                    ) : null}
                   </span>
                 </button>
 
@@ -187,7 +230,9 @@ export function Prompts({
                     ? "Copy blocked"
                     : copiedId === step.id
                       ? "Copied"
-                      : "Copy"}
+                      : executionOf(step) === "human"
+                        ? "Copy checklist"
+                        : "Copy"}
                 </button>
               </div>
 
@@ -201,6 +246,62 @@ export function Prompts({
                       if you run it now.
                     </p>
                   ) : null}
+
+                  {executionOf(step) === "human" ? (
+                    <p className="border-b border-white/8 px-4 py-2 text-xs leading-relaxed text-neutral-400">
+                      No prompt for this one. It needs a person — so this is a
+                      checklist to work from or drop in the team chat.
+                    </p>
+                  ) : null}
+
+                  {/* A needs-input step's prompt is only worth having once these
+                      are filled. Empty ones are named in the prompt as missing
+                      rather than quietly dropped, so the agent asks instead of
+                      inventing an answer. */}
+                  {step.inputs?.length ? (
+                    <div className="space-y-3 border-b border-white/8 px-4 py-3">
+                      {step.inputs.map((input) => {
+                        const k = `${step.id}:${input.key}`;
+                        const value = answers[k] ?? "";
+                        return (
+                          <label key={input.key} className="block">
+                            <span className="mb-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-neutral-500">
+                              {input.label}
+                              {value.trim() ? null : (
+                                <span className="text-amber-400/80">missing</span>
+                              )}
+                            </span>
+                            {input.multiline ? (
+                              <textarea
+                                value={value}
+                                rows={3}
+                                placeholder={input.placeholder}
+                                onChange={(e) =>
+                                  setAnswers((a) => ({ ...a, [k]: e.target.value }))
+                                }
+                                className="w-full resize-y rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/30 focus:outline-none"
+                              />
+                            ) : (
+                              <input
+                                value={value}
+                                placeholder={input.placeholder}
+                                onChange={(e) =>
+                                  setAnswers((a) => ({ ...a, [k]: e.target.value }))
+                                }
+                                className="w-full rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/30 focus:outline-none"
+                              />
+                            )}
+                          </label>
+                        );
+                      })}
+                      <p className="text-[11px] leading-relaxed text-neutral-500">
+                        DevCon can&apos;t know these — they&apos;re facts about
+                        your event, not your code. Left blank, the prompt tells
+                        the agent to ask rather than guess.
+                      </p>
+                    </div>
+                  ) : null}
+
                   <pre className="max-h-[420px] overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-neutral-300">
                     {text}
                   </pre>

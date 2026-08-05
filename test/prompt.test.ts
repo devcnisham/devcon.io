@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { ALL_STEPS } from "@/lib/catalog";
-import type { Step } from "@/lib/catalog/types";
+import { type Step, executionOf } from "@/lib/catalog/types";
 import { buildPlan } from "@/lib/engine/plan";
-import { buildPrompt } from "@/lib/engine/prompt";
-import { ALL_FIXTURES, COMMERCIAL_SAAS } from "./fixtures";
+import { buildChecklist, buildPrompt } from "@/lib/engine/prompt";
+import { ALL_FIXTURES, COMMERCIAL_SAAS, HACKATHON_TEAM } from "./fixtures";
 
 const FINAL_YEAR = ALL_FIXTURES.FINAL_YEAR_SOLO;
 
@@ -156,22 +156,90 @@ describe("prompt content", () => {
     }
   });
 
-  it("is substantial for every step in every fixture", () => {
+  it("is substantial for every step an agent can actually do", () => {
     for (const profile of Object.values(ALL_FIXTURES)) {
       const p = buildPlan(profile);
-      for (const step of p.steps) {
-        const text = buildPrompt(
-          step,
-          profile,
-          p,
-          new Set(),
-          "claude-code",
-        );
+      for (const step of p.steps.filter((s) => executionOf(s) !== "human")) {
+        const text = buildPrompt(step, profile, p, new Set(), "claude-code");
         expect(text.length, `${profile.context}/${step.id}`).toBeGreaterThan(
           300,
         );
       }
     }
+  });
+});
+
+describe("steps an agent cannot do", () => {
+  /**
+   * Verifying the competition track found six of fifteen selected steps were
+   * not agent work, and every one still shipped a "paste into your agent"
+   * prompt. `comp-read-judging` told an agent to check that every judging
+   * criterion was answered while never supplying the criteria.
+   */
+  it("refuses to build a prompt for human work", () => {
+    const p = buildPlan(HACKATHON_TEAM);
+    const human = p.steps.find((s) => executionOf(s) === "human");
+    expect(human, "no human step in the plan to test").toBeDefined();
+    expect(() =>
+      buildPrompt(human as Step, HACKATHON_TEAM, p, new Set(), "claude-code"),
+    ).toThrow(/human work/);
+  });
+
+  it("gives human steps a checklist with no machine framing", () => {
+    const p = buildPlan(HACKATHON_TEAM);
+    const human = p.steps.find((s) => executionOf(s) === "human") as Step;
+    const text = buildChecklist(human, HACKATHON_TEAM);
+    expect(text).toContain(human.title);
+    for (const d of human.done_when) expect(text).toContain(d.text);
+    // None of the framing that only makes sense addressed to a model.
+    expect(text).not.toMatch(/terminal and file access|before telling me/i);
+  });
+
+  it("carries a supplied answer into the prompt", () => {
+    const p = buildPlan(HACKATHON_TEAM);
+    const step = p.steps.find((s) => s.id === "comp-read-judging") as Step;
+    const text = buildPrompt(
+      step,
+      HACKATHON_TEAM,
+      p,
+      new Set(),
+      "claude-code",
+      new Set(),
+      undefined,
+      { criteria: "Innovation 40%, Demo 60%" },
+    );
+    expect(text).toContain("Innovation 40%, Demo 60%");
+  });
+
+  it("names what is missing instead of quietly omitting it", () => {
+    /**
+     * The whole defect: an agent told to check criteria it was never given
+     * invents plausible ones, and the output looks right and isn't.
+     */
+    const p = buildPlan(HACKATHON_TEAM);
+    const step = p.steps.find((s) => s.id === "comp-read-judging") as Step;
+    const text = buildPrompt(step, HACKATHON_TEAM, p, new Set(), "claude-code");
+    expect(text).toContain("Not supplied — ask, don't guess");
+    expect(text).toMatch(/ask me for it rather than assuming/i);
+  });
+
+  it("declares inputs for every needs-input step, and none for the others", () => {
+    for (const step of ALL_STEPS) {
+      if (executionOf(step) === "needs-input") {
+        expect(step.inputs?.length, `${step.id} needs input but declares none`)
+          .toBeGreaterThan(0);
+      } else {
+        expect(step.inputs ?? [], `${step.id} declares unused inputs`).toEqual([]);
+      }
+    }
+  });
+
+  it("never marks an anti-step as agent work", () => {
+    // There is nothing to paste for an anti-step in the first place.
+    const bad = ALL_STEPS.filter(
+      (s) => s.kind === "avoid" && s.execution !== undefined,
+    ).map((s) => s.id);
+    expect(bad).toEqual([]);
   });
 });
 
