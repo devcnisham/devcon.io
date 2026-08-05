@@ -72,8 +72,8 @@ Run `pnpm dev`, open `http://localhost:3000`.
 | Area | State |
 |---|---|
 | Engine (DSL, select, order, explain) | Works. Pure, deterministic. |
-| Academic catalog | 22 steps + 6 anti-steps. **Unverified.** |
-| Commercial catalog | 31 steps + 7 anti-steps. **Unverified.** |
+| Academic catalog | 16 do-steps + 6 anti-steps. **Unverified.** |
+| Commercial catalog | 29 do-steps + 7 anti-steps. **Unverified.** |
 | Repo scanner | Works on real repos incl. monorepos. Dev-only route. |
 | Completion detection | Works — pre-ticks steps the repo already satisfies. |
 | Prompt generation | Works. Template assembly, not LLM. |
@@ -100,7 +100,11 @@ Resend, Sentry, PostHog.
 - **No accounts, no auth, no teams.** These land together.
 - **No prompt has been run through an agent.** The catalog rubric says a
   prompt isn't verified until it's been pasted into two agents against a real
-  repo and produced working output. Zero of 53 meet that bar.
+  repo and produced working output. **Zero of 45 do-steps meet that bar.**
+- **`pnpm test` passes but proves nothing.** Vitest is installed; there are
+  **zero test files**. A green run is vacuous — do not read it as a signal.
+  The engine is the thing that most needs tests: fixture profiles, snapshot
+  plans, and a determinism assertion.
 - **Provider free tiers are seeded, not audited.** `last_verified` is the
   seed date.
 - **No pricing.** Deferred deliberately. Direction recorded: one-time
@@ -118,27 +122,38 @@ lib/
     types.ts          ProjectProfile, Step, Condition, Plan
     conditions.ts     the self-describing predicate DSL   ← load-bearing
     index.ts          combined registry + validateCatalog()
-    steps/academic.ts     22 steps + 6 anti-steps
-    steps/commercial.ts   31 steps + 7 anti-steps
+    steps/academic.ts     16 do-steps + 6 anti-steps
+    steps/commercial.ts   29 do-steps + 7 anti-steps
     providers/index.ts    30 providers across 8 capabilities
   engine/
-    select.ts order.ts explain.ts plan.ts layout.ts
+    plan.ts           buildPlan — SELECTION LIVES HERE, inline.
+                      There is NO select.ts. Selection is the
+                      applies_when loop at the top of buildPlan().
+    order.ts          topological sort, tie-break on id
+    explain.ts        firstFailure() — walks the condition tree
+    layout.ts         DAG positions for the canvas
     prompt.ts         prompt assembly + per-agent preambles
   scan/
     types.ts profile.ts   digest → profile + completion detection
   telemetry/
     events.ts         taxonomy, LocalEventStore, track/trackOnce
     funnel.ts         aggregation + rankCatalogIssues()
-  docs/ tasks/ settings/ workspaces/   local stores
+  fixtures/profiles.ts    3 sample profiles, used when no repo is loaded
+  workspaces/store.ts     recent-workspace list; holds repoPath so a
+                          workspace re-scans its real repo on open
+  docs/types.ts tasks/types.ts settings/types.ts   local state shapes
 
 app/
+  layout.tsx          root layout
   page.tsx            home — open folder / recent workspaces
+  WorkspaceThumb.tsx  generated canvas preview for workspace cards
   api/scan/route.ts   repo scanner       (DEV ONLY, 404 in prod)
   api/verify/route.ts prompt verifier    (DEV ONLY, 404 in prod)
   canvas/
     page.tsx          orchestrates everything
     Workspace.tsx     the ordered-list view + section switch
     Funnel.tsx        north star, fix list, per-step funnel
+    ProjectLoader.tsx path input + scan, lives in the header
     Prompts.tsx Integrations.tsx Settings.tsx LeftSidebar.tsx
     DocsSidebar.tsx DocWindowNode.tsx StepNode.tsx Dock.tsx ViewTabs.tsx
 
@@ -150,6 +165,10 @@ docs/
 
 Frozen reference plan (not in repo):
 `~/.claude/plans/i-have-an-idea-encapsulated-hanrahan.md`
+
+**Untracked and deliberately not committed:** `nisham/` and `sumayya/` —
+personal notes and templates that appeared in the working tree. Not part of
+the app. Commit them yourself if they belong here.
 
 ---
 
@@ -226,7 +245,7 @@ closed by building more features.
 pnpm dev        # localhost:3000
 pnpm build      # typecheck + build — the real gate
 pnpm lint       # biome (a11y noise from scaffolded SVGs is expected)
-pnpm test       # vitest — no engine tests written yet
+pnpm test       # vitest — ZERO test files. Green means nothing.
 ```
 
 Scan a repo: `curl 'localhost:3000/api/scan?path=/abs/path'`

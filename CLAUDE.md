@@ -38,7 +38,8 @@ Break these and things fail in non-obvious ways.
 ## Layout
 
 - `lib/catalog/` — types, the condition DSL, step catalogs, providers
-- `lib/engine/` — select, order, explain, plan, layout, prompt
+- `lib/engine/` — plan (selection lives inline in `buildPlan`, there is no
+  `select.ts`), order, explain, layout, prompt
 - `lib/scan/` — repo digest → profile + completion detection
 - `lib/telemetry/` — event taxonomy, funnel aggregation, fix-list ranking
 - `app/canvas/` — canvas + workspace UI
@@ -48,7 +49,8 @@ Break these and things fail in non-obvious ways.
 ## Working agreement
 
 - `pnpm build` is the gate — it runs TypeScript. Lint has known a11y noise
-  from scaffolded SVGs.
+  from scaffolded SVGs. **`pnpm test` has zero test files — a green run is
+  vacuous, don't read it as a signal.**
 - **State what isn't done** rather than implying completeness. Several
   surfaces say so in the product; keep that.
 - The moat is the catalog and the measured loop, not the UI. Don't add
