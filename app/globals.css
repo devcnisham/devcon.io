@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Markdown rendering for the doc viewer. Hand-rolled rather than pulling in
+   @tailwindcss/typography — this is one surface with a known, dark-only
+   palette, so the plugin's whole light/dark ramp would go unused. */
+.doc-prose {
+  color: #d4d4d4;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.doc-prose > * + * {
+  margin-top: 0.9em;
+}
+.doc-prose h1,
+.doc-prose h2,
+.doc-prose h3 {
+  color: #fafafa;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.doc-prose h1 {
+  font-size: 1.6em;
+  margin-top: 0;
+}
+.doc-prose h2 {
+  font-size: 1.25em;
+  margin-top: 1.6em;
+  padding-top: 0.6em;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.doc-prose h3 {
+  font-size: 1.05em;
+  margin-top: 1.3em;
+}
+.doc-prose a {
+  color: #7dd3fc;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.doc-prose strong {
+  color: #fafafa;
+  font-weight: 600;
+}
+.doc-prose ul,
+.doc-prose ol {
+  padding-left: 1.3em;
+}
+.doc-prose ul {
+  list-style: disc;
+}
+.doc-prose ol {
+  list-style: decimal;
+}
+.doc-prose li::marker {
+  color: #737373;
+}
+.doc-prose li + li {
+  margin-top: 0.3em;
+}
+.doc-prose code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.88em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0.12em 0.38em;
+  color: #fcd34d;
+}
+.doc-prose pre {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+}
+.doc-prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #e5e5e5;
+}
+.doc-prose blockquote {
+  border-left: 2px solid rgba(251, 191, 36, 0.6);
+  padding-left: 0.9em;
+  color: #a3a3a3;
+  font-style: italic;
+}
+.doc-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93em;
+}
+.doc-prose th,
+.doc-prose td {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.45em 0.7em;
+  text-align: left;
+}
+.doc-prose th {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fafafa;
+  font-weight: 600;
+}
+.doc-prose hr {
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
