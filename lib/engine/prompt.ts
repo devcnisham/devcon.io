@@ -145,9 +145,21 @@ export function buildPrompt(
   const constraints = stackLine(profile);
   const detectedServices = detected ? namedServices(detected.envKeys) : [];
 
-  // Anti-steps in the same phase are the ones the agent is most likely to
-  // wander into while doing this work.
-  const relevantAnti = plan.antiSteps.filter((a) => a.phase === step.phase);
+  /**
+   * EVERY anti-step, not just the ones in this phase.
+   *
+   * Filtering by phase was an optimisation that produced a direct
+   * contradiction. On the competition track the profile line says "it needs
+   * users to sign in, payments" — because the builder said so — while the
+   * anti-steps say don't build either. Those anti-steps are `core` phase, so a
+   * `foundation` prompt showed the need and hid the instruction not to serve
+   * it, and an agent reading it would go and build auth.
+   *
+   * There are at most eight of them and they are the most important thing the
+   * catalog says. Repeating them costs a few lines per prompt and removes the
+   * only place where a generated prompt argued with itself.
+   */
+  const relevantAnti = plan.antiSteps;
 
   const lines: string[] = [
     PREAMBLE[agent],
@@ -163,11 +175,32 @@ export function buildPrompt(
     step.why,
   ];
 
-  if (deps.length) {
+  /**
+   * Dependencies, split by whether they are actually finished.
+   *
+   * They used to share one "Already built (don't redo)" heading, with unfinished
+   * ones tagged "— NOT yet done" in the body. The heading and the body said
+   * opposite things, and an agent skimming headings reads the heading. Verifying
+   * the competition prompts, every foundation prompt carried
+   * "## Already built (don't redo)" above a step that had not been started.
+   */
+  const builtDeps = deps.filter((d) => completed.has(d.id));
+  const pendingDeps = deps.filter((d) => !completed.has(d.id));
+
+  if (builtDeps.length) {
     lines.push(
       "",
       "## Already built (don't redo)",
-      ...deps.map((d) => `- ${d.title}${completed.has(d.id) ? "" : " — NOT yet done, do this first"}`),
+      ...builtDeps.map((d) => `- ${d.title}`),
+    );
+  }
+
+  if (pendingDeps.length) {
+    lines.push(
+      "",
+      "## Not done yet — these come first",
+      ...pendingDeps.map((d) => `- ${d.title}`),
+      "If the work below depends on one of these, say so rather than building it as well.",
     );
   }
 

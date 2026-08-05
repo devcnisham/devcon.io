@@ -118,6 +118,50 @@ export interface Step {
    * predicate would be a guess, and a wrong edge on a graph reads as a fact.
    */
   serves?: Capability[];
+  /**
+   * When this step's prompt was last run through a real agent and produced
+   * working output.
+   *
+   * The catalog rubric's bar, recorded rather than asserted. `docs/gaps-plan.md`
+   * claimed the engine already excluded unverified steps and that the work
+   * "gates itself" — it did not, and there was no field to gate on. This is it.
+   *
+   * Absent means never verified, which is the honest default for a catalog
+   * nobody has run. It deliberately does NOT filter plans: a plan of only
+   * verified steps would today be an empty plan, and hiding the gap is worse
+   * than showing it. The UI surfaces it; the engine ignores it.
+   */
+  verification?: Verification;
+}
+
+export interface Verification {
+  /** ISO date of the most recent passing run. */
+  verified_at: string;
+  /**
+   * Agents that ran it and produced working output.
+   *
+   * The rubric asks for two, because one agent's tolerance for an ambiguous
+   * instruction is not evidence about agents in general. One entry means
+   * half-verified, and the UI says so rather than rounding up.
+   */
+  agents: string[];
+  /** What the run actually produced, so a later reader can judge the claim. */
+  notes?: string;
+}
+
+/** The rubric's bar: two independent agents, against a real repo. */
+export const VERIFICATION_BAR = 2;
+
+export function isVerified(step: Step): boolean {
+  return (step.verification?.agents.length ?? 0) >= VERIFICATION_BAR;
+}
+
+export function verificationState(
+  step: Step,
+): "unverified" | "partial" | "verified" {
+  const n = step.verification?.agents.length ?? 0;
+  if (n === 0) return "unverified";
+  return n >= VERIFICATION_BAR ? "verified" : "partial";
 }
 
 export interface HiddenStep {

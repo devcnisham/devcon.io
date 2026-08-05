@@ -97,19 +97,45 @@ describe("prompt content", () => {
     }
   });
 
-  it("lists dependencies as already built, and flags unfinished ones", () => {
+  it("never files an unfinished dependency under 'already built'", () => {
+    /**
+     * Both states used to share the "Already built (don't redo)" heading, with
+     * unfinished ones tagged in the body. Verifying the competition prompts
+     * against a real repo, every foundation prompt carried that heading above a
+     * step nobody had started — and an agent skimming headings reads the
+     * heading. They are separate sections now.
+     */
     const dependent = plan.steps.find((s) => s.requires.length > 0);
     if (!dependent) return;
 
     const unfinished = promptFor(dependent);
-    expect(unfinished).toMatch(/NOT yet done, do this first/);
+    expect(unfinished).toMatch(/## Not done yet — these come first/);
+    expect(unfinished).not.toMatch(/## Already built/);
 
     const finished = promptFor(
       dependent,
       COMMERCIAL_SAAS,
       new Set(dependent.requires),
     );
-    expect(finished).not.toMatch(/NOT yet done/);
+    expect(finished).toMatch(/## Already built \(don't redo\)/);
+    expect(finished).not.toMatch(/## Not done yet/);
+  });
+
+  it("carries every anti-step, not only the ones in this phase", () => {
+    /**
+     * Phase-filtering made a prompt contradict itself: the profile line says
+     * the project needs auth and payments, and the anti-steps saying not to
+     * build them are `core`, so a `foundation` prompt showed the need and hid
+     * the instruction. Found by running the competition prompts.
+     */
+    const foundation = plan.steps.find((s) => s.phase === "foundation");
+    if (!foundation) return;
+    const text = promptFor(foundation);
+    for (const anti of plan.antiSteps) {
+      expect(text, `${anti.id} missing from ${foundation.id}`).toContain(
+        anti.title.replace(/^Don't /, ""),
+      );
+    }
   });
 
   it("tells the agent what is out of scope", () => {

@@ -130,6 +130,14 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "The demo path renders end to end from hardcoded data" },
       { text: "The data looks plausible on a projector, not lorem ipsum" },
     ],
+    verification: {
+      verified_at: "2026-08-05",
+      // One agent. The rubric asks for two, so this is half the bar and
+      // `verificationState` reports it as "partial", not "verified".
+      agents: ["claude-opus-5 (Claude Code)"],
+      notes:
+        "Ran against a scratch Node repo: produced src/fixtures.mjs with plausible meeting data and no lorem ipsum. Unambiguous, no clarification needed.",
+    },
     est_minutes: 45,
   },
   {
@@ -146,6 +154,14 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "The full flow works, start to finish, without you narrating around it" },
       { text: "Someone who didn't build it can complete it" },
     ],
+    verification: {
+      verified_at: "2026-08-05",
+      // One agent. The rubric asks for two, so this is half the bar and
+      // `verificationState` reports it as "partial", not "verified".
+      agents: ["claude-opus-5 (Claude Code)"],
+      notes:
+        "Produced a working single-flow demo (streaming transcript, summarise button) that renders end to end. Both done_when checks met. The run also surfaced a rendering fault the step does not guard against — see comp-guard-happy-path.",
+    },
     est_minutes: 240,
   },
   {
@@ -178,6 +194,14 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "One API call, one key, in an env var" },
       { text: "A canned fallback response exists for when the API is slow or down" },
     ],
+    verification: {
+      verified_at: "2026-08-05",
+      // One agent. The rubric asks for two, so this is half the bar and
+      // `verificationState` reports it as "partial", not "verified".
+      agents: ["claude-opus-5 (Claude Code)"],
+      notes:
+        "Produced one hosted API call behind an env var with a timeout and a canned fallback. That done_when is what made the demo survive an unreachable API.",
+    },
     est_minutes: 60,
     serves: ["llm"],
   },
@@ -230,6 +254,14 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "Empty and error states render something, not a crash" },
       { text: "You've handed it to someone else and watched them use it" },
     ],
+    verification: {
+      verified_at: "2026-08-05",
+      // One agent. The rubric asks for two, so this is half the bar and
+      // `verificationState` reports it as "partial", not "verified".
+      agents: ["claude-opus-5 (Claude Code)"],
+      notes:
+        "Caught a real defect: the summarise button stuck on its loading state forever when the call failed, and could stack concurrent requests. Both fixed and re-verified by simulating an offline fetch.",
+    },
     est_minutes: 45,
   },
 
