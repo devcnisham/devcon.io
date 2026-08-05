@@ -17,6 +17,8 @@ import {
 } from "@/lib/tasks/types";
 import { marksAvailable, marksEarned, progressByWeight } from "@/lib/engine/plan";
 import type { Prefs, ProfileOverrides } from "@/lib/settings/types";
+import { track } from "@/lib/telemetry/events";
+import { Funnel } from "./Funnel";
 import { Integrations } from "./Integrations";
 import type { LeftSection } from "./LeftSidebar";
 import { Prompts } from "./Prompts";
@@ -59,6 +61,8 @@ export interface WorkspaceProps {
   prefs: Prefs;
   /** Env key names from the repo scan, when a real project is loaded. */
   detected?: { envKeys: string[] };
+  /** Project token — events are keyed by it, since there are no accounts. */
+  project: string;
   onPrefs: (patch: Partial<Prefs>) => void;
   onProfile: (patch: ProfileOverrides) => void;
   onReset: () => void;
@@ -714,12 +718,14 @@ export function Workspace(props: WorkspaceProps) {
         ready={ready}
         defaultAgent={props.prefs.defaultAgent}
         detected={props.detected}
+        project={props.project}
       />
     ),
     board,
     anti: antiSection,
     hidden: hiddenSection,
     deliver: isAcademic ? academicDeliverables : commercialDeliverables,
+    funnel: <Funnel plan={plan} />,
     integrations: <Integrations />,
     settings: (
       <Settings
@@ -750,7 +756,9 @@ export function Workspace(props: WorkspaceProps) {
           section === "board" ||
           section === "integrations" ||
           section === "settings" ||
-          section === "prompts"
+          section === "prompts" ||
+          // The funnel table has eight columns; it needs the room.
+          section === "funnel"
             ? "max-w-5xl"
             : "max-w-3xl"
         }`}
@@ -824,7 +832,11 @@ export function Workspace(props: WorkspaceProps) {
           <section className="mt-8 rounded-xl border border-white/10 bg-white/[0.02]">
             <button
               type="button"
-              onClick={() => setDrawerOpen((v) => !v)}
+              onClick={() => {
+              // Trust signal: does anyone actually check the subtraction?
+              if (!drawerOpen) track("drawer_expanded", props.project);
+              setDrawerOpen((v) => !v);
+            }}
               className="flex w-full items-center justify-between px-4 py-3 text-sm text-neutral-400 hover:text-neutral-200"
             >
               <span>

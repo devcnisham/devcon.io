@@ -7,6 +7,7 @@ import {
   type AgentTarget,
   buildPrompt,
 } from "@/lib/engine/prompt";
+import { track } from "@/lib/telemetry/events";
 
 const AGENTS: AgentTarget[] = [
   "claude-code",
@@ -29,6 +30,7 @@ export function Prompts({
   ready,
   defaultAgent,
   detected,
+  project,
 }: {
   profile: ProjectProfile;
   plan: Plan;
@@ -38,10 +40,13 @@ export function Prompts({
   defaultAgent: AgentTarget;
   /** Env key names from the repo scan, so prompts can name the real services. */
   detected?: { envKeys: string[] };
+  /** Project token — events are keyed by it, since there are no accounts. */
+  project: string;
 }) {
   const [agent, setAgent] = useState<AgentTarget>(defaultAgent);
   const [openId, setOpenId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [failedId, setFailedId] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
 
   const active = useMemo(
@@ -60,9 +65,52 @@ export function Prompts({
       .sort((a, b) => rank(a) - rank(b));
   }, [plan.steps, completed, ready, active, showDone]);
 
-  const copy = (step: Step) => {
-    const text = buildPrompt(step, profile, plan, completed, agent, new Set(), detected);
-    navigator.clipboard.writeText(text);
+  /**
+   * Copy, and only record it if the clipboard actually took it.
+   *
+   * `writeText` rejects when the document isn't focused, on a non-secure
+   * origin, or when permission is denied. Two things were wrong before:
+   * the rejection was unhandled (crashing the dev overlay), and the event
+   * fired regardless — so a failed copy was counted as a successful one.
+   * That corrupts `prompt_copied`, which is the signal this instrumentation
+   * exists to produce.
+   */
+  const copy = async (step: Step) => {
+    const text = buildPrompt(
+      step,
+      profile,
+      plan,
+      completed,
+      agent,
+      new Set(),
+      detected,
+    );
+
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Older/blocked path: a hidden textarea still works when the async
+      // clipboard API refuses.
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (!ok) throw new Error("execCommand failed");
+      } catch {
+        setFailedId(step.id);
+        setTimeout(() => setFailedId(null), 2400);
+        return; // No event — nothing reached the clipboard.
+      }
+    }
+
+    // Recorded separately from completion on purpose — the gap between the two
+    // is what tells us the prompt failed rather than the person losing interest.
+    track("prompt_copied", project, step.id, { agent });
     setCopiedId(step.id);
     setTimeout(() => setCopiedId(null), 1600);
   };
@@ -123,7 +171,10 @@ export function Prompts({
               <div className="flex items-center gap-3 px-4 py-3">
                 <button
                   type="button"
-                  onClick={() => setOpenId(open ? null : step.id)}
+                  onClick={() => {
+                    if (!open) track("step_opened", project, step.id);
+                    setOpenId(open ? null : step.id);
+                  }}
                   className="min-w-0 flex-1 text-left"
                 >
                   <span className="flex items-center gap-2">
@@ -149,10 +200,18 @@ export function Prompts({
 
                 <button
                   type="button"
-                  onClick={() => copy(step)}
-                  className="shrink-0 rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-neutral-200 transition-colors hover:bg-white/12"
+                  onClick={() => void copy(step)}
+                  className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                    failedId === step.id
+                      ? "border-red-400/40 bg-red-400/10 text-red-300"
+                      : "border-white/15 bg-white/[0.06] text-neutral-200 hover:bg-white/12"
+                  }`}
                 >
-                  {copiedId === step.id ? "Copied" : "Copy"}
+                  {failedId === step.id
+                    ? "Copy blocked"
+                    : copiedId === step.id
+                      ? "Copied"
+                      : "Copy"}
                 </button>
               </div>
 

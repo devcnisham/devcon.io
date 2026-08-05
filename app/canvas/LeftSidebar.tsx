@@ -25,6 +25,7 @@ const ICONS = {
   steps: "M4 10l3 3 8-8M4 15h12",
   board: "M3.5 4h4v12h-4z M8.5 4h4v8h-4z M13.5 4h3v10h-3z",
   prompts: "M11 2.5L4 11h4.5L9 17.5 16 9h-4.5L11 2.5z",
+  funnel: "M3 4h14l-5 6v6l-4 2v-8L3 4z",
   hidden: "M3 10s2.5-4.5 7-4.5S17 10 17 10s-2.5 4.5-7 4.5S3 10 3 10z M4 4l12 12",
   anti: "M10 3.5L17 16H3L10 3.5z M10 8v3.5 M10 13.5v.5",
   deliver: "M5 3h7l3 3v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M7 10h6M7 13h4",
@@ -72,6 +73,7 @@ export function LeftSidebar({
       label: "Deliverables",
       count: profile.academic.deliverables.length,
     },
+    { key: "funnel", label: "Funnel" },
     { key: "integrations", label: "Integrations" },
     { key: "settings", label: "Settings" },
   ];

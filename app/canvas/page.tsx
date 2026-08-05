@@ -41,6 +41,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { profileFromDigest } from "@/lib/scan/profile";
 import { type RepoDigest, type ScanResult, isScanError } from "@/lib/scan/types";
+import { track, trackOnce } from "@/lib/telemetry/events";
 import { listWorkspaces } from "@/lib/workspaces/store";
 import { Dock, type DockItem } from "./Dock";
 import { ProjectLoader } from "./ProjectLoader";
@@ -80,6 +81,11 @@ function CanvasInner() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [docsPinned, setDocsPinned] = useState(true);
   const searchParams = useSearchParams();
+  /**
+   * Events are keyed by project, not user — there are no accounts. Falls back
+   * to the fixture name so sample projects still produce a readable funnel.
+   */
+  const projectToken = searchParams.get("w") ?? `fixture:${fixtureKey}`;
   // A real scanned repo, when one is loaded. Overrides the sample fixtures.
   const [scanned, setScanned] = useState<{
     profile: ProjectProfile;
@@ -125,6 +131,21 @@ function CanvasInner() {
   const plan = useMemo(() => buildPlan(profile), [profile]);
 
   /**
+   * Denominator for the north star: of the projects that got a plan, how many
+   * shipped. Fires once per project, not per render.
+   */
+  useEffect(() => {
+    if (!plan.steps.length) return;
+    // Once per project — this is the north star's denominator, and StrictMode
+    // would otherwise double it in development.
+    trackOnce("plan_generated", "plan_generated", projectToken, undefined, {
+      context: profile.context,
+      steps: plan.steps.length,
+      hidden: plan.hidden.length,
+    });
+  }, [projectToken, plan.steps.length, plan.hidden.length, profile.context]);
+
+  /**
    * If this workspace was opened from a real folder, re-scan it on load.
    *
    * The digest isn't persisted — only the path is. Re-scanning means the plan
@@ -168,23 +189,48 @@ function CanvasInner() {
     [plan.steps, completed],
   );
 
+  /** The active step being reached is the top of every per-step funnel. */
+  const activeStepId = useMemo(
+    () =>
+      plan.steps.find((s) => !completed.has(s.id) && ready.has(s.id))?.id ??
+      null,
+    [plan.steps, completed, ready],
+  );
+  useEffect(() => {
+    // Once per step per project — reaching the same step twice isn't two
+    // people reaching it, and the funnel counts distinct attempts.
+    if (activeStepId) {
+      trackOnce(
+        `reached:${activeStepId}`,
+        "step_reached",
+        projectToken,
+        activeStepId,
+      );
+    }
+  }, [activeStepId, projectToken]);
+
   const [nodes, setNodes, onNodesChange] = useNodesState<AnyNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  const toggle = useCallback((id: string) => {
-    setTasks((prev) => {
-      const completed = new Set(prev.completed);
-      const doing = new Set(prev.doing);
-      if (completed.has(id)) {
-        completed.delete(id);
-      } else {
-        completed.add(id);
-        // Done supersedes in-progress; leaving both set makes the board lie.
-        doing.delete(id);
-      }
-      return { ...prev, completed, doing };
-    });
-  }, []);
+  const toggle = useCallback(
+    (id: string) => {
+      setTasks((prev) => {
+        const completed = new Set(prev.completed);
+        const doing = new Set(prev.doing);
+        if (completed.has(id)) {
+          completed.delete(id);
+          track("step_uncompleted", projectToken, id);
+        } else {
+          completed.add(id);
+          // Done supersedes in-progress; leaving both set makes the board lie.
+          doing.delete(id);
+          track("step_completed", projectToken, id);
+        }
+        return { ...prev, completed, doing };
+      });
+    },
+    [projectToken],
+  );
 
   const setStatus = useCallback((id: string, status: TaskStatus) => {
     setTasks((prev) => {
@@ -673,6 +719,7 @@ function CanvasInner() {
             detected={
               scanned ? { envKeys: scanned.digest.envKeys } : undefined
             }
+            project={projectToken}
             onPrefs={(patch) => setPrefs((p) => ({ ...p, ...patch }))}
             onProfile={(patch) => setOverrides((o) => ({ ...o, ...patch }))}
             onReset={() => {
