@@ -194,7 +194,7 @@ export function profileFromDigest(digest: RepoDigest): Inference {
         : "scaffold-exists";
   note(
     "state",
-    `${digest.fileCount} files, ${digest.directories.length} directories, ${digest.migrations.length} migration files`,
+    `${state} — ${digest.fileCount} files, ${digest.directories.length} directories, ${digest.migrations.length} migration files`,
   );
 
   if (digest.envKeys.length) {

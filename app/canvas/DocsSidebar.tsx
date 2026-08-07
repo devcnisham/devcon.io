@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { type DocNode, addChild, removeNode } from "@/lib/docs/types";
 
 const WIDTH = 288;
