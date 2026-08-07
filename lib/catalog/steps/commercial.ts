@@ -42,6 +42,16 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "One sentence describing what a first user can do end to end" },
       { text: "Everything not in that sentence is written down as later" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "shipping",
+        label: "What a first user should be able to do, end to end",
+        placeholder:
+          "Sign up, connect a calendar, and see next week's schedule",
+        multiline: true,
+      },
+    ],
     est_minutes: 45,
   },
   {
@@ -58,6 +68,15 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Separate databases for dev and production" },
       { text: "Separate API keys per environment — no shared test/live keys" },
       { text: "Production credentials are not on your laptop in plain text" },
+    ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "host",
+        label: "Where this deploys, and where the database lives",
+        placeholder:
+          "Vercel + Supabase (separate projects for dev and production)",
+      },
     ],
     est_minutes: 60,
   },
@@ -222,6 +241,15 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "A send failure is logged rather than swallowed" },
     ],
     serves: ["email"],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "domain",
+        label: "The sending domain, and who controls its DNS",
+        placeholder:
+          "mail.example.com — DNS is in Cloudflare, I have access",
+      },
+    ],
     est_minutes: 120,
   },
   {
@@ -277,6 +305,15 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Releases tagged so you can tell which deploy broke it" },
       { text: "Alerts go somewhere you actually read" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "alerts",
+        label: "Where alerts should land",
+        placeholder:
+          "#alerts in Slack, and email to me for anything paging",
+      },
+    ],
     est_minutes: 90,
   },
   {
@@ -293,6 +330,15 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Automated backups enabled and confirmed running" },
       { text: "A backup has been restored into a scratch database" },
       { text: "You know how long a restore takes" },
+    ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "provider",
+        label: "Which database provider, and what its backup plan gives you",
+        placeholder:
+          "Supabase Pro — daily backups, 7-day retention",
+      },
     ],
     est_minutes: 90,
   },
@@ -364,6 +410,23 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Both linked from the footer and from checkout" },
       { text: "Reviewed by a person, not only generated" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "collects",
+        label: "What personal data you collect, and why",
+        placeholder:
+          "Email and name for the account; usage events for product analytics",
+        multiline: true,
+      },
+      {
+        key: "refunds",
+        label: "Your refund and cancellation policy",
+        placeholder:
+          "14-day refund, cancel any time, access until period end",
+        multiline: true,
+      },
+    ],
     est_minutes: 120,
   },
 
@@ -399,6 +462,16 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "You have rolled back once, deliberately, to prove it works" },
       { text: "Migrations run in a defined order relative to the deploy" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "host",
+        label: "Where it deploys and how migrations run today",
+        placeholder:
+          "Vercel on push to main; migrations run manually before deploy",
+        multiline: true,
+      },
+    ],
     est_minutes: 120,
   },
   {
@@ -414,6 +487,15 @@ export const COMMERCIAL_STEPS: Step[] = [
     done_when: [
       { text: "One contact route, visible without hunting" },
       { text: "It reaches somewhere you check daily" },
+    ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "route",
+        label: "Where a support message should reach you",
+        placeholder:
+          "support@example.com, forwarded to my inbox",
+      },
     ],
     est_minutes: 30,
   },
@@ -432,6 +514,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Receipt arrived, access granted by webhook" },
       { text: "Repeated on a phone" },
     ],
+    execution: "human",
     est_minutes: 90,
   },
   {
@@ -448,6 +531,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Errors checked daily and triaged, not just accumulated" },
       { text: "You know where people drop out of the signup flow" },
     ],
+    execution: "human",
     est_minutes: 120,
   },
 
@@ -468,6 +552,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "How changes get priced, stated" },
       { text: "Client has agreed to it in writing" },
     ],
+    execution: "human",
     est_minutes: 120,
   },
   {
@@ -486,6 +571,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "Hosting and database owned by the client's billing" },
       { text: "You are an invited collaborator everywhere, not the owner" },
     ],
+    execution: "human",
     est_minutes: 120,
   },
   {
@@ -505,6 +591,16 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "How to deploy, and how to roll back" },
       { text: "Known issues, honestly listed" },
     ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "owners",
+        label: "Who owns each account after handover",
+        placeholder:
+          "Client owns Stripe, Vercel and the domain; I stay a collaborator",
+        multiline: true,
+      },
+    ],
     est_minutes: 240,
   },
   {
@@ -522,6 +618,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "First payment received before substantial work" },
       { text: "Final payment due before handoff, not after" },
     ],
+    execution: "human",
     est_minutes: 60,
   },
 
@@ -540,6 +637,16 @@ export const COMMERCIAL_STEPS: Step[] = [
       { text: "One documented command gets a working local environment" },
       { text: "Someone else followed it on a clean machine and it worked" },
       { text: "Dev secrets shared through a manager, never chat" },
+    ],
+    execution: "needs-input",
+    inputs: [
+      {
+        key: "team",
+        label: "Who is on the team and what each person needs access to",
+        placeholder:
+          "Two devs — both need staging; only I touch production",
+        multiline: true,
+      },
     ],
     est_minutes: 120,
   },

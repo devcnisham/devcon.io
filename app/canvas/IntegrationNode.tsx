@@ -1,10 +1,8 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
-import {
-  CAPABILITY_LABEL,
-  type Provider,
-} from "@/lib/catalog/providers";
+import { isUnservedCapability } from "@/lib/catalog";
+import { CAPABILITY_LABEL, type Provider } from "@/lib/catalog/providers";
 
 export interface IntegrationNodeData {
   provider: Provider;
@@ -118,8 +116,22 @@ export function IntegrationNode({
       {serves.length ? (
         <p className="mt-2 text-[11px] leading-snug text-neutral-500">
           Used by {serves.length} step{serves.length === 1 ? "" : "s"}:{" "}
-          <span className="text-neutral-400">{serves.slice(0, 2).join(", ")}</span>
+          <span className="text-neutral-400">
+            {serves.slice(0, 2).join(", ")}
+          </span>
           {serves.length > 2 ? ` +${serves.length - 2}` : ""}
+        </p>
+      ) : isUnservedCapability(provider.capability) ? (
+        /**
+         * A gap in DevCon, not in this plan — so it says so. Telling someone
+         * "no step in this plan uses it" about a capability the catalog never
+         * serves reads as a fact about their project, when the truth is that no
+         * plan will ever use it until a step is written.
+         */
+        <p className="mt-2 text-[11px] leading-snug text-amber-500/70">
+          No step in the catalog wires up{" "}
+          {CAPABILITY_LABEL[provider.capability].toLowerCase()} yet — connecting
+          this won&apos;t change your plan.
         </p>
       ) : (
         <p className="mt-2 text-[11px] text-neutral-600">

@@ -1,14 +1,32 @@
 # DevCon — Handoff
 
-> Last updated: end of the session that built the competition track, the
-> registry, and the landing page.
+> Last updated: end of the session that closed the non-blocking gap list and
+> drove the app by hand for the first time.
 > Branch: `devcon-engine-and-catalogs` · remote: `github.com/devcnisham/devcon.io`
 > **Read this first. Then the "Where to pick up" section at the bottom.**
 >
-> `main` has everything through PR #2. The branch is one commit ahead
-> (`49a66dd`, the landing page) and **not yet pushed or merged**.
+> `main` has everything through PR #3. The branch is pushed, and PR #4 is open.
 >
-> **209 tests, build green.** Every assertion mutation-verified.
+> **Live: https://devcon-hazel.vercel.app** — Vercel project `devcon` under
+> `nishams-projects-12e66ec9`. First deploy was from the local CLI.
+>
+> **Vercel is connected to the GitHub repo**, which `vercel link` set up on its
+> own rather than being asked for. Pushes build previews and a merge to `main`
+> deploys production, so **git is now the deploy trigger** — `npx vercel --prod`
+> is the fallback, not the route. An earlier version of this file claimed the
+> opposite; it was written before a push proved otherwise.
+>
+> `NEXT_PUBLIC_SITE_URL` is set in Vercel production only. It is inlined at
+> build time, so changing it needs a redeploy, not just a restart. Locally it
+> stays unset and `lib/site.ts` falls back to `http://localhost:3000`, which is
+> correct — the canonical should differ between the two.
+>
+> **248 tests, build green.** Every assertion mutation-verified.
+>
+> Two bugs in this session were found by *running* the app, not by reading it:
+> `step_completed` fired twice per click (the north star's numerator), and every
+> view carried 300px of horizontal scroll. Neither was reachable from the test
+> suite. See "What this session changed".
 
 ---
 
@@ -18,7 +36,7 @@ Four things, all merged to `main` except the last:
 
 1. **The competition track now exists.** It didn't — `Context` allowed
    `"competition"` while no step referenced it, so a competition profile
-   produced 0 steps and 58 hidden. 17 do-steps + 8 anti-steps now.
+   produced 0 steps and 58 hidden. 18 do-steps + 8 anti-steps now (`comp-render-check` was added later).
 2. **Ingest works in production.** `/api/scan` is dev-only and 404s in prod, so
    a deployed DevCon could scan nothing. Four sources behind one digest builder.
 3. **The Project Intelligence registry**, with Features as its first module.
@@ -108,7 +126,7 @@ Run `pnpm dev`, open `http://localhost:3000`.
 | Workspace | Works. Overview / Tasks / Prompts / Board / Don't do / Hidden / Deliverables / Funnel / Integrations / Settings. |
 | Docs sidebar | Works. Card tree, search, import .md, open as canvas node, edit. |
 | Integrations | 30 providers, env manifest, generated MCP config, custom entries. |
-| **Telemetry** | **Just built.** Events fire, funnel reads them, fix list ranks. |
+| **Telemetry** | Works, and now driven by hand. Events fire, funnel reads them, fix list ranks. A `step_completed` double-count was found and fixed doing that. |
 | Home page | Works. Open folder scans a real repo. |
 
 ### Verified against a real repo
@@ -122,12 +140,20 @@ Resend, Sentry, PostHog.
 ## What is NOT built — stated so nobody goes looking
 
 - **No backend.** All state is browser `localStorage`. Refresh-safe, but
-  clearing site data wipes everything.
+  clearing site data wipes everything. Now that this is deployed, note the
+  sharper consequence: `localStorage` is per-origin, so nothing you did on
+  `localhost:3000` exists on the Vercel host, and vice versa. The waitlist
+  header count reads 0 on the live site for exactly that reason — it counts the
+  viewer's own submissions on that origin, which is why it is not traction.
+- **Ingest does not work on the deployed site the way it does locally.** The
+  local-path source is a dev-only route and 404s in production by design, so on
+  the live host only the folder picker, GitHub and file-drop sources work. All
+  nine API handlers were verified 404ing against the real deployment.
 - **No accounts, no auth, no teams.** These land together.
 - **No prompt has been run through an agent.** The catalog rubric says a
   prompt isn't verified until it's been pasted into two agents against a real
-  repo and produced working output. **Zero of 45 do-steps meet that bar.**
-- **79 tests, all mutation-verified** (`test/`). Engine, catalog, scanner,
+  repo and produced working output. **4 of 63 do-steps are half-verified (one agent); none meet the two-agent bar.**
+- **248 tests, all mutation-verified** (`test/`). Engine, catalog, scanner,
   prompt assembly, telemetry. Not a snapshot suite — every claim was checked
   by breaking the implementation and confirming a test caught it.
   **Still untested: the UI and the two dev-only API routes.**
@@ -321,6 +347,70 @@ wrong implementation because every fixture directory held one file.
 
 ---
 
+### 5. Two bugs the test suite could not have found
+
+Both came out of driving the app by hand for the first time. Neither was
+reachable from `test/` — the suite runs in `node`, and both live in React's
+runtime behaviour and in CSS layout.
+
+**`step_completed` fired twice for one click.** `track()` was called *inside* a
+`setTasks` updater, and React deliberately double-invokes state updaters in
+development to surface impure ones. Observed live: one "Mark done" on
+`c-pin-first-thing` wrote two `step_completed` rows.
+
+That is the same failure `trackOnce` exists for, by a different route — and it
+lands on the worst possible field. `step_completed` is the north star's
+numerator *and* it ranks the catalog fix list, so the number was reporting twice
+the real ship rate, and reporting it credibly. Fixed by deciding the direction
+from the current snapshot and emitting the event outside the updater. Verified
+by clearing the store, re-scanning, and clicking once: exactly one event.
+
+**Every view carried 300px of horizontal scroll.** The docs sidebar is parked
+off-screen when closed with `translateX(WIDTH + 24)`, and a transform still
+contributes to an ancestor's scrollable area. `scrollWidth` was 1580 against a
+1280 viewport, so anything that scrolled an element into view slid the whole app
+sideways and pushed the plan sidebar off the left edge — which is exactly what
+happened mid-session and cost twenty minutes of misdirected clicking. One
+`overflow-hidden` on the positioning ancestor in `app/canvas/page.tsx`. Verified
+the docs sidebar still opens and the canvas still renders full-width.
+
+**The lesson is the one already in this file**: a green suite is not evidence
+the product works. Nothing here was a gap in test *quality* — these were gaps in
+test *reach*.
+
+### 6. The landing page: metadata, and a CTA nobody on a phone could reach
+
+**The site had no metadata.** `app/layout.tsx` still carried
+`title: "Create Next App"` and `description: "Generated by create next app"` —
+the scaffold defaults, untouched. Every tab, bookmark and shared link said
+"Create Next App", and there was no OG image, no canonical, no robots.txt and no
+sitemap.xml. Now: real title with a `%s · DevCon` template for child routes,
+description, OG + Twitter cards, `app/opengraph-image.tsx` generating a 1200×630
+card via `next/og`, plus `app/robots.ts` and `app/sitemap.ts`.
+
+**The mobile CTA was two screens below the fold.** At 375×812 the "Join the
+waitlist" button sat at roughly y=1370, behind the subhead and three bullets —
+a phone visitor got the pitch and no way to act on it. Fixed with flex `order`
+so the bullets fall below the form under `sm` (desktop source order is restored
+by `sm:order-none`, and is pixel-identical), plus `justify-center` turned off on
+mobile, which was pushing the top of the hero off-screen. Button now ends at
+y=490.
+
+Copy in `lib/site.ts` so the page, the metadata and the OG card cannot drift
+apart. **`NEXT_PUBLIC_SITE_URL` must be set at build time** — it defaults to
+`http://localhost:3000`, which is what the canonical and sitemap currently
+contain. No domain is hard-coded on purpose: nothing in this repo records where
+DevCon is deployed, and a canonical pointing at a host that isn't yours hands
+the ranking to whoever owns it.
+
+**Left alone, deliberately, on the owner's instruction:** the waitlist still
+says "We'll email when invites open" while `lib/waitlist/store.ts` writes to
+browser `localStorage` and nothing ever leaves the machine, and the header still
+renders `{count} on the list` from that same local store — so it counts the
+viewer's own submissions and reads as public traction. Both were raised and the
+call was to fix design and SEO only. Recording it here because it is the one
+place in the product that claims something it cannot currently do.
+
 ## Where the last session stopped
 
 **Finished this session:**
@@ -352,19 +442,22 @@ registry and the landing page. Ordered by whether it blocks anything.
 
 | # | Item | State |
 |---|---|---|
-| 1 | **Verify the prompts through a second agent.** 4 of 62 do-steps have been run against a real repo, by one agent. The catalog rubric's bar is two, so `verificationState()` reports those four as `partial` and the rest as `unverified`. | 4/62, half-verified |
+| 1 | **Verify the prompts through a second agent.** 4 of 63 do-steps have been run against a real repo, by one agent (`claude-opus-5 (Claude Code)`). The catalog rubric's bar is two, so `verificationState()` reports those four as `partial` and the rest as `unverified`. **A second Claude Code run does not count** — it is the same agent, and one agent's tolerance for an ambiguous instruction is not evidence about agents in general. This needs a genuinely different agent. | 4/63, half-verified |
 | 2 | **Run one hackathon cohort.** 10–50 teams on the competition track. The only thing that closes the dominant gap. | not started |
-| 3 | **Six competition steps ship an agent prompt for work no agent can do.** FIXED — steps now declare `execution: agent / needs-input / human`. **But `commercial` has no step classified at all**, so that track still hands you a paste button for anything of the same shape. | academic + competition done, commercial untouched |
+| ~~3~~ | ~~Steps shipping an agent prompt for work no agent can do.~~ **DONE.** All three tracks now declare `execution`. Academic 3 human / 4 needs-input, competition 4 / 4, commercial 5 / 10. | closed 2026-08-06 |
 
 ### Not blocking, but wrong today
 
-| # | Item | Where |
+Items 4–8 are **all closed**. Kept with their original wording so the fix is
+readable against the complaint.
+
+| # | Item | Resolution |
 |---|---|---|
-| 4 | **Nothing in the catalog checks the demo actually renders.** `comp-guard-happy-path` covers crashes and `comp-demo-environment` covers the machine. Neither catches "it works and looks wrong on a projector" — found when the verification demo shipped mojibake that `curl` couldn't see. | competition catalog |
-| 5 | **`@feature` annotations are picked up inside string literals.** Scanning this repo reports `Authentication` as annotated, from a string in `test/registry.test.ts`. Accepted cost of regex parsing so annotations work in a browser tab; an AST parser is the only real fix. | `lib/registry/sources/annotations.ts` |
-| 6 | **`project-management` is the one capability no step serves.** Connect Linear and its canvas node draws no edges. Honest — no catalog step wires up a tracker — but it reads as a bug. | catalog `serves` tags |
-| 7 | **Funnel table never seen with real events in it.** The aggregation is tested; the rendering is not. | `app/canvas/Funnel.tsx` |
-| 8 | **`last_verified` CI check (90 days)** never built. Provider free tiers are seeded, not audited. | `docs/gaps-plan.md` item 6 |
+| ~~4~~ | ~~Nothing in the catalog checks the demo actually renders.~~ | **DONE.** `comp-render-check` — "Look at the demo on the screen you'll present from", `harden` weight 3, `execution: "human"` because an agent has no display and would confidently report that what it cannot see looks fine. Guarded by a test asserting the implication *plan contains `comp-happy-path` → plan contains `comp-render-check`*, so narrowing its predicate later fails loudly. |
+| ~~5~~ | ~~`@feature` annotations are picked up inside string literals.~~ | **DONE**, and **an AST parser was not needed** — that claim was wrong. `lib/registry/sources/comments.ts` masks everything outside a comment with spaces, preserving offsets so line numbers still land. ~150 lines, runs in a browser tab. Verified against the actual symptom: `parseAnnotations` on `test/registry.test.ts` returned `Authentication@L202` before and `[]` after. |
+| ~~6~~ | ~~`project-management` is the one capability no step serves.~~ | **DONE — in the UI, not the catalog.** Tagging a step `serves: ["project-management"]` would put a false edge on the graph, and the `serves` doc comment says a wrong edge reads as a fact. Instead `isUnservedCapability()` distinguishes the two silences, and the node now says "No step in the catalog wires up project management yet — connecting this won't change your plan." Pinned by a test asserting the unserved list is exactly `["project-management"]`, which fires in both directions. |
+| ~~7~~ | ~~Funnel table never seen with real events in it.~~ | **DONE.** Driven by hand against the vespor scan: 1 plan, 1 completion, 2 prompt copies. The `copied → not done` column read `1` on two steps — the diagnostic case the taxonomy exists for. This is what surfaced the double-count below. |
+| ~~8~~ | ~~`last_verified` CI check (90 days) never built.~~ | **DONE.** `lib/catalog/providers/freshness.ts` + 9 tests. `pnpm test` is the gate; there is no `.github/`. Rejects impossible dates (`Date.parse` rolls `2026-02-31` to March 3) and future dates (a one-character year typo would otherwise buy twelve months of silence). All 30 providers currently sit at the `2026-08-04` seed date, so this turns red on **2026-11-02**. Re-read the tiers then; do not just move the date. |
 
 ### Built but not driven by hand
 
@@ -372,10 +465,19 @@ Typed, unit-tested, and never clicked:
 
 - **Browser folder picker** and **file drop** — the two production ingest paths.
   The digest builder behind them has 15 tests and the GitHub path was run
-  end-to-end against `vercel/next-learn`, but nobody has used the pickers.
-- **The waitlist form** — `lib/waitlist/store.ts` is straightforward and
-  deduplicates on a lowercased email, but the page has not been submitted in a
-  browser. **It has no tests at all.**
+  end-to-end against `vercel/next-learn`, but nobody has used the pickers. Both
+  open a native OS dialog, which is why they are still unclicked — they cannot
+  be driven from a headless browser session.
+- ~~**The waitlist form** has no tests at all.~~ **19 tests now**
+  (`test/waitlist.test.ts`), and they found a real bug: `JSON.parse("null")`
+  succeeds, so a foreign value at `devcon.waitlist` escaped the try/catch as
+  `null` and the first `.some()` on it threw inside the submit handler.
+  Reachable in practice — every project on this machine shares
+  `localhost:3000`, and a stray entry was in fact sitting in that key.
+  The **page** still has not been submitted in a browser; the **store** now has
+  coverage, including a shim, because the suite runs in `node` and without one
+  every function takes its `typeof window === "undefined"` branch and the dedup
+  path — the only interesting logic — is unreachable.
 
 ### Has no backend, and says so
 
@@ -402,14 +504,22 @@ is untested until someone actually adds the second one.
 
 ### Working tree, right now
 
-- **Branch is one commit ahead of `main`** (`49a66dd`, the landing page) and
-  **not pushed**. No PR open.
-- **Three files carry edits that are not from this session** and were left
-  alone: `app/canvas/DocsSidebar.tsx` (unused import), `lib/scan/profile.ts`
-  (adds `state` to an evidence note — a real improvement), `test/prompt.test.ts`
-  (unused const). Small and benign; commit or discard deliberately.
-- **`checklist.md` at the repo root is untracked and differs from
-  `docs/checklist.md`.** Two checklists, one stray. Reconcile or delete.
+- **Branch is four commits ahead of `main`** and **not pushed**. No PR open.
+- **Everything from this session is uncommitted.** Nothing was committed,
+  because nobody asked for a commit. `pnpm test` (248) and `pnpm build` are
+  both green as it stands.
+- **Two pre-existing edits are still uncommitted and still correct**:
+  `app/canvas/DocsSidebar.tsx` (drops a genuinely unused `useEffect` import —
+  confirmed, the file has no other reference) and `lib/scan/profile.ts` (adds
+  `state` to an evidence note). `test/prompt.test.ts` is now clean.
+- **`checklist.md` at the repo root is still untracked**, and is byte-identical
+  to `docs/checklist.md` apart from a missing trailing newline. It is a stray
+  duplicate; deleting it loses nothing. Left in place rather than deleted
+  unasked.
+- `pnpm lint` reports ~100 findings. They are pre-existing a11y noise from
+  scaffolded SVGs plus `${NAME}` template-string warnings in the MCP tests;
+  every file touched this session is formatted and lint-clean, checked by
+  running biome on the original blob to confirm which findings predate it.
 - `nisham/`, `sumayya/` and `static_analysis_codeql_1/` are now gitignored.
   The last is a generated CodeQL database of 2,983 files that was sitting one
   `git add -A` away from being committed.
@@ -427,14 +537,13 @@ is untested until someone actually adds the second one.
 
 Do this first, in this order:
 
-1. **Push the branch and open a PR** for `49a66dd`. It is the only unmerged work.
-2. **Classify the commercial track's steps** by `execution`. Academic and
-   competition are done; leaving the third means that track still offers a
-   paste button for "get everyone to push".
-3. **Verify prompts through a second agent** — item 1 above. Everything about
-   the catalog's credibility routes through this.
+1. **Verify prompts through a second agent** — item 1 above. 4 of 62, by one
+   agent, when the rubric's bar is two. Everything about the catalog's
+   credibility routes through this.
+2. **Run one hackathon cohort** on the competition track.
 
-Then the cohort. Nothing else on this page closes the gap below.
+Classifying the commercial track is done. Nothing else on this page closes the
+gap below — only putting it in front of people does.
 
 ---
 

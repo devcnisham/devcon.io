@@ -2,10 +2,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { cmdAdd, cmdDoctor, cmdUpdate, findCycles } from "@/lib/registry/cli";
 import { featureDetector } from "@/lib/registry/detect/feature";
 import { type Feature, featureModule } from "@/lib/registry/modules/feature";
-import { EMPTY_QUERY, byOrigin, runQuery } from "@/lib/registry/query";
+import { byOrigin, EMPTY_QUERY, runQuery } from "@/lib/registry/query";
 import { mergeEntries, outranks, scanRegistry } from "@/lib/registry/scan";
 import { feature, registered, resetRegistrations } from "@/lib/registry/sdk";
 import { parseAnnotations } from "@/lib/registry/sources/annotations";
+import { maskNonComments } from "@/lib/registry/sources/comments";
 import { parseFeatureConfig } from "@/lib/registry/sources/config";
 import { MemoryRegistryStore } from "@/lib/registry/store";
 import { resolve, sameContent } from "@/lib/registry/sync";
@@ -37,7 +38,11 @@ describe("the module contract", () => {
      * it the only thing on screen is a name and a guess, which is exactly the
      * kind of assertion that makes a registry stop being trusted.
      */
-    const noEvidence = { ...f({ name: "X" }), origin: "detected" as const, review: "suggested" as const };
+    const noEvidence = {
+      ...f({ name: "X" }),
+      origin: "detected" as const,
+      review: "suggested" as const,
+    };
     expect(featureModule.validate(noEvidence)).toContain(
       "detected but carries no evidence",
     );
@@ -57,7 +62,9 @@ describe("the module contract", () => {
 });
 
 describe("detection produces suggestions with reasons", () => {
-  const detect = (over: Partial<Parameters<typeof featureDetector.detect>[0]>) =>
+  const detect = (
+    over: Partial<Parameters<typeof featureDetector.detect>[0]>,
+  ) =>
     featureDetector.detect({
       dependencies: [],
       files: [],
@@ -85,13 +92,19 @@ describe("detection produces suggestions with reasons", () => {
   });
 
   it("never emits anything but a suggestion", () => {
-    const found = detect({ dependencies: ["stripe"], envKeys: ["STRIPE_SECRET_KEY"] });
+    const found = detect({
+      dependencies: ["stripe"],
+      envKeys: ["STRIPE_SECRET_KEY"],
+    });
     expect(found.every((e) => e.origin === "detected")).toBe(true);
     expect(found.every((e) => e.review === "suggested")).toBe(true);
   });
 
   it("carries the evidence it matched on", () => {
-    const [found] = detect({ dependencies: ["stripe"], envKeys: ["STRIPE_SECRET_KEY"] });
+    const [found] = detect({
+      dependencies: ["stripe"],
+      envKeys: ["STRIPE_SECRET_KEY"],
+    });
     expect(found.evidence).toContain("dependency stripe");
     expect(found.evidence).toContain("env key STRIPE_SECRET_KEY");
   });
@@ -116,10 +129,99 @@ describe("detection produces suggestions with reasons", () => {
   });
 
   it("is pure — same input, same output", () => {
-    const input = { dependencies: ["stripe"], files: [], envKeys: [], directories: [] };
+    const input = {
+      dependencies: ["stripe"],
+      files: [],
+      envKeys: [],
+      directories: [],
+    };
     const a = featureDetector.detect(input).map((e) => e.id);
     const b = featureDetector.detect(input).map((e) => e.id);
     expect(a).toEqual(b);
+  });
+});
+
+describe("comment masking", () => {
+  it("preserves length and line count exactly", () => {
+    /**
+     * The property every caller depends on. If masking changed offsets, every
+     * reported `file.ts:42` would drift and the annotation source would point
+     * at the wrong code — a worse failure than the one it fixes, because it
+     * looks right.
+     */
+    const src = 'const a = "x";\n// c\nconst b = `y\nz`;\n';
+    const masked = maskNonComments("src/x.ts", src);
+    expect(masked.length).toBe(src.length);
+    expect(masked.split("\n").length).toBe(src.split("\n").length);
+  });
+
+  it("does not treat // as a comment in Python", () => {
+    // `//` is floor division there. Masking it as a comment would leave live
+    // code in the output, which turns a false positive into a false negative.
+    expect(maskNonComments("m.py", "n = a // b").trim()).toBe("");
+    expect(maskNonComments("m.py", "# @feature X")).toBe("# @feature X");
+  });
+
+  it("does not treat # as a comment in JavaScript", () => {
+    // `#name` is a private field, not a comment.
+    expect(maskNonComments("x.ts", "class A { #n = 1; }").trim()).toBe("");
+  });
+
+  it("keeps a Python docstring, because that is where the annotation goes", () => {
+    const src = '"""\n@feature Billing\n"""\n';
+    expect(maskNonComments("m.py", src)).toBe(src);
+    expect(parseAnnotations("m.py", src)[0].feature.name).toBe("Billing");
+  });
+
+  it("is not closed early by an escaped quote", () => {
+    /**
+     * Without escape handling the string ends at the `\"`, the rest of the line
+     * is scanned as code, and the `//` inside it is kept as a real comment —
+     * so a `@feature` that only ever existed inside a string literal is
+     * reported as a live annotation.
+     *
+     * The earlier version of this test used a string with no `//` in it. Both
+     * implementations blanked that line completely, just by different routes,
+     * so it passed against broken escape handling. Mutation-testing caught it.
+     */
+    const src = 'const s = "a \\" // @feature Ghost";';
+    expect(maskNonComments("x.ts", src)).not.toContain("@feature");
+    expect(parseAnnotations("x.ts", src)).toEqual([]);
+  });
+
+  it("is not closed early by an escaped backtick", () => {
+    // The same failure across lines, where a template legitimately continues.
+    const src = ["const t = `a \\` ", "// @feature Ghost", "`;"].join("\n");
+    expect(parseAnnotations("x.ts", src)).toEqual([]);
+  });
+
+  it("contains the damage from an unrecognised regex literal to one line", () => {
+    /**
+     * Regex literals are deliberately not parsed — `/["']/` reads as an opening
+     * quote. The newline reset is what stops that swallowing the rest of the
+     * file, so the annotation on the following line still resolves.
+     */
+    const src = ["const q = /[\"']/;", "// @feature Survives"].join("\n");
+    expect(parseAnnotations("x.ts", src).map((h) => h.feature.name)).toEqual([
+      "Survives",
+    ]);
+  });
+
+  it("carries a template literal across lines but not a quoted string", () => {
+    const spanning = maskNonComments("x.ts", "const t = `\n@feature No\n`;");
+    expect(spanning).not.toContain("@feature");
+  });
+
+  it("reads both comment styles in PHP", () => {
+    expect(maskNonComments("x.php", "// @feature A")).toBe("// @feature A");
+    expect(maskNonComments("x.php", "# @feature B")).toBe("# @feature B");
+  });
+
+  it("ends a block comment at its delimiter", () => {
+    const src = "/* @feature In */ const x = '@feature Out';";
+    const masked = maskNonComments("x.ts", src);
+    expect(masked).toContain("@feature In");
+    expect(masked).not.toContain("@feature Out");
   });
 });
 
@@ -163,6 +265,51 @@ export function signIn() {}`,
       `/**\n * @feature Alpha\n */\n/**\n * @status completed\n */`,
     );
     expect(hit.feature.status).toBe("planned");
+  });
+
+  it("ignores an annotation inside a string literal", () => {
+    /**
+     * The reported bug, verbatim. Scanning this repo reported `Authentication`
+     * as a real annotated feature — the match came from the fixture in the
+     * "reads a block with several tags" test above, which is a template
+     * literal, not a comment.
+     *
+     * A registry that invents entries out of its own test data is worse than
+     * one that misses some: nothing in the UI distinguishes them.
+     */
+    const source = [
+      "const fixture = `",
+      "/**",
+      " * @feature Authentication",
+      " * @status completed",
+      " */",
+      "`;",
+    ].join("\n");
+    expect(parseAnnotations("test/registry.test.ts", source)).toEqual([]);
+  });
+
+  it("still reads the comment next to a string that contains one", () => {
+    // The mirror: masking must not swallow real annotations near strings.
+    const source = [
+      'const example = "@feature Fake";',
+      "// @feature Real",
+    ].join("\n");
+    const hits = parseAnnotations("src/x.ts", source);
+    expect(hits.map((h) => h.feature.name)).toEqual(["Real"]);
+    expect(hits[0].line).toBe(2);
+  });
+
+  it("keeps line numbers pointing at the right line after a masked block", () => {
+    // Masking preserves offsets rather than removing text, so `file.ts:42`
+    // still lands on line 42. Deleting instead would shift every hit.
+    const source = [
+      "const s = `",
+      "many",
+      "masked",
+      "lines`;",
+      "// @feature Late",
+    ].join("\n");
+    expect(parseAnnotations("src/x.ts", source)[0].line).toBe(5);
   });
 
   it("finds nothing in a file with no annotations", () => {
@@ -214,7 +361,11 @@ describe("the SDK", () => {
   beforeEach(() => resetRegistrations());
 
   it("registers a feature", () => {
-    feature({ id: "authentication", name: "Authentication", status: "completed" });
+    feature({
+      id: "authentication",
+      name: "Authentication",
+      status: "completed",
+    });
     const all = registered<Feature>("feature");
     expect(all).toHaveLength(1);
     expect(all[0].status).toBe("completed");
@@ -251,7 +402,13 @@ describe("merging sources", () => {
 
   it("lets a declaration win over a guess", () => {
     const merged = mergeEntries([
-      f({ name: "Auth", origin: "detected", review: "suggested", evidence: ["dependency next-auth"], status: "building" }),
+      f({
+        name: "Auth",
+        origin: "detected",
+        review: "suggested",
+        evidence: ["dependency next-auth"],
+        status: "building",
+      }),
       f({ name: "Auth", origin: "declared", status: "completed" }),
     ]);
     expect(merged).toHaveLength(1);
@@ -265,7 +422,13 @@ describe("merging sources", () => {
      * useful thing on screen when deciding whether the declaration is stale.
      */
     const merged = mergeEntries([
-      f({ name: "Auth", origin: "detected", review: "suggested", evidence: ["dependency next-auth"], files: ["src/auth.ts"] }),
+      f({
+        name: "Auth",
+        origin: "detected",
+        review: "suggested",
+        evidence: ["dependency next-auth"],
+        files: ["src/auth.ts"],
+      }),
       f({ name: "Auth", origin: "declared" }),
     ]);
     expect(merged[0].evidence).toContain("dependency next-auth");
@@ -278,7 +441,8 @@ describe("scanning a whole project", () => {
     const source = memorySource({
       "package.json": JSON.stringify({ dependencies: { stripe: "1" } }),
       "project.features.ts": `export default [{ id:"teams", name:"Teams", status:"building" }]`,
-      "src/notify.ts": "/**\n * @feature Notifications\n * @status testing\n */\n",
+      "src/notify.ts":
+        "/**\n * @feature Notifications\n * @status testing\n */\n",
     });
 
     const result = await scanRegistry(source, {
@@ -310,8 +474,18 @@ describe("scanning a whole project", () => {
 
 describe("query", () => {
   const entries = [
-    f({ name: "Auth", status: "completed", category: "Security", tags: ["core"] }),
-    f({ name: "Payments", status: "building", category: "Commerce", tags: ["core"] }),
+    f({
+      name: "Auth",
+      status: "completed",
+      category: "Security",
+      tags: ["core"],
+    }),
+    f({
+      name: "Payments",
+      status: "building",
+      category: "Commerce",
+      tags: ["core"],
+    }),
     f({ name: "Admin", status: "planned", category: "Product", tags: [] }),
   ];
 
@@ -320,7 +494,9 @@ describe("query", () => {
   });
 
   it("searches name, category and tags", () => {
-    expect(runQuery(entries, { ...EMPTY_QUERY, text: "commerce" })).toHaveLength(1);
+    expect(
+      runQuery(entries, { ...EMPTY_QUERY, text: "commerce" }),
+    ).toHaveLength(1);
     expect(runQuery(entries, { ...EMPTY_QUERY, text: "core" })).toHaveLength(2);
   });
 
@@ -344,15 +520,31 @@ describe("query", () => {
   });
 
   it("is stable when the sort key ties", () => {
-    const tied = [f({ name: "B", status: "planned" }), f({ name: "A", status: "planned" })];
-    const once = runQuery(tied, { ...EMPTY_QUERY, sort: "status" }, featureModule.statuses);
-    const twice = runQuery([...tied].reverse(), { ...EMPTY_QUERY, sort: "status" }, featureModule.statuses);
+    const tied = [
+      f({ name: "B", status: "planned" }),
+      f({ name: "A", status: "planned" }),
+    ];
+    const once = runQuery(
+      tied,
+      { ...EMPTY_QUERY, sort: "status" },
+      featureModule.statuses,
+    );
+    const twice = runQuery(
+      [...tied].reverse(),
+      { ...EMPTY_QUERY, sort: "status" },
+      featureModule.statuses,
+    );
     expect(once.map((e) => e.id)).toEqual(twice.map((e) => e.id));
   });
 
   it("separates a suggestion from an accepted entry", () => {
     const groups = byOrigin([
-      f({ name: "A", origin: "detected", review: "suggested", evidence: ["x"] }),
+      f({
+        name: "A",
+        origin: "detected",
+        review: "suggested",
+        evidence: ["x"],
+      }),
       f({ name: "B", origin: "detected", review: "accepted", evidence: ["x"] }),
       f({ name: "C", origin: "manual" }),
     ]);
@@ -392,7 +584,11 @@ describe("the store records what changed", () => {
      * mutation-testing caught exactly that.
      */
     const born = "2020-01-01T00:00:00.000Z";
-    const a = await store.put("p", f({ name: "Auth", createdAt: born }), "user");
+    const a = await store.put(
+      "p",
+      f({ name: "Auth", createdAt: born }),
+      "user",
+    );
     const b = await store.put("p", { ...a, status: "testing" }, "user");
     expect(a.createdAt).toBe(born);
     expect(b.createdAt).toBe(born);
@@ -408,7 +604,12 @@ describe("the store records what changed", () => {
   it("distinguishes accepting a suggestion from any other edit", async () => {
     const a = await store.put(
       "p",
-      f({ name: "Auth", origin: "detected", review: "suggested", evidence: ["x"] }),
+      f({
+        name: "Auth",
+        origin: "detected",
+        review: "suggested",
+        evidence: ["x"],
+      }),
       "scanner",
     );
     await store.put("p", { ...a, review: "accepted" }, "user");
@@ -430,14 +631,24 @@ describe("sync resolves without trusting clocks", () => {
      * Both sides edited from the same base. Picking one silently discards work
      * someone did — this is the case that has to reach a person.
      */
-    const local = { ...f({ name: "A" }), status: "completed" as const, revision: 2 };
-    const remote = { ...f({ name: "A" }), status: "deprecated" as const, revision: 2 };
+    const local = {
+      ...f({ name: "A" }),
+      status: "completed" as const,
+      revision: 2,
+    };
+    const remote = {
+      ...f({ name: "A" }),
+      status: "deprecated" as const,
+      revision: 2,
+    };
     expect(resolve(local, remote)).toBe("manual");
   });
 
   it("is not a conflict when the content is identical", () => {
     const entry = f({ name: "A" });
-    expect(resolve({ ...entry, revision: 2 }, { ...entry, revision: 2 })).toBe("remote");
+    expect(resolve({ ...entry, revision: 2 }, { ...entry, revision: 2 })).toBe(
+      "remote",
+    );
   });
 
   it("ignores timestamps when comparing content", () => {
@@ -490,7 +701,12 @@ describe("the CLI", () => {
   it("reports suggestions still awaiting review", async () => {
     await store.put(
       "p",
-      f({ name: "A", origin: "detected", review: "suggested", evidence: ["x"] }),
+      f({
+        name: "A",
+        origin: "detected",
+        review: "suggested",
+        evidence: ["x"],
+      }),
       "scanner",
     );
     const result = await cmdDoctor(store, "p");

@@ -39,7 +39,7 @@ per track.
 |---|---|---|
 | Academic track | ⏳ Testing | 16 do-steps + 6 anti-steps. **No prompt verified against a live agent.** 7 steps classified by execution mode. |
 | Competition track | ⏳ Testing | 17 do-steps + 8 anti-steps. Hackathons. 4 steps partially verified; 7 classified by execution mode. |
-| Commercial track | ⏳ Testing | 29 do-steps + 7 anti-steps. **No prompt verified, none classified** — the track this work hasn't reached. |
+| Commercial track | ⏳ Testing | 29 do-steps + 7 anti-steps. 15 classified by execution mode (5 human, 10 needs-input). **No prompt verified against a live agent.** |
 | Provider catalog | ⏳ Testing | 30 providers across 8 capabilities. Free tiers are seeded, not audited. |
 | Catalog validation | ✅ Completed | Duplicate ids, dangling dependencies, cycles, rubric rules |
 | `serves` capability tagging | ✅ Completed | 15 steps declare which service they wire up |
@@ -147,7 +147,7 @@ routes, models and components plug into the same shape.
 
 | Feature | Status | Notes |
 |---|---|---|
-| Test suite | ✅ Completed | 209 tests, every assertion mutation-verified. The waitlist store is the one module with none. |
+| Test suite | ✅ Completed | 210 tests, every assertion mutation-verified. The waitlist store is the one module with none. |
 | Build gate | ✅ Completed | `pnpm build` runs TypeScript |
 | Workspace persistence | ✅ Completed | Recent workspaces, re-scanned on open |
 | Documentation | ✅ Completed | `README.md`, this file, `bug-report.md`, `HANDOFF.md`, `docs/gaps-plan.md`. Each states what isn't done as plainly as what is. |

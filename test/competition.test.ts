@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ALL_STEPS } from "@/lib/catalog";
+import { hasPrompt } from "@/lib/catalog/types";
 import { buildPlan, planMinutes } from "@/lib/engine/plan";
 import { HACKATHON_SOLO_LATE, HACKATHON_TEAM } from "./fixtures";
 
@@ -68,6 +69,57 @@ describe("the plan is short, because the event is", () => {
   });
 });
 
+describe("a demo that runs is not a demo that reads", () => {
+  it("never plans a happy path without planning a look at it", () => {
+    /**
+     * The gap this closes: `comp-guard-happy-path` catches crashes and
+     * `comp-demo-environment` freezes the machine, and neither catches "it
+     * works and looks wrong on a projector". Found for real — DevCon's own
+     * verification demo shipped mojibake that rendered as boxes and came back
+     * clean through `curl`.
+     *
+     * Asserted as an implication rather than as membership, so narrowing
+     * `comp-render-check`'s predicate later fails here instead of quietly
+     * dropping the check out of some profiles' plans.
+     */
+    for (const p of [HACKATHON_TEAM, HACKATHON_SOLO_LATE]) {
+      const ids = new Set(buildPlan(p).steps.map((s) => s.id));
+      if (!ids.has("comp-happy-path")) continue;
+      expect([...ids]).toContain("comp-render-check");
+    }
+  });
+
+  it("checks how it looks, not that it runs", () => {
+    /**
+     * Guards the one thing that makes this step distinct. `comp-happy-path`
+     * and `comp-guard-happy-path` already cover "it works" between them, so a
+     * render check that degrades into another "it works" check closes nothing
+     * — it just adds twenty minutes to the plan.
+     *
+     * Matched loosely on purpose: rewording is fine, dropping the property is
+     * not.
+     */
+    const step = COMPETITION_STEPS.find((s) => s.id === "comp-render-check");
+    const checks = (step?.done_when ?? []).map((d) => d.text).join(" | ");
+    // Not `/screen/` — the clipping check mentions a screen too, so that
+    // pattern stayed green with the "present from" line deleted.
+    expect(checks).toMatch(/present from|resolution/i);
+    expect(checks).toMatch(/character|glyph|mojibake/i);
+    expect(checks).toMatch(/read|legib/i);
+  });
+
+  it("does not offer to paste the render check into an agent", () => {
+    /**
+     * The reason it is `execution: "human"`. An agent has no display, so a
+     * prompt here would produce a confident report that the thing it cannot
+     * see looks fine — which is worse than no check at all.
+     */
+    const step = COMPETITION_STEPS.find((s) => s.id === "comp-render-check");
+    expect(step && hasPrompt(step)).toBe(false);
+    expect(step?.prompt_template).toBeUndefined();
+  });
+});
+
 describe("subtraction is the point of this track", () => {
   it("tells a team that says it needs auth not to build it", () => {
     /**
@@ -93,7 +145,9 @@ describe("subtraction is the point of this track", () => {
     const solo = buildPlan(HACKATHON_SOLO_LATE);
 
     expect(team.antiSteps.map((s) => s.id)).toContain("comp-avoid-deploy");
-    expect(team.steps.map((s) => s.id)).not.toContain("comp-deploy-for-judging");
+    expect(team.steps.map((s) => s.id)).not.toContain(
+      "comp-deploy-for-judging",
+    );
 
     expect(solo.antiSteps.map((s) => s.id)).not.toContain("comp-avoid-deploy");
     expect(solo.steps.map((s) => s.id)).toContain("comp-deploy-for-judging");
@@ -110,7 +164,9 @@ describe("subtraction is the point of this track", () => {
     ];
     for (const p of [HACKATHON_TEAM, HACKATHON_SOLO_LATE]) {
       const plan = buildPlan(p);
-      const shown = new Set([...plan.steps, ...plan.antiSteps].map((s) => s.id));
+      const shown = new Set(
+        [...plan.steps, ...plan.antiSteps].map((s) => s.id),
+      );
       for (const [anti, doStep] of CONTRADICTIONS) {
         expect(
           shown.has(anti) && shown.has(doStep),

@@ -15,18 +15,36 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import type { ProjectProfile } from "@/lib/catalog/types";
 import {
+  addChild,
   type DocNode,
   SEED_DOCS,
-  addChild,
   updateContent,
 } from "@/lib/docs/types";
 import { layoutSteps } from "@/lib/engine/layout";
 import { unblockedSteps } from "@/lib/engine/order";
 import { buildPlan, marksAvailable, planMinutes } from "@/lib/engine/plan";
+import {
+  connectedProviders,
+  EMPTY_INTEGRATIONS,
+  type IntegrationState,
+  identityFromScan,
+  loadIntegrations,
+  saveIntegrations,
+} from "@/lib/integrations/store";
+import { useRegistry } from "@/lib/registry/useRegistry";
 import { EMPTY_PROFILE } from "@/lib/scan/empty";
+import { profileFromDigest } from "@/lib/scan/profile";
+import type { FileSource } from "@/lib/scan/source";
+import { devPathSource } from "@/lib/scan/sources/dev-path";
+import {
+  isScanError,
+  type RepoDigest,
+  type ScanResult,
+} from "@/lib/scan/types";
 import {
   DEFAULT_PREFS,
   type Prefs,
@@ -34,41 +52,27 @@ import {
 } from "@/lib/settings/types";
 import {
   type CustomTask,
+  emptyTaskState,
   type TaskState,
   type TaskStatus,
-  emptyTaskState,
 } from "@/lib/tasks/types";
-import { useSearchParams } from "next/navigation";
-import {
-  EMPTY_INTEGRATIONS,
-  type IntegrationState,
-  connectedProviders,
-  identityFromScan,
-  loadIntegrations,
-  saveIntegrations,
-} from "@/lib/integrations/store";
-import { FeatureRegistry } from "./FeatureRegistry";
-import { useRegistry } from "@/lib/registry/useRegistry";
-import type { FileSource } from "@/lib/scan/source";
-import { devPathSource } from "@/lib/scan/sources/dev-path";
-import { profileFromDigest } from "@/lib/scan/profile";
-import { type RepoDigest, type ScanResult, isScanError } from "@/lib/scan/types";
 import { track, trackOnce } from "@/lib/telemetry/events";
 import { listWorkspaces } from "@/lib/workspaces/store";
 import { Dock, type DockItem } from "./Dock";
-import { ProjectLoader } from "./ProjectLoader";
-import { DocWindowNode, type DocNodeData } from "./DocWindowNode";
 import { DocsSidebar } from "./DocsSidebar";
+import { type DocNodeData, DocWindowNode } from "./DocWindowNode";
 import { EmptyState } from "./EmptyState";
+import { FeatureRegistry } from "./FeatureRegistry";
+import { IntegrationNode, type IntegrationNodeData } from "./IntegrationNode";
 import {
   LEFT_COLLAPSED,
   LEFT_WIDTH,
-  LeftSidebar,
   type LeftSection,
+  LeftSidebar,
 } from "./LeftSidebar";
-import { IntegrationNode, type IntegrationNodeData } from "./IntegrationNode";
+import { ProjectLoader } from "./ProjectLoader";
 import { StepNode, type StepNodeData } from "./StepNode";
-import { ViewTabs, type ViewKey } from "./ViewTabs";
+import { type ViewKey, ViewTabs } from "./ViewTabs";
 import { Workspace } from "./Workspace";
 
 const nodeTypes = {
@@ -300,22 +304,41 @@ function CanvasInner() {
 
   const toggle = useCallback(
     (id: string) => {
+      /**
+       * The event is emitted out here, NOT inside the updater below.
+       *
+       * React invokes state updaters twice in development to surface impure
+       * ones, so a `track()` call in there records two events for a single
+       * click. Observed: one "Mark done" produced two `step_completed` for
+       * `c-pin-first-thing`.
+       *
+       * That matters more than a stray row. `step_completed` is the north
+       * star's numerator and it ranks the catalog fix list, so doubling it
+       * reports twice the real ship rate — credible, and wrong. Same failure
+       * as the `plan_generated` double-count `trackOnce` exists for, reached
+       * by a different route: an impure updater rather than a double-fired
+       * effect.
+       */
+      const willComplete = !completed.has(id);
       setTasks((prev) => {
-        const completed = new Set(prev.completed);
+        const nextCompleted = new Set(prev.completed);
         const doing = new Set(prev.doing);
-        if (completed.has(id)) {
-          completed.delete(id);
-          track("step_uncompleted", projectToken, id);
+        if (nextCompleted.has(id)) {
+          nextCompleted.delete(id);
         } else {
-          completed.add(id);
+          nextCompleted.add(id);
           // Done supersedes in-progress; leaving both set makes the board lie.
           doing.delete(id);
-          track("step_completed", projectToken, id);
         }
-        return { ...prev, completed, doing };
+        return { ...prev, completed: nextCompleted, doing };
       });
+      track(
+        willComplete ? "step_completed" : "step_uncompleted",
+        projectToken,
+        id,
+      );
     },
-    [projectToken],
+    [completed, projectToken],
   );
 
   const setStatus = useCallback((id: string, status: TaskStatus) => {
@@ -762,11 +785,20 @@ function CanvasInner() {
               setNodes([]);
             }}
           />
-
         </div>
       </header>
 
-      <div className="relative min-h-0 flex-1">
+      {/**
+       * `overflow-hidden` is load-bearing, not cosmetic.
+       *
+       * The docs sidebar is parked off-screen when closed with
+       * `translateX(WIDTH + 24)`, and a transform still contributes to an
+       * ancestor's scrollable area. Without clipping here, every view had 300px
+       * of horizontal scroll (`scrollWidth` 1580 against a 1280 viewport) —
+       * enough that scrolling an element into view slid the whole app sideways
+       * and pushed the plan sidebar off the left edge.
+       */}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
         {/* Wallpaper. Layered gradients rather than a raster asset — nothing to
             ship, no licence to worry about, and it scales to any viewport. */}
         <div
@@ -867,9 +899,7 @@ function CanvasInner() {
             // down the right of the workspace.
             insetRight={docsPinned ? 312 : 24}
             prefs={prefs}
-            detected={
-              scanned ? { envKeys: scanned.digest.envKeys } : undefined
-            }
+            detected={scanned ? { envKeys: scanned.digest.envKeys } : undefined}
             project={projectToken}
             integrations={integrations}
             identity={identity}

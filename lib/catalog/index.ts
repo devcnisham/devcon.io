@@ -1,3 +1,4 @@
+import type { Capability } from "./providers";
 import { ACADEMIC_STEPS } from "./steps/academic";
 import { COMMERCIAL_STEPS } from "./steps/commercial";
 import { COMPETITION_STEPS } from "./steps/competition";
@@ -15,6 +16,34 @@ export const ALL_STEPS: Step[] = [
   ...COMPETITION_STEPS,
   ...COMMERCIAL_STEPS,
 ];
+
+/**
+ * Capabilities some step in the catalog actually wires up.
+ *
+ * Exists to tell two different silences apart on the canvas. A connected
+ * service that no step in *this plan* uses is normal — you connected Stripe and
+ * this project takes no payments. A capability no step in the *catalog* serves
+ * is a gap in DevCon, and saying "no step in this plan uses it" about it is a
+ * quiet lie: no plan will ever use it.
+ *
+ * `project-management` is the live case. Connect Linear and its node draws no
+ * edges, because nothing in any track wires up a tracker.
+ */
+export function capabilitiesServed(steps: Step[] = ALL_STEPS): Set<Capability> {
+  const served = new Set<Capability>();
+  for (const step of steps) {
+    for (const cap of step.serves ?? []) served.add(cap);
+  }
+  return served;
+}
+
+/** True when no step anywhere in the catalog wires this capability up. */
+export function isUnservedCapability(
+  capability: Capability,
+  steps: Step[] = ALL_STEPS,
+): boolean {
+  return !capabilitiesServed(steps).has(capability);
+}
 
 export interface CatalogProblem {
   stepId: string;

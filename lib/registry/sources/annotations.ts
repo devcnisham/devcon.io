@@ -1,4 +1,5 @@
 import { type Feature, featureModule } from "../modules/feature";
+import { maskNonComments } from "./comments";
 
 /**
  * `@feature` annotations in comments.
@@ -7,11 +8,15 @@ import { type Feature, featureModule } from "../modules/feature";
  * describes, so it moves when the code moves and dies when the code is deleted
  * — which is the failure mode every separate feature list eventually has.
  *
- * Parsed with a regex rather than a TypeScript AST on purpose: this has to run
+ * Matched with a regex rather than a TypeScript AST on purpose: this has to run
  * in the browser against a file read from a folder handle, and shipping a
- * parser to do it would cost more than the precision is worth. The cost is that
- * an annotation inside a string literal would be picked up. That is an
- * acceptable false positive for something a person reviews.
+ * parser to do it would cost more than the precision is worth.
+ *
+ * The regex used to run over the raw source, which meant an annotation inside a
+ * string literal was picked up — scanning this repo reported `Authentication`
+ * as a real feature, out of a fixture in `test/registry.test.ts`. It now runs
+ * over `maskNonComments`, which blanks everything outside a comment while
+ * preserving line numbers. That is much less than a parser and enough for this.
  */
 
 /**
@@ -40,8 +45,13 @@ export interface AnnotationHit {
  * `@feature` immediately followed by code takes only its own line, and that is
  * the common case.
  */
-export function parseAnnotations(path: string, source: string): AnnotationHit[] {
-  const lines = source.split("\n");
+export function parseAnnotations(
+  path: string,
+  source: string,
+): AnnotationHit[] {
+  // Comment text only. Masking preserves offsets, so `i + 1` below is still the
+  // line number in the file the user actually has open.
+  const lines = maskNonComments(path, source).split("\n");
   const hits: AnnotationHit[] = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -83,10 +93,16 @@ export function parseAnnotations(path: string, source: string): AnnotationHit[] 
         status: fields.status as Feature["status"],
         priority: fields.priority as Feature["priority"],
         tags: fields.tags
-          ? fields.tags.split(",").map((t) => t.trim()).filter(Boolean)
+          ? fields.tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
           : [],
         dependsOn: fields.dependsOn
-          ? fields.dependsOn.split(",").map((t) => t.trim()).filter(Boolean)
+          ? fields.dependsOn
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
           : [],
         origin: "annotated",
         files: [path],
