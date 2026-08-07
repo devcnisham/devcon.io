@@ -10,9 +10,9 @@ import {
 
 export function LandingPage() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "done" | "error"
+  >("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [alreadyOnList, setAlreadyOnList] = useState(false);
   const [count, setCount] = useState(0);
@@ -78,23 +78,37 @@ export function LandingPage() {
           </span>
         </header>
 
-        <section className="flex flex-1 flex-col justify-center py-16">
+        {/**
+         * Mobile puts the form above the fold; desktop is unchanged.
+         *
+         * At 375×812 the button landed at roughly y=1370 — two full screens
+         * down, behind the subhead and the three bullets. Someone arriving on a
+         * phone saw a pitch and no way to act on it.
+         *
+         * Fixed with flex `order` rather than duplicated markup, so there is
+         * still one form in the DOM: the bullets move below the form under
+         * `sm`, and `sm:order-none` restores source order above it.
+         *
+         * `justify-center` is also mobile-off. Centring content that is taller
+         * than the viewport pushes the top of the hero off-screen, which is the
+         * other half of why the CTA sat so low.
+         */}
+        <section className="flex flex-1 flex-col justify-start py-10 sm:justify-center sm:py-16">
           <h1 className="text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl">
             Ship the project, not the plan.
           </h1>
 
           <p className="mt-6 max-w-xl text-balance text-lg leading-relaxed text-neutral-400">
             DevCon takes your idea or existing repo and returns the short,
-            ordered sequence of steps to actually ship it — and hides
-            everything that doesn&apos;t apply, with a reason attached.
+            ordered sequence of steps to actually ship it — and hides everything
+            that doesn&apos;t apply, with a reason attached.
           </p>
 
-          <ul className="mt-8 max-w-xl space-y-2.5 text-[15px] text-neutral-400">
+          <ul className="order-3 mt-10 max-w-xl space-y-2.5 text-[15px] text-neutral-400 sm:order-none sm:mt-8">
             <li className="flex gap-3">
               <span className="mt-1.5 inline-block h-1 w-1 shrink-0 rounded-full bg-neutral-600" />
               <span>
-                One engine, three contexts — academic, competition,
-                commercial.
+                One engine, three contexts — academic, competition, commercial.
               </span>
             </li>
             <li className="flex gap-3">
@@ -107,15 +121,15 @@ export function LandingPage() {
             <li className="flex gap-3">
               <span className="mt-1.5 inline-block h-1 w-1 shrink-0 rounded-full bg-neutral-600" />
               <span>
-                Anti-steps tell you what <em>not</em> to do — shown loudly,
-                not hidden.
+                Anti-steps tell you what <em>not</em> to do — shown loudly, not
+                hidden.
               </span>
             </li>
           </ul>
 
           <form
             onSubmit={handleSubmit}
-            className="mt-10 max-w-xl"
+            className="order-2 mt-8 max-w-xl sm:order-none sm:mt-10"
             noValidate
           >
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -153,7 +167,9 @@ export function LandingPage() {
             {message ? (
               <p
                 className={`mt-3 text-sm ${
-                  status === "error" ? "text-amber-300/90" : "text-emerald-300/90"
+                  status === "error"
+                    ? "text-amber-300/90"
+                    : "text-emerald-300/90"
                 }`}
                 role={status === "error" ? "alert" : "status"}
               >
