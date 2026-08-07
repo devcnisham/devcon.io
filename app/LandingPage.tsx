@@ -1,55 +1,37 @@
-"use client";
+import { PlanDemo } from "./PlanDemo";
+import { WaitlistForm } from "./WaitlistForm";
 
-import { useEffect, useState } from "react";
-import {
-  inWaitlist,
-  isValidEmail,
-  joinWaitlist,
-  waitlistCount,
-} from "@/lib/waitlist/store";
+/**
+ * The landing page.
+ *
+ * Server-rendered. It used to be `"use client"` end to end, which meant a
+ * headline and one email input carried the whole hydration path; the only
+ * genuinely interactive parts are now the two components imported above.
+ *
+ * One bold element and nothing else: `PlanDemo` performs the subtraction this
+ * product is actually about, and everything around it stays quiet. A second
+ * flourish would compete with the only thing worth remembering here.
+ */
+
+const FACTS = [
+  {
+    label: "One engine",
+    body: "Academic, competition and commercial are three contexts over one catalog — not three products.",
+  },
+  {
+    label: "Every step carries a prompt",
+    body: "Context-rich and built from your actual stack, ready to paste into whichever coding agent you use.",
+  },
+  {
+    label: "Nothing is hidden silently",
+    body: "Every step it drops keeps the reason it was dropped, so you can disagree with it.",
+  },
+];
 
 export function LandingPage() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<
-    "idle" | "submitting" | "done" | "error"
-  >("idle");
-  const [message, setMessage] = useState<string | null>(null);
-  const [alreadyOnList, setAlreadyOnList] = useState(false);
-  const [count, setCount] = useState(0);
-
-  // localStorage is client-only.
-  useEffect(() => {
-    setCount(waitlistCount());
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setMessage(null);
-
-    if (!isValidEmail(email)) {
-      setStatus("error");
-      setMessage("Enter a valid email so we can reach you.");
-      return;
-    }
-
-    setStatus("submitting");
-    const result = joinWaitlist(email);
-    if (typeof result === "string") {
-      setStatus("error");
-      setMessage(result);
-      return;
-    }
-
-    setStatus("done");
-    setMessage("You're in. We'll email when access opens.");
-    setCount(waitlistCount());
-    setAlreadyOnList(true);
-    setEmail("");
-  };
-
   return (
     <main
-      className="min-h-screen text-neutral-200"
+      className="min-h-dvh text-neutral-200"
       style={{
         background: `
           radial-gradient(900px 600px at 12% -5%, rgba(56,132,180,0.12), transparent 60%),
@@ -68,131 +50,67 @@ export function LandingPage() {
         }}
       />
 
-      <div className="relative mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-10 sm:px-8">
+      <div className="relative mx-auto flex min-h-dvh max-w-6xl flex-col px-5 py-8 sm:px-8 sm:py-10">
         <header className="flex items-center justify-between">
           <span className="font-mono text-sm tracking-tight text-neutral-300">
             devcon
           </span>
-          <span className="font-mono text-xs text-neutral-500">
-            {count > 0 ? `${count} on the list` : "early access"}
-          </span>
-        </header>
-
-        {/**
-         * Mobile puts the form above the fold; desktop is unchanged.
-         *
-         * At 375×812 the button landed at roughly y=1370 — two full screens
-         * down, behind the subhead and the three bullets. Someone arriving on a
-         * phone saw a pitch and no way to act on it.
-         *
-         * Fixed with flex `order` rather than duplicated markup, so there is
-         * still one form in the DOM: the bullets move below the form under
-         * `sm`, and `sm:order-none` restores source order above it.
-         *
-         * `justify-center` is also mobile-off. Centring content that is taller
-         * than the viewport pushes the top of the hero off-screen, which is the
-         * other half of why the CTA sat so low.
-         */}
-        <section className="flex flex-1 flex-col justify-start py-10 sm:justify-center sm:py-16">
-          <h1 className="text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl">
-            Ship the project, not the plan.
-          </h1>
-
-          <p className="mt-6 max-w-xl text-balance text-lg leading-relaxed text-neutral-400">
-            DevCon takes your idea or existing repo and returns the short,
-            ordered sequence of steps to actually ship it — and hides everything
-            that doesn&apos;t apply, with a reason attached.
-          </p>
-
-          <ul className="order-3 mt-10 max-w-xl space-y-2.5 text-[15px] text-neutral-400 sm:order-none sm:mt-8">
-            <li className="flex gap-3">
-              <span className="mt-1.5 inline-block h-1 w-1 shrink-0 rounded-full bg-neutral-600" />
-              <span>
-                One engine, three contexts — academic, competition, commercial.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="mt-1.5 inline-block h-1 w-1 shrink-0 rounded-full bg-neutral-600" />
-              <span>
-                Each step comes with a context-rich prompt to paste into your
-                coding agent.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="mt-1.5 inline-block h-1 w-1 shrink-0 rounded-full bg-neutral-600" />
-              <span>
-                Anti-steps tell you what <em>not</em> to do — shown loudly, not
-                hidden.
-              </span>
-            </li>
-          </ul>
-
-          <form
-            onSubmit={handleSubmit}
-            className="order-2 mt-8 max-w-xl sm:order-none sm:mt-10"
-            noValidate
-          >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (status !== "idle") {
-                    setStatus("idle");
-                    setMessage(null);
-                  }
-                }}
-                placeholder="you@domain.com"
-                disabled={status === "submitting" || alreadyOnList}
-                aria-label="Email address"
-                className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/[0.03] px-4 py-3 text-[15px] text-neutral-100 placeholder:text-neutral-600 focus:border-white/30 focus:outline-none disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={status === "submitting" || alreadyOnList}
-                className="shrink-0 rounded-xl border border-white/15 bg-white px-5 py-3 text-[15px] font-medium text-neutral-900 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {alreadyOnList
-                  ? "On the list"
-                  : status === "submitting"
-                    ? "Joining…"
-                    : "Join the waitlist"}
-              </button>
-            </div>
-
-            {message ? (
-              <p
-                className={`mt-3 text-sm ${
-                  status === "error"
-                    ? "text-amber-300/90"
-                    : "text-emerald-300/90"
-                }`}
-                role={status === "error" ? "alert" : "status"}
-              >
-                {message}
-              </p>
-            ) : null}
-          </form>
-        </section>
-
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-6 text-xs text-neutral-500">
-          <span>
-            Early access. We&apos;ll email when invites open — no spam, no
-            newsletter.
-          </span>
-          {/* /start, not /canvas — the picker is where a returning project is
-              reopened, and the canvas with no project loaded is just an empty
-              state telling you to go and pick one. */}
           <a
             href="/start"
-            className="text-neutral-400 underline-offset-2 transition-colors hover:text-neutral-200 hover:underline"
+            className="rounded font-mono text-xs text-neutral-400 underline-offset-4 transition-colors hover:text-neutral-200 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60"
           >
-            Already have access? Open the app →
+            Open the app →
           </a>
+        </header>
+
+        <div className="flex flex-1 flex-col justify-center py-12 sm:py-16">
+          {/* Top-aligned, not centred. The demo column is roughly twice the
+              height of the argument column, so centring left a large dead gap
+              above the eyebrow and pushed the CTA down for no reason. */}
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
+            {/* The argument. */}
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-sky-400/80">
+                Plans that subtract
+              </p>
+
+              <h1 className="mt-5 text-balance text-[2.1rem] font-semibold leading-[1.08] tracking-[-0.02em] text-white sm:text-5xl">
+                Ship the project, not the plan.
+              </h1>
+
+              <p className="mt-5 max-w-lg text-pretty text-[17px] leading-relaxed text-neutral-400">
+                Point DevCon at an idea or an existing repo. It returns the
+                short, ordered sequence of steps to ship it — and hides
+                everything that doesn&apos;t apply, with a reason attached.
+              </p>
+
+              <div className="mt-8 max-w-md">
+                <WaitlistForm />
+              </div>
+            </div>
+
+            {/* The proof. */}
+            <PlanDemo />
+          </div>
+
+          <ul className="mt-16 grid gap-x-10 gap-y-8 border-t border-white/8 pt-10 sm:grid-cols-3">
+            {FACTS.map((f) => (
+              <li key={f.label}>
+                <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-neutral-300">
+                  {f.label}
+                </h2>
+                <p className="mt-2 text-[13px] leading-relaxed text-neutral-400">
+                  {f.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <footer className="border-t border-white/8 pt-6 font-mono text-[11px] leading-relaxed text-neutral-400">
+          Early access. We&apos;ll email when invites open. Nothing here has run
+          a cohort yet, and no prompt has been verified against two agents — the
+          plan you get is the catalog&apos;s judgement, not a measured result.
         </footer>
       </div>
     </main>
