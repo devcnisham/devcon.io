@@ -8,9 +8,13 @@
 > `main` has everything through PR #3. The branch is pushed, and PR #4 is open.
 >
 > **Live: https://devcon-hazel.vercel.app** — Vercel project `devcon` under
-> `nishams-projects-12e66ec9`, deployed from the local CLI, not from git. There
-> is no GitHub integration, so **a merge to `main` deploys nothing**; the next
-> deploy is another `npx vercel --prod`.
+> `nishams-projects-12e66ec9`. First deploy was from the local CLI.
+>
+> **Vercel is connected to the GitHub repo**, which `vercel link` set up on its
+> own rather than being asked for. Pushes build previews and a merge to `main`
+> deploys production, so **git is now the deploy trigger** — `npx vercel --prod`
+> is the fallback, not the route. An earlier version of this file claimed the
+> opposite; it was written before a push proved otherwise.
 >
 > `NEXT_PUBLIC_SITE_URL` is set in Vercel production only. It is inlined at
 > build time, so changing it needs a redeploy, not just a restart. Locally it
