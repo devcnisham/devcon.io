@@ -58,8 +58,7 @@ export const COMPETITION_STEPS: Step[] = [
       {
         key: "prizes",
         label: "Prizes you're entering",
-        placeholder:
-          "Grand prize, Best use of AI",
+        placeholder: "Grand prize, Best use of AI",
       },
     ],
     est_minutes: 20,
@@ -92,7 +91,9 @@ export const COMPETITION_STEPS: Step[] = [
     why: "Sponsor prizes usually mandate a specific API and some proof you used it meaningfully. Discovering that at hour 30 costs you the prize you were building toward.",
     done_when: [
       { text: "The required service is named for each prize you're entering" },
-      { text: "Any 'must be used meaningfully' wording is understood, not skimmed" },
+      {
+        text: "Any 'must be used meaningfully' wording is understood, not skimmed",
+      },
       { text: "API keys obtained and working before you need them" },
     ],
     execution: "needs-input",
@@ -178,7 +179,9 @@ export const COMPETITION_STEPS: Step[] = [
     requires: ["comp-fake-data-first"],
     why: "This is the entire product as far as judging is concerned. Every hour spent on a branch the demo never takes is an hour not spent on the one it does.",
     done_when: [
-      { text: "The full flow works, start to finish, without you narrating around it" },
+      {
+        text: "The full flow works, start to finish, without you narrating around it",
+      },
       { text: "Someone who didn't build it can complete it" },
     ],
     verification: {
@@ -219,7 +222,9 @@ export const COMPETITION_STEPS: Step[] = [
     why: "A hosted API is one HTTP call. Running a model locally means a download, a GPU you may not have, and a laptop that overheats mid-demo. Fine-tuning inside a weekend is not a plan.",
     done_when: [
       { text: "One API call, one key, in an env var" },
-      { text: "A canned fallback response exists for when the API is slow or down" },
+      {
+        text: "A canned fallback response exists for when the API is slow or down",
+      },
     ],
     verification: {
       verified_at: "2026-08-05",
@@ -262,7 +267,9 @@ export const COMPETITION_STEPS: Step[] = [
     why: "Venue wifi fails, and it fails during your slot. Decide now which laptop, which browser, which data, and stop changing it.",
     done_when: [
       { text: "One named machine runs the demo, with the data already seeded" },
-      { text: "It works with the network unplugged, or you know exactly which parts don't" },
+      {
+        text: "It works with the network unplugged, or you know exactly which parts don't",
+      },
       { text: "Nobody pushes to the demo branch after this point" },
     ],
     est_minutes: 45,
@@ -292,6 +299,38 @@ export const COMPETITION_STEPS: Step[] = [
     est_minutes: 45,
   },
 
+  {
+    id: "comp-render-check",
+    title: "Look at the demo on the screen you'll present from",
+    kind: "do",
+    phase: "harden",
+    weight: 3,
+    criticality: "must",
+    applies_when: competition,
+    requires: ["comp-happy-path"],
+    why: "Working and looking right are different properties, and only one of them is what judges see. A projector is a low-contrast display at a resolution you didn't design for, viewed from ten metres. Broken glyphs, grey-on-grey text and clipped labels all pass every check that isn't a person looking at it.",
+    done_when: [
+      {
+        text: "Opened on the actual display you'll present from, at its resolution",
+      },
+      {
+        text: "Every character renders — no boxes, no question marks, no mojibake",
+      },
+      { text: "Readable from the back of the room, not just from your laptop" },
+      {
+        text: "Nothing is clipped, overlapping, or off the bottom of the screen",
+      },
+    ],
+    /**
+     * Human, and it cannot be anything else. The failure this exists for is
+     * invisible to the tools an agent has: DevCon's own verification demo
+     * shipped mojibake that rendered as boxes on screen and came back clean
+     * through `curl`, because the bytes were fine and the font was not.
+     */
+    execution: "human",
+    est_minutes: 20,
+  },
+
   // ----------------------------------------------------------- deliver
   {
     id: "comp-demo-script",
@@ -304,7 +343,9 @@ export const COMPETITION_STEPS: Step[] = [
     requires: ["comp-demo-environment"],
     why: "Adrenaline erases memory and slots are short. The teams that look composed rehearsed; they aren't better at improvising.",
     done_when: [
-      { text: "Script written, opening with what it does — not how you built it" },
+      {
+        text: "Script written, opening with what it does — not how you built it",
+      },
       { text: "Run twice out loud, with a timer, inside the limit" },
       { text: "A recording exists as a backup in case the live demo dies" },
     ],
@@ -320,8 +361,7 @@ export const COMPETITION_STEPS: Step[] = [
       {
         key: "limit",
         label: "Time limit",
-        placeholder:
-          "3 minutes",
+        placeholder: "3 minutes",
       },
     ],
     est_minutes: 45,
@@ -356,7 +396,9 @@ export const COMPETITION_STEPS: Step[] = [
     done_when: [
       { text: "Every field the portal asks for is filled" },
       { text: "It names the problem before the technology" },
-      { text: "Sponsor tech is named explicitly if you're entering those prizes" },
+      {
+        text: "Sponsor tech is named explicitly if you're entering those prizes",
+      },
     ],
     execution: "needs-input",
     inputs: [
