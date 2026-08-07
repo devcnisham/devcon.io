@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# CodeQL scratch database. 2,983 files of generated artefact — one `git add -A`
+# from being committed by accident.
+/static_analysis_codeql_1/
+
+# Personal notes and templates that live in the working tree but are not part
+# of the app. Deliberately untracked; ignored so they stop showing up in
+# `git status` and can't be swept into a commit.
+/nisham/
+/sumayya/
