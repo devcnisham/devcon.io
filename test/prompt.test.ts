@@ -31,13 +31,21 @@ describe("track leakage — the defects a manual read caught", () => {
    * context block.
    */
   const commercialPlan = buildPlan(COMMERCIAL_SAAS);
+  /**
+   * Only the steps that HAVE a prompt. `buildPrompt` throws for human work by
+   * design, and these loops passed for months only because the commercial track
+   * had nothing classified — the moment it did, four of them started throwing.
+   */
+  const commercialPrompted = commercialPlan.steps.filter(
+    (s) => executionOf(s) !== "human",
+  );
 
   it("never claims a brief mandated the stack on a commercial project", () => {
     const withStack = {
       ...COMMERCIAL_SAAS,
       academic: { ...COMMERCIAL_SAAS.academic, tech_constraints: "Next.js" },
     };
-    for (const step of commercialPlan.steps) {
+    for (const step of commercialPrompted) {
       const text = promptFor(step, withStack);
       expect(text, step.id).not.toMatch(/MANDATED by the brief/i);
     }
@@ -57,7 +65,7 @@ describe("track leakage — the defects a manual read caught", () => {
       ...COMMERCIAL_SAAS,
       academic: { ...COMMERCIAL_SAAS.academic, must_run_locally: true },
     };
-    for (const step of commercialPlan.steps) {
+    for (const step of commercialPrompted) {
       expect(promptFor(step, local), step.id).not.toMatch(
         /clean machine from a fresh clone|evaluator|grader|rubric|viva/i,
       );
@@ -85,9 +93,11 @@ describe("track leakage — the defects a manual read caught", () => {
 
 describe("prompt content", () => {
   const plan = buildPlan(COMMERCIAL_SAAS);
+  // Human steps have no prompt to inspect — see the note above.
+  const prompted = plan.steps.filter((s) => executionOf(s) !== "human");
 
   it("carries the task, the why, and the acceptance criteria", () => {
-    for (const step of plan.steps) {
+    for (const step of prompted) {
       const text = promptFor(step);
       expect(text, step.id).toContain(step.title);
       expect(text, step.id).toContain(step.why);
@@ -147,7 +157,7 @@ describe("prompt content", () => {
   });
 
   it("never emits a secret value, only key names", () => {
-    for (const step of plan.steps) {
+    for (const step of prompted) {
       const text = promptFor(step, COMMERCIAL_SAAS, new Set(), {
         envKeys: ["STRIPE_SECRET_KEY", "ANTHROPIC_API_KEY"],
       });
@@ -234,6 +244,33 @@ describe("steps an agent cannot do", () => {
     }
   });
 
+  it("classifies every track, not just the ones that got attention", () => {
+    /**
+     * The commercial track shipped with nothing classified while academic and
+     * competition were done, so it kept offering a paste button for work no
+     * agent can do. Nothing caught that — the loops over commercial steps
+     * passed precisely BECAUSE none of them were human.
+     *
+     * Every track must declare at least one human step. Not an arbitrary rule:
+     * all three end in submitting, launching or handing over, and none of that
+     * is typing.
+     */
+    const track = (id: string) =>
+      id.startsWith("comp-") ? "competition" : id.startsWith("c-") ? "commercial" : "academic";
+    const humansByTrack = new Map<string, number>();
+    for (const s of ALL_STEPS.filter((s) => s.kind === "do")) {
+      const t = track(s.id);
+      if (executionOf(s) === "human") {
+        humansByTrack.set(t, (humansByTrack.get(t) ?? 0) + 1);
+      } else if (!humansByTrack.has(t)) {
+        humansByTrack.set(t, 0);
+      }
+    }
+    for (const [t, n] of humansByTrack) {
+      expect(n, `${t} has no step classified as human work`).toBeGreaterThan(0);
+    }
+  });
+
   it("never marks an anti-step as agent work", () => {
     // There is nothing to paste for an anti-step in the first place.
     const bad = ALL_STEPS.filter(
@@ -244,8 +281,6 @@ describe("steps an agent cannot do", () => {
 });
 
 describe("agent preambles", () => {
-  const step = ALL_STEPS.find((s) => s.kind === "do") as Step;
-
   it("differs per agent while the body stays the same", () => {
     const plan = buildPlan(COMMERCIAL_SAAS);
     const target = plan.steps[0];
