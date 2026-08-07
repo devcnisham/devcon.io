@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the example, which is meant to be committed and carries no values.
+# `.env*` silently swallowed it, which matters more here than in most repos:
+# DevCon's own scanner reads `.env.example` and never `.env`, so a repo that
+# cannot hold one is a repo DevCon reads nothing from — including this one.
+!.env.example
 
 # vercel
 .vercel
