@@ -55,12 +55,21 @@ export function LandingPage() {
           <span className="font-mono text-sm tracking-tight text-neutral-300">
             devcon
           </span>
-          <a
-            href="/start"
-            className="rounded font-mono text-xs text-neutral-400 underline-offset-4 transition-colors hover:text-neutral-200 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60"
-          >
-            Open the app →
-          </a>
+          {/* A docs page nothing links to is a docs page nobody reads. */}
+          <nav className="flex items-center gap-5 font-mono text-xs text-neutral-400">
+            <a
+              href="/docs"
+              className="rounded underline-offset-4 transition-colors hover:text-neutral-100 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60"
+            >
+              Docs
+            </a>
+            <a
+              href="/start"
+              className="rounded underline-offset-4 transition-colors hover:text-neutral-100 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60"
+            >
+              Open the app →
+            </a>
+          </nav>
         </header>
 
         <div className="flex flex-1 flex-col justify-center py-12 sm:py-16">
