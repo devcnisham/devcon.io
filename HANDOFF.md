@@ -5,8 +5,17 @@
 > Branch: `devcon-engine-and-catalogs` · remote: `github.com/devcnisham/devcon.io`
 > **Read this first. Then the "Where to pick up" section at the bottom.**
 >
-> `main` has everything through PR #2. The branch is four commits ahead and
-> **not yet pushed or merged**, with uncommitted work on top.
+> `main` has everything through PR #3. The branch is pushed, and PR #4 is open.
+>
+> **Live: https://devcon-hazel.vercel.app** — Vercel project `devcon` under
+> `nishams-projects-12e66ec9`, deployed from the local CLI, not from git. There
+> is no GitHub integration, so **a merge to `main` deploys nothing**; the next
+> deploy is another `npx vercel --prod`.
+>
+> `NEXT_PUBLIC_SITE_URL` is set in Vercel production only. It is inlined at
+> build time, so changing it needs a redeploy, not just a restart. Locally it
+> stays unset and `lib/site.ts` falls back to `http://localhost:3000`, which is
+> correct — the canonical should differ between the two.
 >
 > **248 tests, build green.** Every assertion mutation-verified.
 >
@@ -127,7 +136,15 @@ Resend, Sentry, PostHog.
 ## What is NOT built — stated so nobody goes looking
 
 - **No backend.** All state is browser `localStorage`. Refresh-safe, but
-  clearing site data wipes everything.
+  clearing site data wipes everything. Now that this is deployed, note the
+  sharper consequence: `localStorage` is per-origin, so nothing you did on
+  `localhost:3000` exists on the Vercel host, and vice versa. The waitlist
+  header count reads 0 on the live site for exactly that reason — it counts the
+  viewer's own submissions on that origin, which is why it is not traction.
+- **Ingest does not work on the deployed site the way it does locally.** The
+  local-path source is a dev-only route and 404s in production by design, so on
+  the live host only the folder picker, GitHub and file-drop sources work. All
+  nine API handlers were verified 404ing against the real deployment.
 - **No accounts, no auth, no teams.** These land together.
 - **No prompt has been run through an agent.** The catalog rubric says a
   prompt isn't verified until it's been pasted into two agents against a real
