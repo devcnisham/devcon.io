@@ -25,6 +25,24 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* A global floor for reduced motion, not a per-component courtesy.
+   PlanDemo checks the media query itself so it can start in its end state, but
+   that only covers the one component that remembered to. This catches every
+   transition and animation in the app — including the docs sidebar slide and
+   the canvas node transitions — for anyone who has asked the OS for less
+   movement. `1ms` rather than `0s` so transitionend still fires and nothing
+   waiting on it stalls. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Markdown rendering for the doc viewer. Hand-rolled rather than pulling in
    @tailwindcss/typography — this is one surface with a known, dark-only
    palette, so the plugin's whole light/dark ramp would go unused. */
