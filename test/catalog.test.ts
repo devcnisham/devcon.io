@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { ALL_STEPS, validateCatalog } from "@/lib/catalog";
+import {
+  ALL_STEPS,
+  capabilitiesServed,
+  isUnservedCapability,
+  validateCatalog,
+} from "@/lib/catalog";
+import { CAPABILITY_ORDER } from "@/lib/catalog/providers";
 import type { Step } from "@/lib/catalog/types";
 import { ALL_FIXTURES } from "./fixtures";
 
@@ -81,8 +87,9 @@ describe("step quality rubric", () => {
   const doSteps = ALL_STEPS.filter((s) => s.kind === "do");
 
   it("gives every do-step a done_when", () => {
-    expect(doSteps.filter((s) => s.done_when.length === 0).map((s) => s.id))
-      .toEqual([]);
+    expect(
+      doSteps.filter((s) => s.done_when.length === 0).map((s) => s.id),
+    ).toEqual([]);
   });
 
   it("gives every step a why", () => {
@@ -96,6 +103,33 @@ describe("step quality rubric", () => {
       .filter((s) => s.est_minutes < 10 || s.est_minutes > 480)
       .map((s) => `${s.id}=${s.est_minutes}m`);
     expect(wrong).toEqual([]);
+  });
+
+  it("collects the capabilities steps actually serve", () => {
+    // Synthetic, so it tests the function rather than today's catalog data.
+    const steps = [
+      { serves: ["auth", "database"] },
+      { serves: ["auth"] },
+      {},
+    ] as Step[];
+    expect([...capabilitiesServed(steps)].sort()).toEqual(["auth", "database"]);
+    expect(isUnservedCapability("payments", steps)).toBe(true);
+    expect(isUnservedCapability("auth", steps)).toBe(false);
+  });
+
+  it("has exactly one capability no step wires up", () => {
+    /**
+     * `project-management` is a known gap, recorded in HANDOFF.md: connect
+     * Linear and its canvas node draws no edges, because no track has a step
+     * that wires up a tracker.
+     *
+     * Pinned to the exact list rather than asserted loosely, so this fires in
+     * both directions — a second unserved capability appearing is a provider
+     * category shipped without steps, and the list shrinking means the gap
+     * closed and the handoff needs updating.
+     */
+    const unserved = CAPABILITY_ORDER.filter((c) => isUnservedCapability(c));
+    expect(unserved).toEqual(["project-management"]);
   });
 
   it("is exclusion-testable — every step is hidden by some profile", () => {
