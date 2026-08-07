@@ -354,7 +354,7 @@ registry and the landing page. Ordered by whether it blocks anything.
 |---|---|---|
 | 1 | **Verify the prompts through a second agent.** 4 of 62 do-steps have been run against a real repo, by one agent. The catalog rubric's bar is two, so `verificationState()` reports those four as `partial` and the rest as `unverified`. | 4/62, half-verified |
 | 2 | **Run one hackathon cohort.** 10–50 teams on the competition track. The only thing that closes the dominant gap. | not started |
-| 3 | **Six competition steps ship an agent prompt for work no agent can do.** FIXED — steps now declare `execution: agent / needs-input / human`. **But `commercial` has no step classified at all**, so that track still hands you a paste button for anything of the same shape. | academic + competition done, commercial untouched |
+| ~~3~~ | ~~Steps shipping an agent prompt for work no agent can do.~~ **DONE.** All three tracks now declare `execution`. Academic 3 human / 4 needs-input, competition 3 / 4, commercial 5 / 10. | closed 2026-08-06 |
 
 ### Not blocking, but wrong today
 
@@ -427,14 +427,13 @@ is untested until someone actually adds the second one.
 
 Do this first, in this order:
 
-1. **Push the branch and open a PR** for `49a66dd`. It is the only unmerged work.
-2. **Classify the commercial track's steps** by `execution`. Academic and
-   competition are done; leaving the third means that track still offers a
-   paste button for "get everyone to push".
-3. **Verify prompts through a second agent** — item 1 above. Everything about
-   the catalog's credibility routes through this.
+1. **Verify prompts through a second agent** — item 1 above. 4 of 62, by one
+   agent, when the rubric's bar is two. Everything about the catalog's
+   credibility routes through this.
+2. **Run one hackathon cohort** on the competition track.
 
-Then the cohort. Nothing else on this page closes the gap below.
+Classifying the commercial track is done. Nothing else on this page closes the
+gap below — only putting it in front of people does.
 
 ---
 
