@@ -25,7 +25,12 @@ export function listWaitlist(): WaitlistEntry[] {
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as WaitlistEntry[];
+    const parsed: unknown = JSON.parse(raw);
+    // `JSON.parse("null")` succeeds, so the catch below never fires for it and
+    // the value escapes as `null` — then the first `.some()` on it throws from
+    // inside the form's submit handler. Anything at this key that isn't ours
+    // is treated as no list, which is what a corrupt one is worth.
+    return Array.isArray(parsed) ? (parsed as WaitlistEntry[]) : [];
   } catch {
     return [];
   }
