@@ -1,33 +1,34 @@
 # DevCon — Handoff
 
-> Last updated: end of the session that made ingest real and fixed the MCP output.
+> Last updated: end of the session that built the competition track, the
+> registry, and the landing page.
 > Branch: `devcon-engine-and-catalogs` · remote: `github.com/devcnisham/devcon.io`
-> **Read this first. Then `docs/gaps-plan.md` for what to do next.**
+> **Read this first. Then the "Where to pick up" section at the bottom.**
 >
-> **This session's work is NOT committed.** Working tree has the changes below
-> plus `nisham/` and `sumayya/`, which are deliberately untracked.
+> `main` has everything through PR #2. The branch is one commit ahead
+> (`49a66dd`, the landing page) and **not yet pushed or merged**.
+>
+> **209 tests, build green.** Every assertion mutation-verified.
 
 ---
 
-## Read this before trusting the ordered plan
+## What changed since the last handoff
 
-**The competition track does not exist.** `Context` in
-`lib/catalog/types.ts` allows `"competition"`, but no step references it, there
-is no `competition` block on `ProjectProfile`, and there are no conditions for
-it. A competition profile produces **0 steps, 0 anti-steps, 58 hidden** — run
-`buildPlan` with one and see.
+Four things, all merged to `main` except the last:
 
-That blocks items 2 and 3 of `docs/gaps-plan.md`, both of which assume ~10
-competition steps exist and are merely unverified. They are not unverified.
-They are absent. Building that track is the real next task.
+1. **The competition track now exists.** It didn't — `Context` allowed
+   `"competition"` while no step referenced it, so a competition profile
+   produced 0 steps and 58 hidden. 17 do-steps + 8 anti-steps now.
+2. **Ingest works in production.** `/api/scan` is dev-only and 404s in prod, so
+   a deployed DevCon could scan nothing. Four sources behind one digest builder.
+3. **The Project Intelligence registry**, with Features as its first module.
+4. **The landing page and waitlist**, wired to `/` — uncommitted-to-`main`.
 
-While confirming it, three further errors in `docs/gaps-plan.md` surfaced:
-
-- It says "53 steps". There are **58** (45 do + 13 anti).
-- It says commercial is 31 and academic 22. Commercial is **36**, academic 22.
-- G1 says "the engine already excludes unverified steps from plans, so this
-  gates itself." **It does not.** `Step` has no `verified_at` field and
-  `buildPlan` filters on nothing but `applies_when`. Nothing gates itself.
+`docs/gaps-plan.md` had three factual errors, all corrected in this file's
+history: the step counts, and a claim that the engine "already excludes
+unverified steps, so this gates itself". It did not — there was no field to
+gate on. `Step.verification` exists now, and deliberately does **not** filter
+plans, because a verified-only plan would today be empty.
 
 ---
 
@@ -342,84 +343,106 @@ star's denominator.
 **Loose end, small:** never visually confirmed the Funnel table renders with
 real events in it. The aggregation is tested; the rendering is not.
 
-## Loose ends from THIS session
+## Everything unfinished, in one place
 
-Stated rather than left to be discovered:
+Written at the end of the session that built the competition track, the
+registry and the landing page. Ordered by whether it blocks anything.
 
-1. **Nothing is committed.** Build and 134 tests pass; the tree is dirty.
-2. **`context()` reads "a academic project"** — `lib/catalog/conditions.ts`
-   builds `a ${c}` with no article logic, so the hidden drawer says "this isn't
-   a academic project". `lib/engine/prompt.ts` already has an `article()`
-   helper for exactly this; it just isn't shared. One-line fix, not done.
-3. **The folder picker and file drop have not been driven by hand.** The digest
-   builder behind them has 15 tests, and the GitHub path was run end-to-end
-   against `vercel/next-learn` (311 files, correct deps and needs). The two
-   browser-only sources are typed and unit-tested but nobody has clicked them.
-4. **`identityFromScan` only knows git hosts.** A connected Vercel or Supabase
-   card still says "not linked to a specific project yet", because knowing
-   which Vercel project this is needs an authenticated call DevCon can't make.
-   Left absent rather than guessed.
-5. **`project-management` is the one capability no step serves**, asserted in
-   `test/integrations.test.ts`. Connect Linear and its node draws no edges. That
-   is honest — no catalog step wires up a tracker — but it looks like a bug.
-6. **The GitHub source is rate-limited to 60 requests/hour** unauthenticated,
-   and each file read is a request. A large repo can exhaust it; the error says
-   so and points at the folder picker.
+### Blocking — the product's own claim depends on these
 
----
-
-## Next steps, in dependency order
-
-From `docs/gaps-plan.md`. The order is forced, not preference.
-
-| # | Work | Why here |
+| # | Item | State |
 |---|---|---|
-| 1 | ~~Instrument the funnel~~ | **Done.** |
-| 1.5 | **Build the competition track** | Newly discovered blocker. It does not exist — see the top of this file. Items 2 and 3 both assume it does. Needs a `competition` block on `ProjectProfile`, condition leaves, ~10 do-steps + ~7 anti-steps, and a fixture. |
-| 2 | **Verify the competition prompts through a real agent** | Blocked on 1.5. Running a cohort on unverified prompts makes failure un-diagnosable between "plan wrong" and "prompt wrong". Also needs a `verified_at` field, which does not exist yet either. |
-| 3 | **Run one hackathon cohort**, 10–50 teams | The only thing that closes the dominant gap. |
-| 4 | Read drop-off → fix the catalog | The flywheel, with real input for the first time. |
-| 5 | Accounts + return loop | **Only if the cohort shows it's needed.** |
-| 6 | `last_verified` CI check (90 days) | Independent, do anytime. |
-| — | Name, positioning, README | Not blocked. Do in parallel. |
+| 1 | **Verify the prompts through a second agent.** 4 of 62 do-steps have been run against a real repo, by one agent. The catalog rubric's bar is two, so `verificationState()` reports those four as `partial` and the rest as `unverified`. | 4/62, half-verified |
+| 2 | **Run one hackathon cohort.** 10–50 teams on the competition track. The only thing that closes the dominant gap. | not started |
+| 3 | **Six competition steps ship an agent prompt for work no agent can do.** FIXED — steps now declare `execution: agent / needs-input / human`. **But `commercial` has no step classified at all**, so that track still hands you a paste button for anything of the same shape. | academic + competition done, commercial untouched |
 
-### The dominant gap
-**Nobody has finished a project because of DevCon.** There is no number for
-*"of N who started a plan, M reached demo."* Until that exists, every claim
-here — including the whole subtraction thesis — is an assertion. It cannot be
-closed by building more features.
+### Not blocking, but wrong today
+
+| # | Item | Where |
+|---|---|---|
+| 4 | **Nothing in the catalog checks the demo actually renders.** `comp-guard-happy-path` covers crashes and `comp-demo-environment` covers the machine. Neither catches "it works and looks wrong on a projector" — found when the verification demo shipped mojibake that `curl` couldn't see. | competition catalog |
+| 5 | **`@feature` annotations are picked up inside string literals.** Scanning this repo reports `Authentication` as annotated, from a string in `test/registry.test.ts`. Accepted cost of regex parsing so annotations work in a browser tab; an AST parser is the only real fix. | `lib/registry/sources/annotations.ts` |
+| 6 | **`project-management` is the one capability no step serves.** Connect Linear and its canvas node draws no edges. Honest — no catalog step wires up a tracker — but it reads as a bug. | catalog `serves` tags |
+| 7 | **Funnel table never seen with real events in it.** The aggregation is tested; the rendering is not. | `app/canvas/Funnel.tsx` |
+| 8 | **`last_verified` CI check (90 days)** never built. Provider free tiers are seeded, not audited. | `docs/gaps-plan.md` item 6 |
+
+### Built but not driven by hand
+
+Typed, unit-tested, and never clicked:
+
+- **Browser folder picker** and **file drop** — the two production ingest paths.
+  The digest builder behind them has 15 tests and the GitHub path was run
+  end-to-end against `vercel/next-learn`, but nobody has used the pickers.
+- **The waitlist form** — `lib/waitlist/store.ts` is straightforward and
+  deduplicates on a lowercased email, but the page has not been submitted in a
+  browser. **It has no tests at all.**
+
+### Has no backend, and says so
+
+These are implemented against an interface with nothing on the other side.
+None of them are broken; all of them are inert.
+
+- **Sync engine** — queue, backoff, dedup, revision-based conflict resolution,
+  optimistic updates. `localOnlyTransport` is what runs. `devcon sync` prints
+  why rather than pretending.
+- **Registry REST API** — module-generic routes with optimistic concurrency,
+  **dev-only**, because there is no auth and an unauthenticated write endpoint
+  on a deployed host lets anyone rewrite anyone's registry.
+- **Waitlist** — browser `localStorage`. Emails entered on one machine exist
+  only on that machine.
+- **Accounts, auth, teams** — none. Schema is already team- and account-shaped
+  so retrofitting is not a migration.
+
+### Registry modules declared but not implemented
+
+`ModuleId` lists nine beyond `feature`: `api`, `route`, `model`, `job`,
+`prompt`, `component`, `env`, `integration`, `package`. The core mentions no
+feature anywhere, so each is a module definition plus a detector — that claim
+is untested until someone actually adds the second one.
+
+### Working tree, right now
+
+- **Branch is one commit ahead of `main`** (`49a66dd`, the landing page) and
+  **not pushed**. No PR open.
+- **Three files carry edits that are not from this session** and were left
+  alone: `app/canvas/DocsSidebar.tsx` (unused import), `lib/scan/profile.ts`
+  (adds `state` to an evidence note — a real improvement), `test/prompt.test.ts`
+  (unused const). Small and benign; commit or discard deliberately.
+- **`checklist.md` at the repo root is untracked and differs from
+  `docs/checklist.md`.** Two checklists, one stray. Reconcile or delete.
+- `nisham/`, `sumayya/` and `static_analysis_codeql_1/` are now gitignored.
+  The last is a generated CodeQL database of 2,983 files that was sitting one
+  `git add -A` away from being committed.
+
+### Deliberately deferred
+
+- **The name.** "DevCon" reads as *developer conference* — the deleted
+  `landing.html` stub actually described it that way. Cheap to change now.
+- **Pricing.** Direction recorded: one-time payment, BYO API key.
+- **Accounts** — revisit only if a cohort shows they are needed.
 
 ---
 
-## Open decisions
+## Where to pick up
 
-- **The name.** "DevCon" means developer conference to the industry and the
-  search term is crowded. Cheap now, expensive after any marketing.
-- **Positioning.** Lead with the shared bottleneck (order + wiring + what to
-  skip), use the three tracks as proof the engine is context-native. Not
-  "college project planner" — academic was a release order, never the market.
-- **Pricing.** Deferred.
+Do this first, in this order:
 
----
+1. **Push the branch and open a PR** for `49a66dd`. It is the only unmerged work.
+2. **Classify the commercial track's steps** by `execution`. Academic and
+   competition are done; leaving the third means that track still offers a
+   paste button for "get everyone to push".
+3. **Verify prompts through a second agent** — item 1 above. Everything about
+   the catalog's credibility routes through this.
 
-## Commands
-
-```bash
-pnpm dev        # localhost:3000
-pnpm build      # typecheck + build — the real gate
-pnpm lint       # biome (a11y noise from scaffolded SVGs is expected)
-pnpm test       # vitest — 34 engine tests, mutation-verified
-```
-
-Scan a repo: `curl 'localhost:3000/api/scan?path=/abs/path'`
-Verify prompts: `curl 'localhost:3000/api/verify?path=/abs/path'`
+Then the cohort. Nothing else on this page closes the gap below.
 
 ---
 
-## Working agreement
+## The gap none of it closes
 
-- **Build is the gate**, not lint. `pnpm build` runs TypeScript.
-- **State what isn't done** rather than implying completeness. Several UI
-  surfaces say so in the product itself — keep that.
-- **Don't add UI in response to a defensibility worry.** The moat is the
-  catalog and the measured loop. More UI makes it less defensible.
+**Nobody has finished a project because of DevCon.**
+
+There is still no number for *"of N who started a plan, M reached demo."*
+Everything above is built and tested; none of it is evidence the thesis works.
+It cannot be closed by building more features — only by putting the thing in
+front of people and measuring what happens.

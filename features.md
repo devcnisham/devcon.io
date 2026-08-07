@@ -115,6 +115,8 @@ routes, models and components plug into the same shape.
 | Docs sidebar | ✅ Completed | Card tree, search, import, edit. Closed by default. |
 | Left rail | ✅ Completed | Overview, Tasks, Prompts, Board, Don't do, Hidden, Deliverables, Registry, Funnel, Integrations, Settings |
 | Empty state | ✅ Completed | No sample project — asks for a real one |
+| Landing page | ✅ Completed | `/` — positioning, the three tracks, anti-steps, and the waitlist form |
+| Workspace picker | ✅ Completed | Moved to `/start` when the landing took `/`. Recent workspaces, re-scanned on open. |
 | Keyboard shortcuts | 🚧 Building | `/` and Escape in the registry. Nowhere else. |
 | Dark mode | ✅ Completed | The only mode. There is no light theme. |
 | Accessibility | 🚧 Building | Labels and `aria-pressed` on controls; no audit has been done |
@@ -145,12 +147,13 @@ routes, models and components plug into the same shape.
 
 | Feature | Status | Notes |
 |---|---|---|
-| Test suite | ✅ Completed | 209 tests, every assertion mutation-verified |
+| Test suite | ✅ Completed | 209 tests, every assertion mutation-verified. The waitlist store is the one module with none. |
 | Build gate | ✅ Completed | `pnpm build` runs TypeScript |
 | Workspace persistence | ✅ Completed | Recent workspaces, re-scanned on open |
 | Documentation | ✅ Completed | `README.md`, this file, `bug-report.md`, `HANDOFF.md`, `docs/gaps-plan.md`. Each states what isn't done as plainly as what is. |
 | Backend | 📋 Planned | None. All state is browser `localStorage`. |
 | Accounts / auth / teams | 📋 Planned | None. Schema is already team- and account-shaped. |
+| Waitlist | 🚧 Building | Browser `localStorage`, deduplicated on a lowercased email, shaped as the row a future table will hold. **No tests, and the form has never been submitted in a browser.** |
 | Pricing | 📋 Planned | Deferred. Direction recorded: one-time payment, BYO API key. |
 
 ---
