@@ -151,7 +151,7 @@ The order is forced by dependency, not preference.
 | 3 | **Run one hackathon cohort** | The only thing that closes the dominant gap. 10–50 teams. |
 | 4 | **Read the drop-off, fix the catalog** | The flywheel from the plan. First time it has real input. |
 | 5 | Accounts + return loop (G3) | Only if the cohort shows it's needed. |
-| 6 | `last_verified` CI check (G4) | Independent, do it whenever. |
+| ~~6~~ | ~~`last_verified` CI check (G4)~~ — **DONE**. `lib/catalog/providers/freshness.ts`, gated by `pnpm test`. Turns red 2026-11-02. |
 | — | Name, positioning, README (N1, N2) | Not blocked by any of the above. Do in parallel. |
 
 **Everything currently unstarted on `checklist.md` — waitlist, docs page,
