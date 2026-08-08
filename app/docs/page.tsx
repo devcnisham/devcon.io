@@ -218,7 +218,9 @@ export default function DocsPage() {
         <Note tone="strong">
           {COUNTS.verified === 0
             ? "No prompt meets the two-agent bar yet."
-            : `${COUNTS.verified} prompts meet the two-agent bar.`}{" "}
+            : `${COUNTS.verified} prompt${COUNTS.verified === 1 ? "" : "s"} ${
+                COUNTS.verified === 1 ? "meets" : "meet"
+              } the two-agent bar.`}{" "}
           Verification state is shown in the product and deliberately does{" "}
           <em>not</em> filter your plan — a verified-only plan would today be an
           empty one, and hiding the gap is worse than showing it.

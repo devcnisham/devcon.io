@@ -160,7 +160,7 @@ Resend, Sentry, PostHog.
 - **No accounts, no auth, no teams.** These land together.
 - **No prompt has been run through an agent.** The catalog rubric says a
   prompt isn't verified until it's been pasted into two agents against a real
-  repo and produced working output. **<!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> do-steps are half-verified (one agent); none meet the two-agent bar.**
+  repo and produced working output. **<!--catalog:partial-->2<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> do-steps are half-verified (one agent); none meet the two-agent bar.**
 - **<!--catalog:tests-->252<!--/catalog--> tests, all mutation-verified** (`test/`). Engine, catalog, scanner,
   prompt assembly, telemetry. Not a snapshot suite — every claim was checked
   by breaking the implementation and confirming a test caught it.
@@ -450,7 +450,7 @@ registry and the landing page. Ordered by whether it blocks anything.
 
 | # | Item | State |
 |---|---|---|
-| 1 | **Verify the prompts through a second agent.** <!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> do-steps have been run against a real repo, by one agent (`claude-opus-5 (Claude Code)`). The catalog rubric's bar is two, so `verificationState()` reports those four as `partial` and the rest as `unverified`. **A second Claude Code run does not count** — it is the same agent, and one agent's tolerance for an ambiguous instruction is not evidence about agents in general. This needs a genuinely different agent. | 4/63, half-verified |
+| 1 | **Verify the prompts through a second agent.** <!--catalog:verified-->2<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> do-steps now clears the bar — `comp-fake-data-first`, run through Claude Code and then through `nemotron-3-ultra` on the opencode CLI, checked by starting the server it built rather than reading the diff. <!--catalog:partial-->2<!--/catalog--> remain `partial` (one agent) and the rest `unverified`. **A second Claude Code run still does not count** — same agent, and one agent's tolerance for an ambiguous instruction is not evidence about agents in general. | 1 verified, 3 partial |
 | 2 | **Run one hackathon cohort.** 10–50 teams on the competition track. The only thing that closes the dominant gap. | not started |
 | ~~3~~ | ~~Steps shipping an agent prompt for work no agent can do.~~ **DONE.** All three tracks now declare `execution`. Academic 3 human / 4 needs-input, competition 4 / 4, commercial 5 / 10. | closed 2026-08-06 |
 

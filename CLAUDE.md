@@ -75,7 +75,7 @@ Break these and things fail in non-obvious ways.
   surfaces say so in the product; keep that.
 - The moat is the catalog and the measured loop, not the UI. Don't add
   surfaces to answer a defensibility worry.
-- Nothing is verified until it's been run. <!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> prompts have been
+- Nothing is verified until it's been run. <!--catalog:partial-->2<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> prompts have been
   through an agent, and only one agent — the rubric's bar is two, so
   `verificationState()` reports those as `partial` and the rest as
   `unverified`. A second Claude Code run does not close it; that is the same

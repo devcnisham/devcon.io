@@ -68,7 +68,7 @@ Stated plainly rather than discovered later:
 - **The sync engine has no remote.** Queue, retry, deduplication and
   revision-based conflict resolution are implemented and tested against a
   transport interface. It says so rather than pretending.
-- **<!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> prompts have been through an agent, and only one agent.** The
+- **<!--catalog:partial-->2<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> prompts have been through an agent, and only one agent.** The
   catalog's own bar is two, so those four report as `partial`.
 
 **And the one that matters: nobody has finished a project because of DevCon.**

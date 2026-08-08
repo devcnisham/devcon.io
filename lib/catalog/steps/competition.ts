@@ -159,12 +159,21 @@ export const COMPETITION_STEPS: Step[] = [
       { text: "The data looks plausible on a projector, not lorem ipsum" },
     ],
     verification: {
-      verified_at: "2026-08-05",
-      // One agent. The rubric asks for two, so this is half the bar and
-      // `verificationState` reports it as "partial", not "verified".
-      agents: ["claude-opus-5 (Claude Code)"],
+      verified_at: "2026-08-08",
+      /**
+       * Two agents, so this one actually clears the bar — the first step in
+       * the catalog that does.
+       *
+       * The second run deliberately used a different vendor, model family AND
+       * harness. A second Claude Code run would have been the same agent
+       * twice, which is what the rubric exists to rule out.
+       */
+      agents: [
+        "claude-opus-5 (Claude Code)",
+        "nemotron-3-ultra (opencode CLI)",
+      ],
       notes:
-        "Ran against a scratch Node repo: produced src/fixtures.mjs with plausible meeting data and no lorem ipsum. Unambiguous, no clarification needed.",
+        "Second agent built an Express demo serving hardcoded meeting data: GET / returned 200 with 6.8KB, GET /api/meetings 200 with 2.5KB of plausible fixtures (real meeting titles, participant names, tags) and no lorem ipsum. Both done_when checked by running the server, not by reading the diff. Worth knowing: the first check was a false pass — port 3000 was occupied by another dev server, so curl hit that instead. Re-run on a free port.",
     },
     est_minutes: 45,
   },
@@ -186,11 +195,25 @@ export const COMPETITION_STEPS: Step[] = [
     ],
     verification: {
       verified_at: "2026-08-05",
-      // One agent. The rubric asks for two, so this is half the bar and
-      // `verificationState` reports it as "partial", not "verified".
+      /**
+       * Still one agent, deliberately. A second agent was run on 2026-08-08
+       * and is NOT recorded, because it produced no working output.
+       *
+       * Given a repo where `comp-fake-data-first` had already run, it read the
+       * code, concluded "the happy path is already built and working end to
+       * end", and changed nothing. It was substantively right — every endpoint
+       * did return 200 — but it also reported a server running on :3000 that
+       * was not running, which is the kind of claim a tired team would act on.
+       *
+       * The finding is about the catalog, not the agent: after fixtures exist,
+       * this step has no distinguishable work left. "The demo path renders end
+       * to end from hardcoded data" and "the full flow works, start to finish"
+       * are the same sentence to an agent. These two steps need separating, or
+       * this one needs scoping to what remains once fixtures are in.
+       */
       agents: ["claude-opus-5 (Claude Code)"],
       notes:
-        "Produced a working single-flow demo (streaming transcript, summarise button) that renders end to end. Both done_when checks met. The run also surfaced a rendering fault the step does not guard against — see comp-guard-happy-path.",
+        "One agent. A second-agent run produced nothing because the previous step had already satisfied both done_when — recorded as a catalog overlap to fix, not as a verification.",
     },
     est_minutes: 240,
   },
@@ -227,12 +250,13 @@ export const COMPETITION_STEPS: Step[] = [
       },
     ],
     verification: {
-      verified_at: "2026-08-05",
-      // One agent. The rubric asks for two, so this is half the bar and
-      // `verificationState` reports it as "partial", not "verified".
-      agents: ["claude-opus-5 (Claude Code)"],
+      verified_at: "2026-08-08",
+      agents: [
+        "claude-opus-5 (Claude Code)",
+        "nemotron-3-ultra (opencode CLI)",
+      ],
       notes:
-        "Produced one hosted API call behind an env var with a timeout and a canned fallback. That done_when is what made the demo survive an unreachable API.",
+        'Two agents, both passing. Second agent added src/ai.mjs with exactly one fetch behind AI_API_KEY, an 8s timeout, and a canned fallback. Checked by running with the key unset: POST /api/ai/summary returned 200 in 0s with a structured summary and source:"fallback" instead of hanging or throwing — which is the done_when that makes a demo survive an unreachable API. .env.example carries a placeholder, never a real key.',
     },
     est_minutes: 60,
     serves: ["llm"],

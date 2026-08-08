@@ -155,6 +155,7 @@ export const REQUIRED_MARKERS: Record<string, Record<string, number>> = {
     commercialAnti: 2,
     doSteps: 2,
     partial: 2,
+    verified: 1,
   },
 };
 
