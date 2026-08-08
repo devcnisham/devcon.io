@@ -16,6 +16,11 @@
 > is the fallback, not the route. An earlier version of this file claimed the
 > opposite; it was written before a push proved otherwise.
 >
+> **CI runs on every push and pull request** (`.github/workflows/ci.yml`):
+> `pnpm docs:check`, `pnpm test`, then `pnpm build`, cheapest-first. `pnpm lint`
+> is deliberately excluded — biome reports ~80 pre-existing errors, and a
+> permanently red pipeline is one nobody reads.
+>
 > `NEXT_PUBLIC_SITE_URL` is set in Vercel production only. It is inlined at
 > build time, so changing it needs a redeploy, not just a restart. Locally it
 > stays unset and `lib/site.ts` falls back to `http://localhost:3000`, which is
@@ -457,7 +462,7 @@ readable against the complaint.
 | ~~5~~ | ~~`@feature` annotations are picked up inside string literals.~~ | **DONE**, and **an AST parser was not needed** — that claim was wrong. `lib/registry/sources/comments.ts` masks everything outside a comment with spaces, preserving offsets so line numbers still land. ~150 lines, runs in a browser tab. Verified against the actual symptom: `parseAnnotations` on `test/registry.test.ts` returned `Authentication@L202` before and `[]` after. |
 | ~~6~~ | ~~`project-management` is the one capability no step serves.~~ | **DONE — in the UI, not the catalog.** Tagging a step `serves: ["project-management"]` would put a false edge on the graph, and the `serves` doc comment says a wrong edge reads as a fact. Instead `isUnservedCapability()` distinguishes the two silences, and the node now says "No step in the catalog wires up project management yet — connecting this won't change your plan." Pinned by a test asserting the unserved list is exactly `["project-management"]`, which fires in both directions. |
 | ~~7~~ | ~~Funnel table never seen with real events in it.~~ | **DONE.** Driven by hand against the vespor scan: 1 plan, 1 completion, 2 prompt copies. The `copied → not done` column read `1` on two steps — the diagnostic case the taxonomy exists for. This is what surfaced the double-count below. |
-| ~~8~~ | ~~`last_verified` CI check (90 days) never built.~~ | **DONE.** `lib/catalog/providers/freshness.ts` + 9 tests. `pnpm test` is the gate; there is no `.github/`. Rejects impossible dates (`Date.parse` rolls `2026-02-31` to March 3) and future dates (a one-character year typo would otherwise buy twelve months of silence). All <!--catalog:providers-->30<!--/catalog--> providers currently sit at the `2026-08-04` seed date, so this turns red on **2026-11-02**. Re-read the tiers then; do not just move the date. |
+| ~~8~~ | ~~`last_verified` CI check (90 days) never built.~~ | **DONE.** `lib/catalog/providers/freshness.ts` + 9 tests. `pnpm test` is the gate, and it now runs in CI (`.github/workflows/ci.yml`) as well as locally. Rejects impossible dates (`Date.parse` rolls `2026-02-31` to March 3) and future dates (a one-character year typo would otherwise buy twelve months of silence). All <!--catalog:providers-->30<!--/catalog--> providers currently sit at the `2026-08-04` seed date, so this turns red on **2026-11-02**. Re-read the tiers then; do not just move the date. |
 
 ### Built but not driven by hand
 
