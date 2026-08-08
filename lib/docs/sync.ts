@@ -122,6 +122,7 @@ export function describeDrift(drift: Drift[], unknown: string[]): string {
  */
 export const REQUIRED_MARKERS: Record<string, Record<string, number>> = {
   "README.md": { providers: 1, tests: 1, partial: 1, doSteps: 1 },
+  "CLAUDE.md": { tests: 1, partial: 1, doSteps: 1 },
   "features.md": {
     academicDo: 1,
     academicAnti: 1,
