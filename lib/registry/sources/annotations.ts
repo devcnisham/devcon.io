@@ -56,7 +56,7 @@ export function parseAnnotations(
 
   for (let i = 0; i < lines.length; i++) {
     const start = TAG.exec(lines[i]);
-    if (!start || start[1] !== "feature") continue;
+    if (start?.[1] !== "feature") continue;
 
     const fields: Record<string, string> = { feature: start[2] };
 

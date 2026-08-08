@@ -59,7 +59,8 @@ export interface QueuedOp {
 }
 
 const QUEUE_KEY = "devcon:registry:queue";
-const CURSOR_KEY = (p: string, m: ModuleId) => `devcon:registry:cursor:${p}:${m}`;
+const CURSOR_KEY = (p: string, m: ModuleId) =>
+  `devcon:registry:cursor:${p}:${m}`;
 
 /** Give up after this many. Beyond it the failure isn't transient. */
 export const MAX_ATTEMPTS = 6;
@@ -236,7 +237,12 @@ export class SyncEngine {
 
         for (const remote of rejected) {
           const local = due.find((op) => op.entry.id === remote.id)?.entry;
-          if (local) conflicts.push({ local, remote, resolution: resolve(local, remote) });
+          if (local)
+            conflicts.push({
+              local,
+              remote,
+              resolution: resolve(local, remote),
+            });
         }
 
         // Drop what landed; a rejected entry stays queued but is not retried
@@ -251,7 +257,9 @@ export class SyncEngine {
           }),
         );
       } catch (e) {
-        errors.push(`push failed: ${e instanceof Error ? e.message : String(e)}`);
+        errors.push(
+          `push failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
         // Back off the ones that were due, and drop anything past the limit —
         // a queue that retries forever is a queue that never drains.
         const at = this.now();
@@ -261,7 +269,11 @@ export class SyncEngine {
               if (op.project !== project || op.module !== module) return op;
               if (op.nextAttemptAt > at) return op;
               const attempts = op.attempts + 1;
-              return { ...op, attempts, nextAttemptAt: at + backoffMs(attempts) };
+              return {
+                ...op,
+                attempts,
+                nextAttemptAt: at + backoffMs(attempts),
+              };
             })
             .filter((op) => op.attempts < MAX_ATTEMPTS),
         );

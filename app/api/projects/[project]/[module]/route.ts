@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { summarise } from "@/lib/registry/api-contract";
-import { API_MODULES, devStore as store, moduleFor } from "@/lib/registry/dev-store";
+import {
+  API_MODULES,
+  moduleFor,
+  devStore as store,
+} from "@/lib/registry/dev-store";
 import type { ModuleId } from "@/lib/registry/types";
 
 /**
@@ -28,7 +32,10 @@ export async function GET(
   const { project, module } = await params;
   if (!moduleFor(module)) {
     return NextResponse.json(
-      { error: `Unknown module "${module}"`, hint: `Known: ${Object.keys(API_MODULES).join(", ")}` },
+      {
+        error: `Unknown module "${module}"`,
+        hint: `Known: ${Object.keys(API_MODULES).join(", ")}`,
+      },
       { status: 404 },
     );
   }
@@ -37,7 +44,9 @@ export async function GET(
   return NextResponse.json({
     entries,
     cursor: new Date().toISOString(),
-    counts: summarise(entries as (typeof entries[number] & { status?: string })[]),
+    counts: summarise(
+      entries as ((typeof entries)[number] & { status?: string })[],
+    ),
   });
 }
 
@@ -51,7 +60,10 @@ export async function POST(
   const { project, module } = await params;
   const mod = moduleFor(module);
   if (!mod) {
-    return NextResponse.json({ error: `Unknown module "${module}"` }, { status: 404 });
+    return NextResponse.json(
+      { error: `Unknown module "${module}"` },
+      { status: 404 },
+    );
   }
 
   let body: Record<string, unknown>;
@@ -63,7 +75,10 @@ export async function POST(
 
   if (typeof body.name !== "string" || !body.name.trim()) {
     return NextResponse.json(
-      { error: "name is required", hint: "Every entry needs a human-readable name." },
+      {
+        error: "name is required",
+        hint: "Every entry needs a human-readable name.",
+      },
       { status: 400 },
     );
   }

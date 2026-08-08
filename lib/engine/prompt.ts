@@ -1,9 +1,14 @@
 import { article } from "../catalog/conditions";
 import { PROVIDERS } from "../catalog/providers";
-import { executionOf } from "../catalog/types";
 import type { Plan, ProjectProfile, Step } from "../catalog/types";
+import { executionOf } from "../catalog/types";
 
-export type AgentTarget = "claude-code" | "cursor" | "lovable" | "v0" | "generic";
+export type AgentTarget =
+  | "claude-code"
+  | "cursor"
+  | "lovable"
+  | "v0"
+  | "generic";
 
 export const AGENT_LABEL: Record<AgentTarget, string> = {
   "claude-code": "Claude Code",
@@ -27,8 +32,7 @@ const PREAMBLE: Record<AgentTarget, string> = {
     "Use the open workspace as context. Prefer editing existing files over creating new ones, and show me a diff before applying wide changes.",
   lovable:
     "Build this inside the current project. Keep it to the screens named below — don't scaffold extra pages.",
-  v0:
-    "Generate only the component(s) described. Match the existing styling conventions rather than introducing a new design system.",
+  v0: "Generate only the component(s) described. Match the existing styling conventions rather than introducing a new design system.",
   generic:
     "Work inside the existing project. Don't restructure files that aren't mentioned.",
 };
@@ -295,7 +299,9 @@ export function buildPrompt(
     lines.push(
       "",
       "## Out of scope — do NOT do these",
-      ...relevantAnti.map((a) => `- ${a.title.replace(/^Don't /, "")} — ${a.why}`),
+      ...relevantAnti.map(
+        (a) => `- ${a.title.replace(/^Don't /, "")} — ${a.why}`,
+      ),
     );
   }
 
@@ -307,7 +313,9 @@ export function buildPrompt(
     }. If your approach is going to take substantially longer, say so before starting.`,
   );
 
-  return lines.filter((l, i, arr) => !(l === "" && arr[i - 1] === "")).join("\n");
+  return lines
+    .filter((l, i, arr) => !(l === "" && arr[i - 1] === ""))
+    .join("\n");
 }
 
 /**
@@ -329,7 +337,11 @@ export function buildChecklist(step: Step, profile: ProjectProfile): string {
   ];
 
   if (step.done_when.length) {
-    lines.push("", "Done when:", ...step.done_when.map((d) => `- [ ] ${d.text}`));
+    lines.push(
+      "",
+      "Done when:",
+      ...step.done_when.map((d) => `- [ ] ${d.text}`),
+    );
   }
 
   lines.push(

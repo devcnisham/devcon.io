@@ -69,8 +69,10 @@ export const registryPath = {
     `/api/projects/${encodeURIComponent(project)}/${module}`,
   entry: (project: string, module: ModuleId, id: string) =>
     `/api/projects/${encodeURIComponent(project)}/${module}/${encodeURIComponent(id)}`,
-  scan: (project: string) => `/api/projects/${encodeURIComponent(project)}/scan`,
-  sync: (project: string) => `/api/projects/${encodeURIComponent(project)}/sync`,
+  scan: (project: string) =>
+    `/api/projects/${encodeURIComponent(project)}/scan`,
+  sync: (project: string) =>
+    `/api/projects/${encodeURIComponent(project)}/sync`,
 };
 
 /** Aggregates the dashboard needs. Computed server-side so a big list isn't shipped to count it. */

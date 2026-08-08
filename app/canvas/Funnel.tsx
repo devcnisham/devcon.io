@@ -74,8 +74,8 @@ export function Funnel({ plan }: { plan: Plan }) {
           North star
         </h2>
         <p className="mb-4 text-sm text-neutral-500">
-          Of the projects that got a plan, how many shipped. Not steps
-          completed — that number is inflatable by adding steps.
+          Of the projects that got a plan, how many shipped. Not steps completed
+          — that number is inflatable by adding steps.
         </p>
 
         <div className="grid grid-cols-4 gap-3">

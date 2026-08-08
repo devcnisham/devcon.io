@@ -109,7 +109,9 @@ export function folderSource(root: FileSystemDirectoryHandleLike): FileSource {
       if (!handle) return null;
       try {
         const cfg = await (await handle.getFile()).text();
-        return /\[remote "origin"\][^[]*?url\s*=\s*(\S+)/.exec(cfg)?.[1] ?? null;
+        return (
+          /\[remote "origin"\][^[]*?url\s*=\s*(\S+)/.exec(cfg)?.[1] ?? null
+        );
       } catch {
         return null;
       }

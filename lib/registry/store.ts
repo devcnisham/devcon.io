@@ -1,8 +1,8 @@
 import {
   type ModuleId,
+  nowIso,
   type RegistryEntry,
   type RegistryEvent,
-  nowIso,
 } from "./types";
 
 /**
@@ -18,27 +18,44 @@ import {
  * interface has to be shaped for the harder case.
  */
 export interface RegistryStore {
-  list<T extends RegistryEntry>(project: string, module: ModuleId): Promise<T[]>;
+  list<T extends RegistryEntry>(
+    project: string,
+    module: ModuleId,
+  ): Promise<T[]>;
   get<T extends RegistryEntry>(
     project: string,
     module: ModuleId,
     id: string,
   ): Promise<T | null>;
   /** Insert or update. Returns the stored entry, with its revision bumped. */
-  put<T extends RegistryEntry>(project: string, entry: T, actor: string): Promise<T>;
+  put<T extends RegistryEntry>(
+    project: string,
+    entry: T,
+    actor: string,
+  ): Promise<T>;
   /** Bulk, so a scan is one write rather than N. */
   putMany<T extends RegistryEntry>(
     project: string,
     entries: T[],
     actor: string,
   ): Promise<T[]>;
-  remove(project: string, module: ModuleId, id: string, actor: string): Promise<void>;
-  history(project: string, module: ModuleId, entryId?: string): Promise<RegistryEvent[]>;
+  remove(
+    project: string,
+    module: ModuleId,
+    id: string,
+    actor: string,
+  ): Promise<void>;
+  history(
+    project: string,
+    module: ModuleId,
+    entryId?: string,
+  ): Promise<RegistryEvent[]>;
   /** Every project id that has anything stored. */
   projects(): Promise<string[]>;
 }
 
-const KEY = (project: string, module: ModuleId) => `devcon:registry:${project}:${module}`;
+const KEY = (project: string, module: ModuleId) =>
+  `devcon:registry:${project}:${module}`;
 const HISTORY_KEY = (project: string, module: ModuleId) =>
   `devcon:registry:${project}:${module}:history`;
 const INDEX_KEY = "devcon:registry:projects";
@@ -154,7 +171,11 @@ export class LocalRegistryStore implements RegistryStore {
       const before = byId.get(entry.id);
 
       if (!before) {
-        const created = { ...entry, createdAt: entry.createdAt ?? at, updatedAt: at };
+        const created = {
+          ...entry,
+          createdAt: entry.createdAt ?? at,
+          updatedAt: at,
+        };
         byId.set(entry.id, created);
         written.push(created);
         events.push({
@@ -259,7 +280,10 @@ export class MemoryRegistryStore implements RegistryStore {
     return [...new Set([...this.data.keys()].map((k) => k.split(":")[0]))];
   }
 
-  async list<T extends RegistryEntry>(project: string, module: ModuleId): Promise<T[]> {
+  async list<T extends RegistryEntry>(
+    project: string,
+    module: ModuleId,
+  ): Promise<T[]> {
     return (this.data.get(this.key(project, module)) ?? []) as T[];
   }
 
@@ -268,10 +292,16 @@ export class MemoryRegistryStore implements RegistryStore {
     module: ModuleId,
     id: string,
   ): Promise<T | null> {
-    return (await this.list<T>(project, module)).find((e) => e.id === id) ?? null;
+    return (
+      (await this.list<T>(project, module)).find((e) => e.id === id) ?? null
+    );
   }
 
-  async put<T extends RegistryEntry>(project: string, entry: T, actor: string): Promise<T> {
+  async put<T extends RegistryEntry>(
+    project: string,
+    entry: T,
+    actor: string,
+  ): Promise<T> {
     const [stored] = await this.putMany(project, [entry], actor);
     return stored;
   }
@@ -292,7 +322,11 @@ export class MemoryRegistryStore implements RegistryStore {
     for (const entry of entries) {
       const before = byId.get(entry.id) as T | undefined;
       if (!before) {
-        const created = { ...entry, createdAt: entry.createdAt ?? at, updatedAt: at };
+        const created = {
+          ...entry,
+          createdAt: entry.createdAt ?? at,
+          updatedAt: at,
+        };
         byId.set(entry.id, created);
         written.push(created);
         this.seq += 1;
@@ -344,7 +378,12 @@ export class MemoryRegistryStore implements RegistryStore {
     return written;
   }
 
-  async remove(project: string, module: ModuleId, id: string, actor: string): Promise<void> {
+  async remove(
+    project: string,
+    module: ModuleId,
+    id: string,
+    actor: string,
+  ): Promise<void> {
     const k = this.key(project, module);
     const current = this.data.get(k) ?? [];
     const next = current.filter((e) => e.id !== id);
@@ -352,7 +391,14 @@ export class MemoryRegistryStore implements RegistryStore {
     this.data.set(k, next);
     this.seq += 1;
     this.events.set(k, [
-      { id: `ev-${this.seq}`, entryId: id, module, at: nowIso(), kind: "deleted", actor },
+      {
+        id: `ev-${this.seq}`,
+        entryId: id,
+        module,
+        at: nowIso(),
+        kind: "deleted",
+        actor,
+      },
       ...(this.events.get(k) ?? []),
     ]);
   }

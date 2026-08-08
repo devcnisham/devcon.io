@@ -63,10 +63,14 @@ export function parseFeatureConfig(
     );
   }
   if (/\.\.\./.test(source)) {
-    warnings.push(`${path} contains a spread, which cannot be resolved without running the file.`);
+    warnings.push(
+      `${path} contains a spread, which cannot be resolved without running the file.`,
+    );
   }
   if (/`/.test(source)) {
-    warnings.push(`${path} contains a template literal, which is read verbatim.`);
+    warnings.push(
+      `${path} contains a template literal, which is read verbatim.`,
+    );
   }
 
   // Find the array — either a default export or the whole file for .json.
@@ -94,7 +98,10 @@ export function parseFeatureConfig(
   }
 
   if (!Array.isArray(raw)) {
-    return { features: [], warnings: [...warnings, `${path} does not export an array.`] };
+    return {
+      features: [],
+      warnings: [...warnings, `${path} does not export an array.`],
+    };
   }
 
   const features: Feature[] = [];
@@ -102,7 +109,9 @@ export function parseFeatureConfig(
     if (!item || typeof item !== "object") continue;
     const rec = item as Record<string, unknown>;
     if (typeof rec.name !== "string" && typeof rec.id !== "string") {
-      warnings.push(`${path}: an entry has neither a name nor an id, and was skipped.`);
+      warnings.push(
+        `${path}: an entry has neither a name nor an id, and was skipped.`,
+      );
       continue;
     }
     features.push(
@@ -118,7 +127,9 @@ export function parseFeatureConfig(
         status: rec.status as Feature["status"],
         priority: rec.priority as Feature["priority"],
         tags: Array.isArray(rec.tags) ? (rec.tags as string[]) : [],
-        dependsOn: Array.isArray(rec.dependsOn) ? (rec.dependsOn as string[]) : [],
+        dependsOn: Array.isArray(rec.dependsOn)
+          ? (rec.dependsOn as string[])
+          : [],
         notes: rec.notes as string | undefined,
         origin: "declared",
         files: [path],

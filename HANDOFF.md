@@ -17,9 +17,9 @@
 > opposite; it was written before a push proved otherwise.
 >
 > **CI runs on every push and pull request** (`.github/workflows/ci.yml`):
-> `pnpm docs:check`, `pnpm test`, then `pnpm build`, cheapest-first. `pnpm lint`
-> is deliberately excluded — biome reports ~80 pre-existing errors, and a
-> permanently red pipeline is one nobody reads.
+> `pnpm docs:check`, `pnpm lint`, `pnpm test`, then `pnpm build`,
+> cheapest-first. Lint was excluded at first because biome reported ~80
+> findings; those are fixed and it is a gate again.
 >
 > `NEXT_PUBLIC_SITE_URL` is set in Vercel production only. It is inlined at
 > build time, so changing it needs a redeploy, not just a restart. Locally it
@@ -521,13 +521,13 @@ is untested until someone actually adds the second one.
   to `docs/checklist.md` apart from a missing trailing newline. It is a stray
   duplicate; deleting it loses nothing. Left in place rather than deleted
   unasked.
-- `pnpm lint` reports ~100 findings. They are pre-existing a11y noise from
-  scaffolded SVGs plus `${NAME}` template-string warnings in the MCP tests;
-  every file touched this session is formatted and lint-clean, checked by
-  running biome on the original blob to confirm which findings predate it.
-- `nisham/`, `sumayya/` and `static_analysis_codeql_1/` are now gitignored.
-  The last is a generated CodeQL database of 2,983 files that was sitting one
-  `git add -A` away from being committed.
+- `pnpm lint` is clean and runs in CI. Getting there deleted five unused
+  create-next-app SVGs, fixed three real defects (an assignment inside a
+  `return`, an unused parameter, a needless `||` chain), added explicit
+  `aria-hidden` to every decorative icon, and enabled biome's
+  `css.parser.tailwindDirectives` — without which biome could not parse
+  `globals.css` at all, which is most of what made lint look hopeless. The
+  rules still off are scoped per file in `biome.jsonc`, each with its reason.
 
 ### Deliberately deferred
 

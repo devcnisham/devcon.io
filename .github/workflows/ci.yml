@@ -40,10 +40,19 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Ordered cheapest-first so the fastest signal fails first. docs:check
-      # takes about a second; the build takes the better part of a minute.
+      # The three checks below all finish inside a second locally (docs ~0.5s,
+      # lint ~0.45s, tests ~0.27s); the build takes the better part of a
+      # minute. So the split that matters is "fast checks, then the build" —
+      # the order among the fast three is not worth tuning.
       - name: Documented numbers match the code
         run: pnpm docs:check
+
+      # Was excluded while biome reported ~80 findings. Those are fixed: the
+      # dead scaffold SVGs are gone, the real defects are fixed, and every rule
+      # still disabled is scoped to specific files with its reason written into
+      # biome.jsonc. Lint is a gate again.
+      - name: Lint
+        run: pnpm lint
 
       - name: Tests
         run: pnpm test
@@ -53,9 +62,3 @@ jobs:
       # already hidden 7 type errors in this repo once.
       - name: Build
         run: pnpm build
-
-      # NOT run here, deliberately: `pnpm lint`. Biome reports ~80 pre-existing
-      # errors, almost all a11y noise from scaffolded SVGs plus Tailwind v4
-      # at-rules it cannot parse. Wiring it in today would mean a permanently
-      # red pipeline, which teaches everyone to ignore the badge. Fix the noise
-      # first, then add the step.

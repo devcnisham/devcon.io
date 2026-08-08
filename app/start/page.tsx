@@ -3,32 +3,56 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  type WorkspaceMeta,
   createWorkspace,
   deleteWorkspace,
   listWorkspaces,
   originLabel,
   relativeTime,
+  type WorkspaceMeta,
 } from "@/lib/workspaces/store";
 import { WorkspaceThumb } from "../WorkspaceThumb";
 
 function PlusIcon() {
   return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+    <svg
+      viewBox="0 0 20 20"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
       <path d="M10 4v12M4 10h12" strokeLinecap="round" />
     </svg>
   );
 }
 function FolderIcon() {
   return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path d="M2.5 6.5A1.5 1.5 0 014 5h3.2l1.4 1.8H16a1.5 1.5 0 011.5 1.5v6.2A1.5 1.5 0 0116 16H4a1.5 1.5 0 01-1.5-1.5v-8z" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 20 20"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <path
+        d="M2.5 6.5A1.5 1.5 0 014 5h3.2l1.4 1.8H16a1.5 1.5 0 011.5 1.5v6.2A1.5 1.5 0 0116 16H4a1.5 1.5 0 01-1.5-1.5v-8z"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function RepoIcon() {
   return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+    <svg
+      viewBox="0 0 20 20"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
       <circle cx="6" cy="5" r="2" />
       <circle cx="6" cy="15" r="2" />
       <circle cx="14" cy="10" r="2" />
@@ -38,9 +62,22 @@ function RepoIcon() {
 }
 function LinkIcon() {
   return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path d="M8.5 11.5a3 3 0 004.24 0l2.5-2.5a3 3 0 10-4.24-4.24l-1 1" strokeLinecap="round" />
-      <path d="M11.5 8.5a3 3 0 00-4.24 0l-2.5 2.5a3 3 0 104.24 4.24l1-1" strokeLinecap="round" />
+    <svg
+      viewBox="0 0 20 20"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <path
+        d="M8.5 11.5a3 3 0 004.24 0l2.5-2.5a3 3 0 10-4.24-4.24l-1 1"
+        strokeLinecap="round"
+      />
+      <path
+        d="M11.5 8.5a3 3 0 00-4.24 0l-2.5 2.5a3 3 0 104.24 4.24l1-1"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -121,7 +158,7 @@ export default function HomePage() {
       }}
     >
       <div
-        aria-hidden
+        aria-hidden="true"
         className="pointer-events-none fixed inset-0 opacity-[0.35]"
         style={{
           backgroundImage:
@@ -131,7 +168,9 @@ export default function HomePage() {
       />
 
       <div className="relative mx-auto max-w-5xl px-8 py-20">
-        <h1 className="mb-6 text-xl font-semibold text-white">Open or create</h1>
+        <h1 className="mb-6 text-xl font-semibold text-white">
+          Open or create
+        </h1>
 
         <div className="flex flex-wrap gap-3">
           {actions.map((a) => (

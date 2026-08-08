@@ -46,8 +46,7 @@ export const ACADEMIC_STEPS: Step[] = [
       {
         key: "rubric",
         label: "The marking rubric, pasted from the brief",
-        placeholder:
-          "Implementation 40% · Report 30% · Demo 20% · Viva 10%",
+        placeholder: "Implementation 40% · Report 30% · Demo 20% · Viva 10%",
         multiline: true,
       },
     ],
@@ -311,8 +310,7 @@ export const ACADEMIC_STEPS: Step[] = [
       {
         key: "limit",
         label: "Time limit",
-        placeholder:
-          "10 minutes",
+        placeholder: "10 minutes",
       },
     ],
     est_minutes: 90,

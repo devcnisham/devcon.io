@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
 /**
  * The DevCon CLI.
  *
@@ -13,8 +14,7 @@
  * `sync` is the one command that needs a backend. It says so rather than
  * pretending, and queues locally in the meantime.
  */
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -32,7 +32,8 @@ function parseArgs(argv) {
       const [key, inline] = arg.slice(2).split("=");
       // `--flag value` and `--flag=value` both work; a bare flag is `true`.
       if (inline !== undefined) flags[key] = inline;
-      else if (argv[i + 1] && !argv[i + 1].startsWith("--")) flags[key] = argv[++i];
+      else if (argv[i + 1] && !argv[i + 1].startsWith("--"))
+        flags[key] = argv[++i];
       else flags[key] = true;
     } else {
       positional.push(arg);
@@ -73,7 +74,9 @@ function fileStore(root) {
       return (await read())[module] ?? [];
     },
     async get(_project, module, id) {
-      return (await this.list(_project, module)).find((e) => e.id === id) ?? null;
+      return (
+        (await this.list(_project, module)).find((e) => e.id === id) ?? null
+      );
     },
     async put(project, entry, actor) {
       const [stored] = await this.putMany(project, [entry], actor);
@@ -90,7 +93,11 @@ function fileStore(root) {
       for (const entry of entries) {
         const before = byId.get(entry.id);
         if (!before) {
-          const created = { ...entry, createdAt: entry.createdAt ?? at, updatedAt: at };
+          const created = {
+            ...entry,
+            createdAt: entry.createdAt ?? at,
+            updatedAt: at,
+          };
           byId.set(entry.id, created);
           written.push(created);
           data.history = [
@@ -99,7 +106,8 @@ function fileStore(root) {
           ].slice(0, 500);
           continue;
         }
-        const changed = JSON.stringify({ ...before, updatedAt: 0, revision: 0 }) !==
+        const changed =
+          JSON.stringify({ ...before, updatedAt: 0, revision: 0 }) !==
           JSON.stringify({ ...entry, updatedAt: 0, revision: 0 });
         if (!changed) {
           written.push(before);
@@ -129,12 +137,18 @@ function fileStore(root) {
       data[module] = (data[module] ?? []).filter((e) => e.id !== id);
       if (data[module].length === before) return;
       data.history = [
-        { entryId: id, module, at: new Date().toISOString(), kind: "deleted", actor },
+        {
+          entryId: id,
+          module,
+          at: new Date().toISOString(),
+          kind: "deleted",
+          actor,
+        },
         ...(data.history ?? []),
       ].slice(0, 500);
       await write(data);
     },
-    async history(_project, module, entryId) {
+    async history(_project, _module, entryId) {
       const all = (await read()).history ?? [];
       return entryId ? all.filter((e) => e.entryId === entryId) : all;
     },
@@ -187,7 +201,9 @@ async function main() {
    */
   let lib;
   try {
-    lib = await import(pathToFileURL(path.join(root, ".devcon/cli-bundle.mjs")).href);
+    lib = await import(
+      pathToFileURL(path.join(root, ".devcon/cli-bundle.mjs")).href
+    );
   } catch {
     lib = null;
   }
@@ -228,15 +244,27 @@ async function main() {
     case "feature": {
       const patch = {};
       for (const key of [
-        "status", "category", "owner", "version", "priority", "description", "notes",
+        "status",
+        "category",
+        "owner",
+        "version",
+        "priority",
+        "description",
+        "notes",
       ]) {
         if (flags[key] !== undefined) patch[key] = flags[key];
       }
-      if (flags.tags) patch.tags = String(flags.tags).split(",").map((t) => t.trim());
+      if (flags.tags)
+        patch.tags = String(flags.tags)
+          .split(",")
+          .map((t) => t.trim());
 
       if (sub === "list") result = await lib.cmdList(store, project, rest[0]);
       else if (sub === "add") {
-        result = await lib.cmdAdd(store, project, { name: rest.join(" "), ...patch });
+        result = await lib.cmdAdd(store, project, {
+          name: rest.join(" "),
+          ...patch,
+        });
       } else if (sub === "update") {
         result = await lib.cmdUpdate(store, project, rest[0], patch);
       } else if (sub === "remove") {

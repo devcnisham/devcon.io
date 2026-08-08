@@ -16,7 +16,11 @@ const MAX_DEPTH = 8;
 export function nodeSource(root: string): FileSource {
   let cache: string[] | null = null;
 
-  async function walk(dir: string, depth: number, out: string[]): Promise<void> {
+  async function walk(
+    dir: string,
+    depth: number,
+    out: string[],
+  ): Promise<void> {
     if (depth > MAX_DEPTH || out.length > MAX_FILES) return;
     let entries: import("node:fs").Dirent[];
     try {
@@ -74,8 +78,13 @@ export function nodeSource(root: string): FileSource {
     },
     async remote() {
       try {
-        const cfg = await fs.readFile(path.join(root, ".git", "config"), "utf8");
-        return /\[remote "origin"\][^[]*?url\s*=\s*(\S+)/.exec(cfg)?.[1] ?? null;
+        const cfg = await fs.readFile(
+          path.join(root, ".git", "config"),
+          "utf8",
+        );
+        return (
+          /\[remote "origin"\][^[]*?url\s*=\s*(\S+)/.exec(cfg)?.[1] ?? null
+        );
       } catch {
         return null;
       }

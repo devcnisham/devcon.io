@@ -1,10 +1,9 @@
+import { buildDigest } from "@/lib/scan/digest";
+import type { FileSource } from "@/lib/scan/source";
 import { type Feature, featureModule } from "./modules/feature";
-import { runQuery } from "./query";
+import { EMPTY_QUERY, runQuery } from "./query";
 import { detectorInputFrom, scanRegistry } from "./scan";
 import type { RegistryStore } from "./store";
-import { EMPTY_QUERY } from "./query";
-import type { FileSource } from "@/lib/scan/source";
-import { buildDigest } from "@/lib/scan/digest";
 
 /**
  * The CLI's behaviour, separated from its shell.
@@ -46,7 +45,9 @@ export async function cmdScan(
     .filter((e) => !manual.has(e.id))
     .map((e) => {
       const prior = reviewed.get(e.id);
-      return prior ? { ...e, review: prior.review, revision: prior.revision } : e;
+      return prior
+        ? { ...e, review: prior.review, revision: prior.revision }
+        : e;
     });
 
   const before = new Set(existing.map((e) => e.id));
@@ -128,7 +129,9 @@ export async function cmdUpdate(
   if (problems.length) return fail(...problems.map((p) => `invalid: ${p}`));
 
   const stored = await store.put(project, merged, "cli");
-  return ok(`Updated ${stored.name} → ${stored.status} (revision ${stored.revision})`);
+  return ok(
+    `Updated ${stored.name} → ${stored.status} (revision ${stored.revision})`,
+  );
 }
 
 /** `devcon feature remove <id>` */
@@ -203,7 +206,10 @@ export async function cmdDoctor(
   if (!problems.length) {
     return ok(`${entries.length} features, nothing wrong.`);
   }
-  return fail(`${problems.length} issue${problems.length === 1 ? "" : "s"}:`, ...problems.map((p) => `  ${p}`));
+  return fail(
+    `${problems.length} issue${problems.length === 1 ? "" : "s"}:`,
+    ...problems.map((p) => `  ${p}`),
+  );
 }
 
 function ageInDays(iso: string): number {

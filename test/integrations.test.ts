@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ALL_STEPS } from "@/lib/catalog";
 import { CAPABILITY_ORDER, PROVIDERS } from "@/lib/catalog/providers";
 import {
-  EMPTY_INTEGRATIONS,
   connectedProviders,
+  EMPTY_INTEGRATIONS,
   identityFromScan,
   providerByCapability,
 } from "@/lib/integrations/store";
@@ -34,7 +34,9 @@ describe("git remote parsing — what names the real repo", () => {
      * reads that file, so this is the one place a real credential could reach
      * the UI. It has to be dropped, not displayed.
      */
-    const r = parseGitRemote("https://someone:ghp_secret123@github.com/a/b.git");
+    const r = parseGitRemote(
+      "https://someone:ghp_secret123@github.com/a/b.git",
+    );
     expect(r).toEqual({
       host: "github.com",
       owner: "a",
@@ -58,9 +60,9 @@ describe("git remote parsing — what names the real repo", () => {
   });
 
   it("keeps a self-hosted host rather than assuming github", () => {
-    expect(parseGitRemote("git@git.university.ac.uk:cs/project.git")?.host).toBe(
-      "git.university.ac.uk",
-    );
+    expect(
+      parseGitRemote("git@git.university.ac.uk:cs/project.git")?.host,
+    ).toBe("git.university.ac.uk");
   });
 });
 
@@ -78,9 +80,9 @@ describe("identity from a scan", () => {
 
   it("claims nothing for a host it doesn't recognise", () => {
     // Better an unlabelled card than a card asserting the wrong service.
-    expect(identityFromScan(parseGitRemote("git@bitbucket.org:a/b.git"))).toEqual(
-      {},
-    );
+    expect(
+      identityFromScan(parseGitRemote("git@bitbucket.org:a/b.git")),
+    ).toEqual({});
   });
 
   it("claims nothing when there's no remote", () => {

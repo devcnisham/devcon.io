@@ -26,7 +26,8 @@ describe("selection", () => {
 
   it("hides every step whose predicate fails, and loses none", () => {
     const plan = buildPlan(COMMERCIAL_SAAS);
-    const total = plan.steps.length + plan.antiSteps.length + plan.hidden.length;
+    const total =
+      plan.steps.length + plan.antiSteps.length + plan.hidden.length;
     // Nothing may vanish: selected + hidden must account for the whole catalog.
     expect(total).toBe(ALL_STEPS.length);
   });

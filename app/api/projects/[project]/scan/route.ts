@@ -46,7 +46,10 @@ export async function POST(
   try {
     const stat = await fs.stat(root);
     if (!stat.isDirectory()) {
-      return NextResponse.json({ error: "That's a file, not a directory." }, { status: 400 });
+      return NextResponse.json(
+        { error: "That's a file, not a directory." },
+        { status: 400 },
+      );
     }
   } catch {
     return NextResponse.json({ error: `Nothing at ${root}` }, { status: 404 });
@@ -73,7 +76,9 @@ export async function POST(
 
   const toWrite = result.entries.map((entry) => {
     const prior = reviewed.get(entry.id);
-    return prior ? { ...entry, review: prior.review, revision: prior.revision } : entry;
+    return prior
+      ? { ...entry, review: prior.review, revision: prior.revision }
+      : entry;
   });
 
   const before = new Set(existing.map((e) => e.id));

@@ -82,7 +82,9 @@ export function parseGitRemote(raw: string): GitRemote | null {
   const ssh = /^(?:ssh:\/\/)?(?:[^@/]+@)([^:/]+)[:/](.+?)\/([^/]+)$/.exec(
     trimmed,
   );
-  const https = /^https?:\/\/(?:[^@/]+@)?([^/]+)\/(.+?)\/([^/]+)$/.exec(trimmed);
+  const https = /^https?:\/\/(?:[^@/]+@)?([^/]+)\/(.+?)\/([^/]+)$/.exec(
+    trimmed,
+  );
   const m = ssh ?? https;
   if (!m) return null;
 

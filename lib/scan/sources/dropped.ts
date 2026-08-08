@@ -42,7 +42,10 @@ function relPath(f: File): string {
   return parts.length > 1 ? parts.slice(1).join("/") : rel;
 }
 
-export function droppedSource(files: File[], label = "dropped files"): FileSource {
+export function droppedSource(
+  files: File[],
+  label = "dropped files",
+): FileSource {
   const byPath = new Map<string, File>();
   for (const f of files) {
     const p = relPath(f);
@@ -51,9 +54,12 @@ export function droppedSource(files: File[], label = "dropped files"): FileSourc
 
   const rootName = (() => {
     const first = files.find((f) =>
-      (f as File & { webkitRelativePath?: string }).webkitRelativePath?.includes("/"),
+      (
+        f as File & { webkitRelativePath?: string }
+      ).webkitRelativePath?.includes("/"),
     );
-    const rel = (first as File & { webkitRelativePath?: string })?.webkitRelativePath;
+    const rel = (first as File & { webkitRelativePath?: string })
+      ?.webkitRelativePath;
     return rel ? rel.split("/")[0] : null;
   })();
 

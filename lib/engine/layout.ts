@@ -32,7 +32,10 @@ export function layoutSteps(steps: Step[]): Positioned[] {
       .map((id) => byId.get(id))
       .filter((s): s is Step => s !== undefined);
 
-    const d = deps.length === 0 ? 0 : 1 + Math.max(...deps.map((s) => depthOf(s, next)));
+    const d =
+      deps.length === 0
+        ? 0
+        : 1 + Math.max(...deps.map((s) => depthOf(s, next)));
     depths.set(step.id, d);
     return d;
   };

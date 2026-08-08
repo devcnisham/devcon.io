@@ -45,7 +45,14 @@ const SIGNALS = {
 const ENV_SIGNALS = {
   auth: ["CLERK_", "AUTH0_", "NEXTAUTH_", "SUPABASE_ANON", "FIREBASE_"],
   payments: ["STRIPE_", "RAZORPAY_", "PADDLE_", "LEMONSQUEEZY_", "POLAR_"],
-  email: ["RESEND_", "SENDGRID_", "POSTMARK_", "MAILGUN_", "SMTP_", "EMAIL_FROM"],
+  email: [
+    "RESEND_",
+    "SENDGRID_",
+    "POSTMARK_",
+    "MAILGUN_",
+    "SMTP_",
+    "EMAIL_FROM",
+  ],
   file_upload: ["UPLOADTHING_", "CLOUDINARY_", "S3_", "AWS_ACCESS_KEY"],
   realtime: ["PUSHER_", "ABLY_", "SUPABASE_REALTIME"],
   ai: ["ANTHROPIC_", "OPENAI_", "GROQ_", "GOOGLE_GENERATIVE", "GEMINI_"],
@@ -87,7 +94,8 @@ function detectCompleted(
 ): { stepId: string; because: string }[] {
   const m = digest.markers;
   const done: { stepId: string; because: string }[] = [];
-  const mark = (stepId: string, because: string) => done.push({ stepId, because });
+  const mark = (stepId: string, because: string) =>
+    done.push({ stepId, because });
 
   if (m.authWired) {
     mark("c-auth", "auth middleware is wired");
@@ -179,7 +187,8 @@ export function profileFromDigest(digest: RepoDigest): Inference {
   else if (hits(deps, ["react"])) framework = "React";
   else if (hits(deps, ["vue"])) framework = "Vue";
   else if (hits(deps, ["svelte"])) framework = "Svelte";
-  else if (digest.configFiles.includes("requirements.txt")) framework = "Python";
+  else if (digest.configFiles.includes("requirements.txt"))
+    framework = "Python";
   else if (digest.configFiles.includes("Cargo.toml")) framework = "Rust";
   else if (digest.configFiles.includes("go.mod")) framework = "Go";
   else if (digest.configFiles.includes("pom.xml")) framework = "Java";
@@ -279,7 +288,10 @@ export function profileFromDigest(digest: RepoDigest): Inference {
 
   const alreadyDone = detectCompleted(digest);
   if (alreadyDone.length) {
-    note("completed", `${alreadyDone.length} steps already satisfied by the repo`);
+    note(
+      "completed",
+      `${alreadyDone.length} steps already satisfied by the repo`,
+    );
   }
 
   return { profile, evidence, alreadyDone };

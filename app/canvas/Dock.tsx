@@ -30,8 +30,10 @@ export function Dock({ groups }: { groups: DockItem[][] }) {
 
     // Neighbours lift slightly too — that falloff is what reads as "dock"
     // rather than "a row of buttons that grow".
-    const scale = distance === 0 ? 1.45 : distance === 1 ? 1.2 : distance === 2 ? 1.06 : 1;
-    const lift = distance === 0 ? -12 : distance === 1 ? -5 : distance === 2 ? -1 : 0;
+    const scale =
+      distance === 0 ? 1.45 : distance === 1 ? 1.2 : distance === 2 ? 1.06 : 1;
+    const lift =
+      distance === 0 ? -12 : distance === 1 ? -5 : distance === 2 ? -1 : 0;
 
     return (
       <button
