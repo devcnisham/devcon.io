@@ -21,7 +21,7 @@
 > stays unset and `lib/site.ts` falls back to `http://localhost:3000`, which is
 > correct — the canonical should differ between the two.
 >
-> **248 tests, build green.** Every assertion mutation-verified.
+> **<!--catalog:tests-->252<!--/catalog--> tests, build green.** Every assertion mutation-verified.
 >
 > Two bugs in this session were found by *running* the app, not by reading it:
 > `step_completed` fired twice per click (the north star's numerator), and every
@@ -36,7 +36,7 @@ Four things, all merged to `main` except the last:
 
 1. **The competition track now exists.** It didn't — `Context` allowed
    `"competition"` while no step referenced it, so a competition profile
-   produced 0 steps and 58 hidden. 18 do-steps + 8 anti-steps now (`comp-render-check` was added later).
+   produced 0 steps and 58 hidden. <!--catalog:competitionDo-->18<!--/catalog--> do-steps + <!--catalog:competitionAnti-->8<!--/catalog--> anti-steps now (`comp-render-check` was added later).
 2. **Ingest works in production.** `/api/scan` is dev-only and 404s in prod, so
    a deployed DevCon could scan nothing. Four sources behind one digest builder.
 3. **The Project Intelligence registry**, with Features as its first module.
@@ -116,16 +116,16 @@ Run `pnpm dev`, open `http://localhost:3000`.
 | Area | State |
 |---|---|
 | Engine (DSL, select, order, explain) | Works. Pure, deterministic. |
-| Academic catalog | 16 do-steps + 6 anti-steps. **Unverified.** |
-| Commercial catalog | 29 do-steps + 7 anti-steps. **Unverified.** |
+| Academic catalog | <!--catalog:academicDo-->16<!--/catalog--> do-steps + <!--catalog:academicAnti-->6<!--/catalog--> anti-steps. **Unverified.** |
+| Commercial catalog | <!--catalog:commercialDo-->29<!--/catalog--> do-steps + <!--catalog:commercialAnti-->7<!--/catalog--> anti-steps. **Unverified.** |
 | Repo scanner | Works on real repos incl. monorepos. Dev-only route. |
 | Completion detection | Works — pre-ticks steps the repo already satisfies. |
-| Prompt generation | Works. Template assembly, not LLM. |
+| Prompt generation | Works. Assembled from each step's structured fields plus your scan — no LLM, and no `prompt_template` either: that field is on `Step` and zero steps set it. |
 | Prompt verification | `/api/verify?path=…` — checks factual claims. |
 | Canvas (React Flow) | Works. DAG, drag, marquee select, doc windows, dock. |
 | Workspace | Works. Overview / Tasks / Prompts / Board / Don't do / Hidden / Deliverables / Funnel / Integrations / Settings. |
 | Docs sidebar | Works. Card tree, search, import .md, open as canvas node, edit. |
-| Integrations | 30 providers, env manifest, generated MCP config, custom entries. |
+| Integrations | <!--catalog:providers-->30<!--/catalog--> providers, env manifest, generated MCP config, custom entries. |
 | **Telemetry** | Works, and now driven by hand. Events fire, funnel reads them, fix list ranks. A `step_completed` double-count was found and fixed doing that. |
 | Home page | Works. Open folder scans a real repo. |
 
@@ -152,8 +152,8 @@ Resend, Sentry, PostHog.
 - **No accounts, no auth, no teams.** These land together.
 - **No prompt has been run through an agent.** The catalog rubric says a
   prompt isn't verified until it's been pasted into two agents against a real
-  repo and produced working output. **4 of 63 do-steps are half-verified (one agent); none meet the two-agent bar.**
-- **248 tests, all mutation-verified** (`test/`). Engine, catalog, scanner,
+  repo and produced working output. **<!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> do-steps are half-verified (one agent); none meet the two-agent bar.**
+- **<!--catalog:tests-->252<!--/catalog--> tests, all mutation-verified** (`test/`). Engine, catalog, scanner,
   prompt assembly, telemetry. Not a snapshot suite — every claim was checked
   by breaking the implementation and confirming a test caught it.
   **Still untested: the UI and the two dev-only API routes.**
@@ -174,9 +174,9 @@ lib/
     types.ts          ProjectProfile, Step, Condition, Plan
     conditions.ts     the self-describing predicate DSL   ← load-bearing
     index.ts          combined registry + validateCatalog()
-    steps/academic.ts     16 do-steps + 6 anti-steps
-    steps/commercial.ts   29 do-steps + 7 anti-steps
-    providers/index.ts    30 providers across 8 capabilities
+    steps/academic.ts     <!--catalog:academicDo-->16<!--/catalog--> do-steps + <!--catalog:academicAnti-->6<!--/catalog--> anti-steps
+    steps/commercial.ts   <!--catalog:commercialDo-->29<!--/catalog--> do-steps + <!--catalog:commercialAnti-->7<!--/catalog--> anti-steps
+    providers/index.ts    <!--catalog:providers-->30<!--/catalog--> providers across <!--catalog:capabilities-->8<!--/catalog--> capabilities
   engine/
     plan.ts           buildPlan — SELECTION LIVES HERE, inline.
                       There is NO select.ts. Selection is the
@@ -442,7 +442,7 @@ registry and the landing page. Ordered by whether it blocks anything.
 
 | # | Item | State |
 |---|---|---|
-| 1 | **Verify the prompts through a second agent.** 4 of 63 do-steps have been run against a real repo, by one agent (`claude-opus-5 (Claude Code)`). The catalog rubric's bar is two, so `verificationState()` reports those four as `partial` and the rest as `unverified`. **A second Claude Code run does not count** — it is the same agent, and one agent's tolerance for an ambiguous instruction is not evidence about agents in general. This needs a genuinely different agent. | 4/63, half-verified |
+| 1 | **Verify the prompts through a second agent.** <!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> do-steps have been run against a real repo, by one agent (`claude-opus-5 (Claude Code)`). The catalog rubric's bar is two, so `verificationState()` reports those four as `partial` and the rest as `unverified`. **A second Claude Code run does not count** — it is the same agent, and one agent's tolerance for an ambiguous instruction is not evidence about agents in general. This needs a genuinely different agent. | 4/63, half-verified |
 | 2 | **Run one hackathon cohort.** 10–50 teams on the competition track. The only thing that closes the dominant gap. | not started |
 | ~~3~~ | ~~Steps shipping an agent prompt for work no agent can do.~~ **DONE.** All three tracks now declare `execution`. Academic 3 human / 4 needs-input, competition 4 / 4, commercial 5 / 10. | closed 2026-08-06 |
 
@@ -457,7 +457,7 @@ readable against the complaint.
 | ~~5~~ | ~~`@feature` annotations are picked up inside string literals.~~ | **DONE**, and **an AST parser was not needed** — that claim was wrong. `lib/registry/sources/comments.ts` masks everything outside a comment with spaces, preserving offsets so line numbers still land. ~150 lines, runs in a browser tab. Verified against the actual symptom: `parseAnnotations` on `test/registry.test.ts` returned `Authentication@L202` before and `[]` after. |
 | ~~6~~ | ~~`project-management` is the one capability no step serves.~~ | **DONE — in the UI, not the catalog.** Tagging a step `serves: ["project-management"]` would put a false edge on the graph, and the `serves` doc comment says a wrong edge reads as a fact. Instead `isUnservedCapability()` distinguishes the two silences, and the node now says "No step in the catalog wires up project management yet — connecting this won't change your plan." Pinned by a test asserting the unserved list is exactly `["project-management"]`, which fires in both directions. |
 | ~~7~~ | ~~Funnel table never seen with real events in it.~~ | **DONE.** Driven by hand against the vespor scan: 1 plan, 1 completion, 2 prompt copies. The `copied → not done` column read `1` on two steps — the diagnostic case the taxonomy exists for. This is what surfaced the double-count below. |
-| ~~8~~ | ~~`last_verified` CI check (90 days) never built.~~ | **DONE.** `lib/catalog/providers/freshness.ts` + 9 tests. `pnpm test` is the gate; there is no `.github/`. Rejects impossible dates (`Date.parse` rolls `2026-02-31` to March 3) and future dates (a one-character year typo would otherwise buy twelve months of silence). All 30 providers currently sit at the `2026-08-04` seed date, so this turns red on **2026-11-02**. Re-read the tiers then; do not just move the date. |
+| ~~8~~ | ~~`last_verified` CI check (90 days) never built.~~ | **DONE.** `lib/catalog/providers/freshness.ts` + 9 tests. `pnpm test` is the gate; there is no `.github/`. Rejects impossible dates (`Date.parse` rolls `2026-02-31` to March 3) and future dates (a one-character year typo would otherwise buy twelve months of silence). All <!--catalog:providers-->30<!--/catalog--> providers currently sit at the `2026-08-04` seed date, so this turns red on **2026-11-02**. Re-read the tiers then; do not just move the date. |
 
 ### Built but not driven by hand
 
@@ -468,7 +468,7 @@ Typed, unit-tested, and never clicked:
   end-to-end against `vercel/next-learn`, but nobody has used the pickers. Both
   open a native OS dialog, which is why they are still unclicked — they cannot
   be driven from a headless browser session.
-- ~~**The waitlist form** has no tests at all.~~ **19 tests now**
+- ~~**The waitlist form** has no tests at all.~~ **11 tests now**
   (`test/waitlist.test.ts`), and they found a real bug: `JSON.parse("null")`
   succeeds, so a foreign value at `devcon.waitlist` escaped the try/catch as
   `null` and the first `.some()` on it threw inside the submit handler.

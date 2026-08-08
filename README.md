@@ -47,14 +47,14 @@ hidden?" has an answer, and freeform generation has none.
 | | |
 |---|---|
 | **Engine** | Plan generation, dependency ordering, hidden-step explanation, capacity-vs-deadline cutting |
-| **Catalogs** | Academic, competition and commercial tracks, plus 30 providers |
+| **Catalogs** | Academic, competition and commercial tracks, plus <!--catalog:providers-->30<!--/catalog--> providers |
 | **Registry** | Project Intelligence — Features is the first module; APIs, routes and models plug into the same shape |
 | **Integrations** | 9 MCP servers, with config that works in Claude Code, Cursor and VS Code |
 | **Telemetry** | Local event store and a ranked catalog fix list — drop-off is product data, not marketing analytics |
 
 ```bash
 pnpm build   # the gate — runs TypeScript
-pnpm test    # 209 tests, every one mutation-verified
+pnpm test    # <!--catalog:tests-->252<!--/catalog--> tests, every one mutation-verified
 ```
 
 ## What this is not, yet
@@ -68,7 +68,7 @@ Stated plainly rather than discovered later:
 - **The sync engine has no remote.** Queue, retry, deduplication and
   revision-based conflict resolution are implemented and tested against a
   transport interface. It says so rather than pretending.
-- **4 of 62 prompts have been through an agent, and only one agent.** The
+- **<!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> prompts have been through an agent, and only one agent.** The
   catalog's own bar is two, so those four report as `partial`.
 
 **And the one that matters: nobody has finished a project because of DevCon.**
