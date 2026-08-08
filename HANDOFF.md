@@ -1,11 +1,14 @@
 # DevCon — Handoff
 
-> Last updated: end of the session that closed the non-blocking gap list and
-> drove the app by hand for the first time.
-> Branch: `devcon-engine-and-catalogs` · remote: `github.com/devcnisham/devcon.io`
+> Last updated: end of the session that closed the non-blocking gap list, drove
+> the app by hand for the first time, and put docs, lint and tests behind CI.
+> Remote: `github.com/devcnisham/devcon.io` · working branch: `next`
 > **Read this first. Then the "Where to pick up" section at the bottom.**
 >
-> `main` has everything through PR #3. The branch is pushed, and PR #4 is open.
+> **`main` has everything through PR #10 — nothing is outstanding.** The old
+> `devcon-engine-and-catalogs` branch is deleted; it lived through ten PRs and
+> long outgrew its name, which is the argument for keeping branches short. Cut
+> a new one per change from `main` rather than reusing `next` indefinitely.
 >
 > **Live: https://devcon-hazel.vercel.app** — Vercel project `devcon` under
 > `nishams-projects-12e66ec9`. First deploy was from the local CLI.
