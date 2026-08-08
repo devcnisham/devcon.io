@@ -9,7 +9,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome check .",
-    "format": "biome check --write ."
+    "format": "biome check --write .",
+    "docs:sync": "npx -y tsx scripts/sync-docs.ts",
+    "docs:check": "npx -y tsx scripts/sync-docs.ts --check"
   },
   "dependencies": {
     "@xyflow/react": "^12.11.2",
