@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { ALL_STEPS } from "@/lib/catalog";
-import { PROVIDERS } from "@/lib/catalog/providers";
-import { executionOf, verificationState } from "@/lib/catalog/types";
+import { CATALOG_STATS } from "@/lib/catalog/stats";
 import { SITE_NAME } from "@/lib/site";
 import { Code, DocsShell, Note, Section, Table } from "./ui";
 
@@ -13,28 +11,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * Counted from the catalog at build time, never typed by hand.
- *
- * Every number on this page is derived from the same source the engine reads,
- * so the docs cannot quietly drift from the product. The README already shows
- * why that matters — it says "209 tests" and "4 of 62 prompts" because both
- * were true when someone typed them and neither is now.
+ * Every number on this page comes from `CATALOG_STATS`, which the markdown
+ * sync script also reads. One source, so the docs page and README.md cannot
+ * disagree — they used to, and nothing noticed.
  */
-const doSteps = ALL_STEPS.filter((s) => s.kind === "do");
-const antiSteps = ALL_STEPS.filter((s) => s.kind === "avoid");
-const verification = doSteps.map(verificationState);
-const COUNTS = {
-  do: doSteps.length,
-  anti: antiSteps.length,
-  providers: PROVIDERS.length,
-  mcp: PROVIDERS.filter((p) => p.mcp_server).length,
-  verified: verification.filter((v) => v === "verified").length,
-  partial: verification.filter((v) => v === "partial").length,
-  unverified: verification.filter((v) => v === "unverified").length,
-  agent: doSteps.filter((s) => executionOf(s) === "agent").length,
-  needsInput: doSteps.filter((s) => executionOf(s) === "needs-input").length,
-  human: doSteps.filter((s) => executionOf(s) === "human").length,
-};
+const COUNTS = CATALOG_STATS;
 
 const SECTIONS = [
   { id: "what-it-does", title: "What it does" },
@@ -68,8 +49,8 @@ export default function DocsPage() {
           attached to each one.
         </p>
         <p>
-          The catalog holds <strong>{COUNTS.do} do-steps</strong> and{" "}
-          <strong>{COUNTS.anti} anti-steps</strong> across three contexts:
+          The catalog holds <strong>{COUNTS.doSteps} do-steps</strong> and{" "}
+          <strong>{COUNTS.antiSteps} anti-steps</strong> across three contexts:
           academic, competition and commercial. A given project sees a fraction
           of them. That fraction is the product — the work is in deciding what
           to leave out, not in listing everything that could matter.
@@ -246,10 +227,10 @@ export default function DocsPage() {
 
       <Section id="integrations" title="Integrations and MCP">
         <p>
-          {COUNTS.providers} providers across eight capabilities, {COUNTS.mcp}{" "}
-          of them with an MCP server. Connecting one generates config for Claude
-          Code, Cursor or VS Code, plus the equivalent{" "}
-          <Code>claude mcp add</Code> commands.
+          {COUNTS.providers} providers across eight capabilities,{" "}
+          {COUNTS.mcpServers} of them with an MCP server. Connecting one
+          generates config for Claude Code, Cursor or VS Code, plus the
+          equivalent <Code>claude mcp add</Code> commands.
         </p>
         <p>
           Every shipped server is remote and authenticates over OAuth, so the

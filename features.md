@@ -37,14 +37,14 @@ per track.
 
 | Feature | Status | Notes |
 |---|---|---|
-| Academic track | ⏳ Testing | 16 do-steps + 6 anti-steps. **No prompt verified against a live agent.** 7 steps classified by execution mode. |
-| Competition track | ⏳ Testing | 17 do-steps + 8 anti-steps. Hackathons. 4 steps partially verified; 7 classified by execution mode. |
-| Commercial track | ⏳ Testing | 29 do-steps + 7 anti-steps. 15 classified by execution mode (5 human, 10 needs-input). **No prompt verified against a live agent.** |
-| Provider catalog | ⏳ Testing | 30 providers across 8 capabilities. Free tiers are seeded, not audited. |
+| Academic track | ⏳ Testing | <!--catalog:academicDo-->16<!--/catalog--> do-steps + <!--catalog:academicAnti-->6<!--/catalog--> anti-steps. **No prompt verified against a live agent.** <!--catalog:academicClassified-->7<!--/catalog--> steps classified by execution mode. |
+| Competition track | ⏳ Testing | <!--catalog:competitionDo-->18<!--/catalog--> do-steps + <!--catalog:competitionAnti-->8<!--/catalog--> anti-steps. Hackathons. <!--catalog:partial-->4<!--/catalog--> steps partially verified; <!--catalog:competitionClassified-->8<!--/catalog--> classified by execution mode. |
+| Commercial track | ⏳ Testing | <!--catalog:commercialDo-->29<!--/catalog--> do-steps + <!--catalog:commercialAnti-->7<!--/catalog--> anti-steps. <!--catalog:commercialClassified-->15<!--/catalog--> classified by execution mode (<!--catalog:commercialHuman-->5<!--/catalog--> human, <!--catalog:commercialNeedsInput-->10<!--/catalog--> needs-input). **No prompt verified against a live agent.** |
+| Provider catalog | ⏳ Testing | <!--catalog:providers-->30<!--/catalog--> providers across <!--catalog:capabilities-->8<!--/catalog--> capabilities. Free tiers are seeded, but a build-time check now fails the suite when any date is over 90 days old. |
 | Catalog validation | ✅ Completed | Duplicate ids, dangling dependencies, cycles, rubric rules |
-| `serves` capability tagging | ✅ Completed | 15 steps declare which service they wire up |
+| `serves` capability tagging | ✅ Completed | <!--catalog:servesTagged-->15<!--/catalog--> steps declare which service they wire up |
 | Verification tracking | ✅ Completed | `Step.verification` records the date and which agents ran it. `verificationState()` returns `unverified` / `partial` / `verified` — two agents is the bar, so one run is `partial`. Deliberately does **not** filter plans: a verified-only plan would be empty today, and hiding that is worse than showing it. |
-| Prompt verification | 🚧 Building | 4 competition steps run through one agent against a scratch repo. 0 of 62 at the two-agent bar. |
+| Prompt verification | 🚧 Building | <!--catalog:partial-->4<!--/catalog--> competition steps run through one agent against a scratch repo. <!--catalog:verified-->0<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> at the two-agent bar. |
 
 ## Project ingest
 
@@ -147,7 +147,7 @@ routes, models and components plug into the same shape.
 
 | Feature | Status | Notes |
 |---|---|---|
-| Test suite | ✅ Completed | 210 tests, every assertion mutation-verified. The waitlist store is the one module with none. |
+| Test suite | ✅ Completed | <!--catalog:tests-->252<!--/catalog--> tests, every assertion mutation-verified. |
 | Build gate | ✅ Completed | `pnpm build` runs TypeScript |
 | Workspace persistence | ✅ Completed | Recent workspaces, re-scanned on open |
 | Documentation | ✅ Completed | `README.md`, this file, `bug-report.md`, `HANDOFF.md`, `docs/gaps-plan.md`. Each states what isn't done as plainly as what is. |
@@ -169,7 +169,7 @@ subtraction argument — is an assertion.
 
 The two things that would change it, in order:
 
-1. **Verify the competition prompts through a real agent.** 0 of 62 do-steps
+1. **Verify the competition prompts through a real agent.** <!--catalog:verified-->0<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> do-steps
    meet the catalog's own bar. Running a cohort before this makes failure
    un-diagnosable between "the plan is wrong" and "the prompt is wrong".
 2. **Run one hackathon cohort.** 10–50 teams, competition track, with a control
