@@ -33,6 +33,10 @@ body {
    movement. `1ms` rather than `0s` so transitionend still fires and nothing
    waiting on it stalls. */
 @media (prefers-reduced-motion: reduce) {
+  /* biome-ignore-start lint/complexity/noImportantStyles: `!important` is the
+     point. This has to beat per-component durations set in class names and in
+     inline styles — a reduced-motion floor that any component can accidentally
+     out-specify is not a floor. */
   *,
   *::before,
   *::after {
@@ -41,6 +45,7 @@ body {
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
+  /* biome-ignore-end lint/complexity/noImportantStyles: end of the floor. */
 }
 
 /* Markdown rendering for the doc viewer. Hand-rolled rather than pulling in

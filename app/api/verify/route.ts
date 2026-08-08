@@ -145,7 +145,9 @@ export async function GET(request: Request) {
     // 9. Marking constraints leaking into production work.
     if (
       profile.context !== "academic" &&
-      /clean machine from a fresh clone|evaluator|grader|rubric|viva/i.test(text)
+      /clean machine from a fresh clone|evaluator|grader|rubric|viva/i.test(
+        text,
+      )
     ) {
       flag("error", "academic-only language in a commercial prompt");
     }

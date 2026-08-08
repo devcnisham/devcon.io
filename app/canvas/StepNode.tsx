@@ -13,8 +13,10 @@ const STATE_STYLES: Record<StepNodeData["state"], string> = {
   done: "border-white/10 bg-neutral-900/70 text-neutral-500",
   active:
     "border-amber-400/80 bg-neutral-900/90 text-white shadow-2xl shadow-amber-500/20 ring-2 ring-amber-400/25",
-  ready: "border-white/25 bg-neutral-900/85 text-neutral-50 shadow-xl shadow-black/40",
-  blocked: "border-white/10 bg-neutral-900/70 text-neutral-400 shadow-lg shadow-black/30",
+  ready:
+    "border-white/25 bg-neutral-900/85 text-neutral-50 shadow-xl shadow-black/40",
+  blocked:
+    "border-white/10 bg-neutral-900/70 text-neutral-400 shadow-lg shadow-black/30",
 };
 
 const SIDES = [
@@ -101,7 +103,6 @@ export function StepNode({
           <span className="text-neutral-300">must</span>
         ) : null}
       </div>
-
     </div>
   );
 }

@@ -87,7 +87,9 @@ export function Settings({
     <div className="space-y-10">
       {/* ------------------------------------------------------------ project */}
       <section>
-        <h2 className="mb-1 text-base font-semibold text-neutral-100">Project</h2>
+        <h2 className="mb-1 text-base font-semibold text-neutral-100">
+          Project
+        </h2>
         <p className="mb-3 text-sm text-neutral-500">
           These change the plan. Editing them re-runs selection, so steps can
           appear or disappear.
@@ -190,7 +192,9 @@ export function Settings({
             max={12}
             value={a.group_size}
             onChange={(e) =>
-              onProfile({ group_size: Math.max(1, Number(e.target.value) || 1) })
+              onProfile({
+                group_size: Math.max(1, Number(e.target.value) || 1),
+              })
             }
             className={`${input} w-20`}
           />
@@ -217,7 +221,9 @@ export function Settings({
               max={40}
               step={1}
               value={prefs.hoursPerWeek}
-              onChange={(e) => onPrefs({ hoursPerWeek: Number(e.target.value) })}
+              onChange={(e) =>
+                onPrefs({ hoursPerWeek: Number(e.target.value) })
+              }
               className="w-40 accent-amber-400"
             />
             <span className="w-12 shrink-0 text-right font-mono text-xs text-neutral-300">

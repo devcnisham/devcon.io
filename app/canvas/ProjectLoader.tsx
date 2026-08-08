@@ -13,7 +13,7 @@ import {
   githubSource,
   parseRepoInput,
 } from "@/lib/scan/sources/github";
-import { type ScanResult, isScanError } from "@/lib/scan/types";
+import { isScanError, type ScanResult } from "@/lib/scan/types";
 
 /** Local-path scanning only exists on a dev server — the route 404s in production. */
 const DEV_SCAN = process.env.NODE_ENV !== "production";
@@ -243,8 +243,8 @@ export function ProjectLoader({
                 </button>
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
-                Private repos need a sign-in DevCon doesn&apos;t have yet.
-                There is deliberately no field here that takes a token.
+                Private repos need a sign-in DevCon doesn&apos;t have yet. There
+                is deliberately no field here that takes a token.
               </p>
             </div>
           ) : null}

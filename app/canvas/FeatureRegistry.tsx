@@ -3,19 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FEATURE_PRIORITIES,
-  FEATURE_STATUSES,
   FEATURE_STATUS_META,
+  FEATURE_STATUSES,
   type Feature,
   type FeatureStatus,
   featureModule,
 } from "@/lib/registry/modules/feature";
 import {
-  EMPTY_QUERY,
-  type RegistryQuery,
-  type SortKey,
   byOrigin,
+  EMPTY_QUERY,
   facets,
+  type RegistryQuery,
   runQuery,
+  type SortKey,
 } from "@/lib/registry/query";
 
 /**
@@ -373,7 +373,9 @@ export function FeatureRegistry({
           <Skeleton />
         ) : !entries.length ? (
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-8 text-center">
-            <p className="text-sm text-neutral-300">No features registered yet.</p>
+            <p className="text-sm text-neutral-300">
+              No features registered yet.
+            </p>
             <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-neutral-500">
               Scan the project to find them from its dependencies and code, or
               declare them with a <code className="font-mono">@feature</code>{" "}
@@ -615,7 +617,10 @@ function FeatureDetail({
             </p>
             <ul className="space-y-0.5">
               {feature.files.slice(0, 8).map((f) => (
-                <li key={f} className="truncate font-mono text-[11px] text-amber-300/80">
+                <li
+                  key={f}
+                  className="truncate font-mono text-[11px] text-amber-300/80"
+                >
                   {f}
                 </li>
               ))}

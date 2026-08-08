@@ -147,7 +147,10 @@ export const PROVIDERS: Provider[] = [
       con: ["Free projects pause when idle"],
     },
     env_vars: [
-      { key: "NEXT_PUBLIC_SUPABASE_URL", where_to_get: "Project settings → API" },
+      {
+        key: "NEXT_PUBLIC_SUPABASE_URL",
+        where_to_get: "Project settings → API",
+      },
       {
         key: "SUPABASE_SERVICE_ROLE_KEY",
         where_to_get: "Project settings → API (server only)",
@@ -260,7 +263,10 @@ export const PROVIDERS: Provider[] = [
       con: ["You build the UI yourself"],
     },
     env_vars: [
-      { key: "NEXT_PUBLIC_SUPABASE_ANON_KEY", where_to_get: "Project settings → API" },
+      {
+        key: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        where_to_get: "Project settings → API",
+      },
     ],
     docs_url: "https://supabase.com/docs/guides/auth",
     last_verified: V,
@@ -367,7 +373,12 @@ export const PROVIDERS: Provider[] = [
       pro: ["Handles global tax", "Built for SaaS billing"],
       con: ["Approval process before you can sell"],
     },
-    env_vars: [{ key: "PADDLE_API_KEY", where_to_get: "Developer tools → Authentication" }],
+    env_vars: [
+      {
+        key: "PADDLE_API_KEY",
+        where_to_get: "Developer tools → Authentication",
+      },
+    ],
     docs_url: "https://developer.paddle.com",
     last_verified: V,
   },
@@ -413,7 +424,9 @@ export const PROVIDERS: Provider[] = [
       pro: ["Marketing and transactional in one"],
       con: ["Heavier API", "Stricter onboarding review"],
     },
-    env_vars: [{ key: "SENDGRID_API_KEY", where_to_get: "Settings → API keys" }],
+    env_vars: [
+      { key: "SENDGRID_API_KEY", where_to_get: "Settings → API keys" },
+    ],
     docs_url: "https://docs.sendgrid.com",
     last_verified: V,
   },
@@ -460,7 +473,9 @@ export const PROVIDERS: Provider[] = [
       pro: ["Fastest path to working uploads", "Type-safe end to end"],
       con: ["Smaller free tier"],
     },
-    env_vars: [{ key: "UPLOADTHING_TOKEN", where_to_get: "Dashboard → API keys" }],
+    env_vars: [
+      { key: "UPLOADTHING_TOKEN", where_to_get: "Dashboard → API keys" },
+    ],
     docs_url: "https://docs.uploadthing.com",
     last_verified: V,
   },
@@ -515,7 +530,10 @@ export const PROVIDERS: Provider[] = [
       con: ["Metering cost is on you"],
     },
     env_vars: [
-      { key: "ANTHROPIC_API_KEY", where_to_get: "console.anthropic.com → API keys" },
+      {
+        key: "ANTHROPIC_API_KEY",
+        where_to_get: "console.anthropic.com → API keys",
+      },
     ],
     docs_url: "https://docs.anthropic.com",
     last_verified: V,
@@ -547,7 +565,10 @@ export const PROVIDERS: Provider[] = [
       con: ["Free tier rate limits are tight"],
     },
     env_vars: [
-      { key: "GOOGLE_GENERATIVE_AI_API_KEY", where_to_get: "aistudio.google.com" },
+      {
+        key: "GOOGLE_GENERATIVE_AI_API_KEY",
+        where_to_get: "aistudio.google.com",
+      },
     ],
     docs_url: "https://ai.google.dev/docs",
     last_verified: V,
@@ -579,7 +600,10 @@ export const PROVIDERS: Provider[] = [
       con: ["Actions minutes limited on free"],
     },
     env_vars: [
-      { key: "GITHUB_TOKEN", where_to_get: "Settings → Developer settings → PAT" },
+      {
+        key: "GITHUB_TOKEN",
+        where_to_get: "Settings → Developer settings → PAT",
+      },
     ],
     mcp_server: {
       transport: "http",
@@ -606,7 +630,9 @@ export const PROVIDERS: Provider[] = [
         "MCP server needs Premium or Ultimate — not on free",
       ],
     },
-    env_vars: [{ key: "GITLAB_TOKEN", where_to_get: "Preferences → Access tokens" }],
+    env_vars: [
+      { key: "GITLAB_TOKEN", where_to_get: "Preferences → Access tokens" },
+    ],
     mcp_server: {
       transport: "http",
       name: "gitlab",

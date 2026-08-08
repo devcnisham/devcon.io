@@ -1,34 +1,51 @@
 import { NextResponse } from "next/server";
-import { devStore as store, moduleFor } from "@/lib/registry/dev-store";
+import { moduleFor, devStore as store } from "@/lib/registry/dev-store";
 import type { ModuleId } from "@/lib/registry/types";
 
 /** DEVELOPMENT ONLY — see the collection route for why. */
 const DEV_ONLY = process.env.NODE_ENV !== "production";
 
-type Params = { params: Promise<{ project: string; module: string; id: string }> };
+type Params = {
+  params: Promise<{ project: string; module: string; id: string }>;
+};
 
 export async function GET(_request: Request, { params }: Params) {
-  if (!DEV_ONLY) return NextResponse.json({ error: "Not available" }, { status: 404 });
+  if (!DEV_ONLY)
+    return NextResponse.json({ error: "Not available" }, { status: 404 });
   const { project, module, id } = await params;
   if (!moduleFor(module)) {
-    return NextResponse.json({ error: `Unknown module "${module}"` }, { status: 404 });
+    return NextResponse.json(
+      { error: `Unknown module "${module}"` },
+      { status: 404 },
+    );
   }
   const entry = await store.get(project, module as ModuleId, id);
-  if (!entry) return NextResponse.json({ error: `No ${module} "${id}"` }, { status: 404 });
+  if (!entry)
+    return NextResponse.json(
+      { error: `No ${module} "${id}"` },
+      { status: 404 },
+    );
   return NextResponse.json({ entry });
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  if (!DEV_ONLY) return NextResponse.json({ error: "Not available" }, { status: 404 });
+  if (!DEV_ONLY)
+    return NextResponse.json({ error: "Not available" }, { status: 404 });
   const { project, module, id } = await params;
   const mod = moduleFor(module);
   if (!mod) {
-    return NextResponse.json({ error: `Unknown module "${module}"` }, { status: 404 });
+    return NextResponse.json(
+      { error: `Unknown module "${module}"` },
+      { status: 404 },
+    );
   }
 
   const existing = await store.get(project, module as ModuleId, id);
   if (!existing) {
-    return NextResponse.json({ error: `No ${module} "${id}"` }, { status: 404 });
+    return NextResponse.json(
+      { error: `No ${module} "${id}"` },
+      { status: 404 },
+    );
   }
 
   let patch: Record<string, unknown>;
@@ -79,14 +96,21 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  if (!DEV_ONLY) return NextResponse.json({ error: "Not available" }, { status: 404 });
+  if (!DEV_ONLY)
+    return NextResponse.json({ error: "Not available" }, { status: 404 });
   const { project, module, id } = await params;
   if (!moduleFor(module)) {
-    return NextResponse.json({ error: `Unknown module "${module}"` }, { status: 404 });
+    return NextResponse.json(
+      { error: `Unknown module "${module}"` },
+      { status: 404 },
+    );
   }
   const existing = await store.get(project, module as ModuleId, id);
   if (!existing) {
-    return NextResponse.json({ error: `No ${module} "${id}"` }, { status: 404 });
+    return NextResponse.json(
+      { error: `No ${module} "${id}"` },
+      { status: 404 },
+    );
   }
   await store.remove(project, module as ModuleId, id, "api");
   return new NextResponse(null, { status: 204 });

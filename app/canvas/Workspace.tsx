@@ -9,18 +9,22 @@ import {
   type Step,
 } from "@/lib/catalog/types";
 import {
+  marksAvailable,
+  marksEarned,
+  progressByWeight,
+} from "@/lib/engine/plan";
+import type { IntegrationState } from "@/lib/integrations/store";
+import type { Prefs, ProfileOverrides } from "@/lib/settings/types";
+import {
   type CustomTask,
-  type TaskState,
-  type TaskStatus,
   checkKey,
   statusOf,
+  type TaskState,
+  type TaskStatus,
 } from "@/lib/tasks/types";
-import { marksAvailable, marksEarned, progressByWeight } from "@/lib/engine/plan";
-import type { Prefs, ProfileOverrides } from "@/lib/settings/types";
 import { track } from "@/lib/telemetry/events";
 import { Funnel } from "./Funnel";
 import { Integrations } from "./Integrations";
-import type { IntegrationState } from "@/lib/integrations/store";
 import type { LeftSection } from "./LeftSidebar";
 import { Prompts } from "./Prompts";
 import { Settings } from "./Settings";
@@ -131,12 +135,8 @@ function StatusPill({
 
 export function Workspace(props: WorkspaceProps) {
   const { profile, plan, tasks, ready, section } = props;
-  const {
-    integrations,
-    identity,
-    onIntegrationsChange,
-    registrySection,
-  } = props;
+  const { integrations, identity, onIntegrationsChange, registrySection } =
+    props;
   const { completed } = tasks;
 
   const [showAllNext, setShowAllNext] = useState(false);
@@ -426,7 +426,10 @@ export function Workspace(props: WorkspaceProps) {
               const isOpen = expanded.has(s.id);
               const blocked = !ready.has(s.id) && !completed.has(s.id);
               return (
-                <li key={s.id} className="border-b border-white/8 last:border-0">
+                <li
+                  key={s.id}
+                  className="border-b border-white/8 last:border-0"
+                >
                   <div className="flex items-center gap-3 py-2.5">
                     <button
                       type="button"
@@ -677,7 +680,8 @@ export function Workspace(props: WorkspaceProps) {
 
       <SectionTitle>Marks mapped</SectionTitle>
       <p className="text-sm text-neutral-400">
-        {marksEarned(plan, completed)}% earned of {marksAvailable(plan)}% mapped.
+        {marksEarned(plan, completed)}% earned of {marksAvailable(plan)}%
+        mapped.
         {profile.academic.has_rubric
           ? ""
           : " No rubric supplied — add one to map steps to marks."}
@@ -690,12 +694,17 @@ export function Workspace(props: WorkspaceProps) {
     <section>
       <SectionTitle>Don&apos;t do these</SectionTitle>
       <ul>
-        {(showAllAnti ? plan.antiSteps : plan.antiSteps.slice(0, 4)).map((s) => (
-          <li key={s.id} className="border-b border-white/8 py-3 last:border-0">
-            <p className="text-sm text-neutral-300">✕ {s.title}</p>
-            <p className="mt-0.5 text-xs text-neutral-500">{s.why}</p>
-          </li>
-        ))}
+        {(showAllAnti ? plan.antiSteps : plan.antiSteps.slice(0, 4)).map(
+          (s) => (
+            <li
+              key={s.id}
+              className="border-b border-white/8 py-3 last:border-0"
+            >
+              <p className="text-sm text-neutral-300">✕ {s.title}</p>
+              <p className="mt-0.5 text-xs text-neutral-500">{s.why}</p>
+            </li>
+          ),
+        )}
       </ul>
       {plan.antiSteps.length > 4 ? (
         <button
@@ -715,7 +724,10 @@ export function Workspace(props: WorkspaceProps) {
       <SectionTitle>{plan.hidden.length} steps hidden</SectionTitle>
       <ul>
         {plan.hidden.map(({ step, reason }) => (
-          <li key={step.id} className="border-b border-white/8 py-3 last:border-0">
+          <li
+            key={step.id}
+            className="border-b border-white/8 py-3 last:border-0"
+          >
             <p className="text-sm text-neutral-300">{step.title}</p>
             {/* Generated from the failed predicate, never hand-written. */}
             <p className="mt-0.5 text-xs text-neutral-500">Hidden: {reason}</p>
@@ -840,10 +852,9 @@ export function Workspace(props: WorkspaceProps) {
             <p className="mt-2 text-sm leading-relaxed text-neutral-300">
               This scanned as a{" "}
               <strong className="text-amber-200">{profile.context}</strong>{" "}
-              project, and only the <strong>academic</strong> catalog is
-              written so far. The engine selected nothing because nothing
-              applies — all {plan.hidden.length} steps were correctly excluded,
-              not lost.
+              project, and only the <strong>academic</strong> catalog is written
+              so far. The engine selected nothing because nothing applies — all{" "}
+              {plan.hidden.length} steps were correctly excluded, not lost.
             </p>
             <p className="mt-3 text-sm text-neutral-400">
               Switch the project to academic in Settings to see the plan
@@ -860,10 +871,10 @@ export function Workspace(props: WorkspaceProps) {
             <button
               type="button"
               onClick={() => {
-              // Trust signal: does anyone actually check the subtraction?
-              if (!drawerOpen) track("drawer_expanded", props.project);
-              setDrawerOpen((v) => !v);
-            }}
+                // Trust signal: does anyone actually check the subtraction?
+                if (!drawerOpen) track("drawer_expanded", props.project);
+                setDrawerOpen((v) => !v);
+              }}
               className="flex w-full items-center justify-between px-4 py-3 text-sm text-neutral-400 hover:text-neutral-200"
             >
               <span>

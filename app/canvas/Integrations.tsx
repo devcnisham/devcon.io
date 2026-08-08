@@ -2,18 +2,18 @@
 
 import { useMemo, useState } from "react";
 import {
+  buildMcpCliCommands,
+  buildMcpConfig,
   CAPABILITY_LABEL,
   CAPABILITY_ORDER,
   type Capability,
   MCP_CLIENT_LABEL,
   MCP_CLIENT_PATH,
   type McpClient,
-  PROVIDERS,
-  type Provider,
-  buildMcpCliCommands,
-  buildMcpConfig,
   makeCustomProvider,
   mcpKeysNeeded,
+  PROVIDERS,
+  type Provider,
   providersFor,
 } from "@/lib/catalog/providers";
 import { copyText } from "@/lib/clipboard";
@@ -88,7 +88,10 @@ export function Integrations({
   });
 
   const custom = state.custom;
-  const configured = useMemo(() => new Set(state.configured), [state.configured]);
+  const configured = useMemo(
+    () => new Set(state.configured),
+    [state.configured],
+  );
   const all = useMemo(() => [...PROVIDERS, ...custom], [custom]);
   const connected = useMemo(() => new Set(state.connected), [state.connected]);
 
@@ -122,10 +125,7 @@ export function Integrations({
       const siblings = new Set(optionsFor(p.capability).map((s) => s.id));
       onChange({
         ...state,
-        connected: [
-          ...state.connected.filter((id) => !siblings.has(id)),
-          p.id,
-        ],
+        connected: [...state.connected.filter((id) => !siblings.has(id)), p.id],
       });
     }, 420);
   };
@@ -157,13 +157,19 @@ export function Integrations({
     () => buildMcpConfig(connected, mcpClient),
     [connected, mcpClient],
   );
-  const mcpCommands = useMemo(() => buildMcpCliCommands(connected), [connected]);
+  const mcpCommands = useMemo(
+    () => buildMcpCliCommands(connected),
+    [connected],
+  );
   const mcpKeys = useMemo(() => mcpKeysNeeded(connected), [connected]);
   const mcpCount = all.filter(
     (p) => connected.has(p.id) && p.mcp_server,
   ).length;
   const oauthCount = all.filter(
-    (p) => connected.has(p.id) && p.mcp_server?.transport !== "stdio" && p.mcp_server?.oauth,
+    (p) =>
+      connected.has(p.id) &&
+      p.mcp_server?.transport !== "stdio" &&
+      p.mcp_server?.oauth,
   ).length;
 
   const submitCustom = () => {
@@ -504,7 +510,8 @@ export function Integrations({
           </h2>
           <p className="mb-3 text-sm text-neutral-500">
             Names only. Values live in your{" "}
-            <code className="font-mono">.env</code> and never leave your machine.
+            <code className="font-mono">.env</code> and never leave your
+            machine.
           </p>
           {missingKeys.length === 0 ? (
             <p className="text-sm text-emerald-400">

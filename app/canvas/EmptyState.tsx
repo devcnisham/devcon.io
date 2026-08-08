@@ -25,7 +25,8 @@ export function EmptyState({
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-neutral-400">
           It reads structure only — dependency names, directories, and the key
-          NAMES in <code className="font-mono text-amber-300/90">.env.example</code>.
+          NAMES in{" "}
+          <code className="font-mono text-amber-300/90">.env.example</code>.
           Never <code className="font-mono text-amber-300/90">.env</code>, never
           your source, never a key value.
         </p>

@@ -69,9 +69,10 @@ export function mergeEntries(entries: Feature[]): Feature[] {
     byId.set(entry.id, {
       ...winner,
       files: [...new Set([...winner.files, ...loser.files])],
-      evidence: [
-        ...new Set([...(winner.evidence ?? []), ...(loser.evidence ?? [])]),
-      ].slice(0, 8) || undefined,
+      evidence:
+        [
+          ...new Set([...(winner.evidence ?? []), ...(loser.evidence ?? [])]),
+        ].slice(0, 8) || undefined,
       tags: [...new Set([...winner.tags, ...loser.tags])],
     });
   }

@@ -1,6 +1,6 @@
 import type { FileSource } from "./source";
 import { isReadable } from "./source";
-import { type RepoDigest, parseGitRemote } from "./types";
+import { parseGitRemote, type RepoDigest } from "./types";
 
 const CONFIG_FILES = [
   "package.json",
@@ -88,7 +88,9 @@ async function detectMarkers(source: FileSource, paths: string[]) {
   const routes = paths.filter((p) => basename(p) === "route.ts");
   const webhookRoutes = [
     ...new Set(
-      routes.filter((p) => p.includes("webhook")).map((p) => basename(dirname(p))),
+      routes
+        .filter((p) => p.includes("webhook"))
+        .map((p) => basename(dirname(p))),
     ),
   ];
 
@@ -105,7 +107,10 @@ async function detectMarkers(source: FileSource, paths: string[]) {
   for (const s of schemaFiles) {
     const raw = await source.read(s);
     if (!raw) continue;
-    schemaModels = Math.max(schemaModels, (raw.match(/^model /gm) ?? []).length);
+    schemaModels = Math.max(
+      schemaModels,
+      (raw.match(/^model /gm) ?? []).length,
+    );
     if (/^model (Subscription|Plan|Entitlement|Billing)/im.test(raw)) {
       hasSubscriptionModel = true;
     }
@@ -234,7 +239,8 @@ export async function buildDigest(source: FileSource): Promise<RepoDigest> {
 
   // Reported, never read. The UI says so, which is the point.
   for (const p of paths) {
-    if (!isReadable(p)) skipped.push(`${p} (never read — may contain real secrets)`);
+    if (!isReadable(p))
+      skipped.push(`${p} (never read — may contain real secrets)`);
   }
 
   const migrations = paths

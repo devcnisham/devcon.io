@@ -56,7 +56,11 @@ export const IGNORE_DIRS = new Set([
  * each source, because a rule re-implemented four times is a rule that will be
  * got wrong in one of them.
  */
-export const NEVER_READ = [/(^|\/)\.env$/, /(^|\/)\.env\.local$/, /(^|\/)\.env\.production$/];
+export const NEVER_READ = [
+  /(^|\/)\.env$/,
+  /(^|\/)\.env\.local$/,
+  /(^|\/)\.env\.production$/,
+];
 
 export function isReadable(path: string): boolean {
   return !NEVER_READ.some((re) => re.test(path));

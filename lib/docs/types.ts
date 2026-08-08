@@ -175,6 +175,8 @@ export function removeNode(nodes: DocNode[], id: string): DocNode[] {
   return nodes
     .filter((node) => node.id !== id)
     .map((node) =>
-      node.children ? { ...node, children: removeNode(node.children, id) } : node,
+      node.children
+        ? { ...node, children: removeNode(node.children, id) }
+        : node,
     );
 }

@@ -130,7 +130,9 @@ export const COMMERCIAL_STEPS: Step[] = [
     why: "Everything downstream keys off who the user is. Getting this wrong later means rewriting every query that touches user data.",
     done_when: [
       { text: "Sign up, sign in and sign out all work" },
-      { text: "Protected routes reject signed-out users server-side, not just in the UI" },
+      {
+        text: "Protected routes reject signed-out users server-side, not just in the UI",
+      },
       { text: "Session expiry behaves sensibly rather than throwing" },
     ],
     serves: ["auth"],
@@ -148,7 +150,9 @@ export const COMMERCIAL_STEPS: Step[] = [
     why: "Your auth provider holds identity; your database holds everything else about that person. Without a sync you cannot join a user to their own data, and you're locked to that vendor forever.",
     done_when: [
       { text: "A new sign-up creates a matching row in your users table" },
-      { text: "The webhook is idempotent — replaying it doesn't duplicate rows" },
+      {
+        text: "The webhook is idempotent — replaying it doesn't duplicate rows",
+      },
       { text: "Deleting the account cleans up or anonymises their rows" },
     ],
     serves: ["auth", "database"],
@@ -166,7 +170,9 @@ export const COMMERCIAL_STEPS: Step[] = [
     why: "The thing from step one. One feature people actually use beats four they tolerate.",
     done_when: [
       { text: "The full path works for a brand-new account" },
-      { text: "Someone who didn't build it completes it without being told how" },
+      {
+        text: "Someone who didn't build it completes it without being told how",
+      },
     ],
     est_minutes: 480,
   },
@@ -200,7 +206,9 @@ export const COMMERCIAL_STEPS: Step[] = [
     why: "Entitlement must come from the webhook, never the redirect. A user who closes the tab after paying still paid; a user who forges the success URL did not.",
     done_when: [
       { text: "Webhook signature is verified — unsigned requests rejected" },
-      { text: "Handler is idempotent; the same event twice changes nothing twice" },
+      {
+        text: "Handler is idempotent; the same event twice changes nothing twice",
+      },
       { text: "Access is granted by the webhook, not the success redirect" },
       { text: "Tested with the provider's CLI replaying real events" },
     ],
@@ -246,8 +254,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       {
         key: "domain",
         label: "The sending domain, and who controls its DNS",
-        placeholder:
-          "mail.example.com — DNS is in Cloudflare, I have access",
+        placeholder: "mail.example.com — DNS is in Cloudflare, I have access",
       },
     ],
     est_minutes: 120,
@@ -310,8 +317,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       {
         key: "alerts",
         label: "Where alerts should land",
-        placeholder:
-          "#alerts in Slack, and email to me for anything paging",
+        placeholder: "#alerts in Slack, and email to me for anything paging",
       },
     ],
     est_minutes: 90,
@@ -336,8 +342,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       {
         key: "provider",
         label: "Which database provider, and what its backup plan gives you",
-        placeholder:
-          "Supabase Pro — daily backups, 7-day retention",
+        placeholder: "Supabase Pro — daily backups, 7-day retention",
       },
     ],
     est_minutes: 90,
@@ -349,7 +354,10 @@ export const COMMERCIAL_STEPS: Step[] = [
     phase: "harden",
     weight: 2,
     criticality: "must",
-    applies_when: all(commercial, any(needs("ai"), needs("email"), needs("auth"))),
+    applies_when: all(
+      commercial,
+      any(needs("ai"), needs("email"), needs("auth")),
+    ),
     requires: ["c-core-feature"],
     why: "Signup, password reset, and any AI endpoint are the three things that get hammered — by bots, not attackers, and long before you're famous.",
     done_when: [
@@ -390,7 +398,9 @@ export const COMMERCIAL_STEPS: Step[] = [
     done_when: [
       { text: "Built client bundle grepped for every secret key name" },
       { text: "Only intentionally public vars carry a public prefix" },
-      { text: "Database access from the browser goes through row-level security or an API, never a service key" },
+      {
+        text: "Database access from the browser goes through row-level security or an API, never a service key",
+      },
     ],
     est_minutes: 45,
   },
@@ -422,8 +432,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       {
         key: "refunds",
         label: "Your refund and cancellation policy",
-        placeholder:
-          "14-day refund, cancel any time, access until period end",
+        placeholder: "14-day refund, cancel any time, access until period end",
         multiline: true,
       },
     ],
@@ -443,7 +452,9 @@ export const COMMERCIAL_STEPS: Step[] = [
     why: "Signup, activation, and the core action. Tracking everything produces dashboards nobody reads; tracking those three tells you whether it works.",
     done_when: [
       { text: "Signup, activation and core action all fire" },
-      { text: "You can answer 'how many people got through the whole flow yesterday'" },
+      {
+        text: "You can answer 'how many people got through the whole flow yesterday'",
+      },
     ],
     est_minutes: 90,
   },
@@ -493,8 +504,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       {
         key: "route",
         label: "Where a support message should reach you",
-        placeholder:
-          "support@example.com, forwarded to my inbox",
+        placeholder: "support@example.com, forwarded to my inbox",
       },
     ],
     est_minutes: 30,
@@ -643,8 +653,7 @@ export const COMMERCIAL_STEPS: Step[] = [
       {
         key: "team",
         label: "Who is on the team and what each person needs access to",
-        placeholder:
-          "Two devs — both need staging; only I touch production",
+        placeholder: "Two devs — both need staging; only I touch production",
         multiline: true,
       },
     ],
@@ -667,7 +676,8 @@ export const COMMERCIAL_STEPS: Step[] = [
   },
   {
     id: "c-avoid-second-payment-provider",
-    title: "Don't add a second payment provider until the first one fully works",
+    title:
+      "Don't add a second payment provider until the first one fully works",
     kind: "avoid",
     phase: "core",
     weight: 91,

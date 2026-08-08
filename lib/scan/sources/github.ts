@@ -26,7 +26,8 @@ export function parseRepoInput(input: string): GitHubTarget | null {
   const s = input.trim().replace(/\.git$/, "");
   if (!s) return null;
 
-  const url = /^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/\s]+)\/([^/\s?#]+)/.exec(s);
+  const url =
+    /^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/\s]+)\/([^/\s?#]+)/.exec(s);
   if (url) return { owner: url[1], repo: url[2] };
 
   const slug = /^([\w.-]+)\/([\w.-]+)$/.exec(s);

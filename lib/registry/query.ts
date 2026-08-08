@@ -9,7 +9,12 @@ import type { RegistryEntry } from "./types";
  * second module gets it for free.
  */
 
-export type SortKey = "name" | "status" | "updatedAt" | "createdAt" | "priority";
+export type SortKey =
+  | "name"
+  | "status"
+  | "updatedAt"
+  | "createdAt"
+  | "priority";
 export type SortDirection = "asc" | "desc";
 
 export interface RegistryQuery {
@@ -62,7 +67,12 @@ function matchesText(entry: Queryable, needle: string): boolean {
 
 const PRIORITY_ORDER = ["low", "medium", "high", "critical"];
 
-function compare(a: Queryable, b: Queryable, key: SortKey, statuses: readonly string[]): number {
+function compare(
+  a: Queryable,
+  b: Queryable,
+  key: SortKey,
+  statuses: readonly string[],
+): number {
   switch (key) {
     case "name":
       return a.name.localeCompare(b.name);
@@ -70,7 +80,9 @@ function compare(a: Queryable, b: Queryable, key: SortKey, statuses: readonly st
       // By lifecycle position, not alphabetically — "building" before
       // "completed" is the useful order, and "b" before "c" is a coincidence
       // that stops being true the moment a status is renamed.
-      return statuses.indexOf(a.status ?? "") - statuses.indexOf(b.status ?? "");
+      return (
+        statuses.indexOf(a.status ?? "") - statuses.indexOf(b.status ?? "")
+      );
     case "priority":
       return (
         PRIORITY_ORDER.indexOf(a.priority ?? "") -
@@ -90,15 +102,21 @@ export function runQuery<T extends Queryable>(
 ): T[] {
   const filtered = entries.filter((e) => {
     if (!matchesText(e, query.text.trim())) return false;
-    if (query.statuses.length && !query.statuses.includes(e.status ?? "")) return false;
+    if (query.statuses.length && !query.statuses.includes(e.status ?? ""))
+      return false;
     if (query.origins.length && !query.origins.includes(e.origin)) return false;
-    if (query.categories.length && !query.categories.includes(e.category ?? "")) {
+    if (
+      query.categories.length &&
+      !query.categories.includes(e.category ?? "")
+    ) {
       return false;
     }
-    if (query.owners.length && !query.owners.includes(e.owner ?? "")) return false;
+    if (query.owners.length && !query.owners.includes(e.owner ?? ""))
+      return false;
     // Tags are OR within the filter: picking two tags widens the result, which
     // is what a person means by clicking a second one.
-    if (query.tags.length && !query.tags.some((t) => e.tags.includes(t))) return false;
+    if (query.tags.length && !query.tags.some((t) => e.tags.includes(t)))
+      return false;
     return true;
   });
 
@@ -115,7 +133,9 @@ export function runQuery<T extends Queryable>(
 /** Distinct values for the filter controls, in a stable order. */
 export function facets<T extends Queryable>(entries: T[]) {
   const collect = (pick: (e: T) => string | undefined) =>
-    [...new Set(entries.map(pick).filter((v): v is string => Boolean(v)))].sort();
+    [
+      ...new Set(entries.map(pick).filter((v): v is string => Boolean(v))),
+    ].sort();
 
   return {
     categories: collect((e) => e.category),

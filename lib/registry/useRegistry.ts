@@ -6,7 +6,7 @@ import type { RepoDigest } from "@/lib/scan/types";
 import { type Feature, featureModule } from "./modules/feature";
 import { detectorInputFrom, scanRegistry } from "./scan";
 import { LocalRegistryStore } from "./store";
-import { SyncEngine, localOnlyTransport } from "./sync";
+import { localOnlyTransport, SyncEngine } from "./sync";
 
 /**
  * The registry, wired to a project.

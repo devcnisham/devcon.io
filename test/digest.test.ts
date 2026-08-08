@@ -19,7 +19,8 @@ const REPO = {
     devDependencies: { vitest: "1" },
     scripts: { dev: "next dev", build: "next build" },
   }),
-  ".env.example": "# comment\nSTRIPE_SECRET_KEY=\nCLERK_SECRET_KEY=sk_test_leaked\n\nDATABASE_URL=",
+  ".env.example":
+    "# comment\nSTRIPE_SECRET_KEY=\nCLERK_SECRET_KEY=sk_test_leaked\n\nDATABASE_URL=",
   ".env": "STRIPE_SECRET_KEY=sk_live_realsecret",
   "README.md": "# acme",
   "src/middleware.ts": "export default clerkMiddleware();",
@@ -176,8 +177,8 @@ describe("a file drop is honest about what it can see", () => {
   });
 
   it("calls a directory drop full", () => {
-    expect(
-      droppedCoverage([file("package.json", "acme/package.json")]),
-    ).toBe("full");
+    expect(droppedCoverage([file("package.json", "acme/package.json")])).toBe(
+      "full",
+    );
   });
 });

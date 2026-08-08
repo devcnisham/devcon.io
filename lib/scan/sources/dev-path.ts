@@ -26,11 +26,15 @@ export function devPathSource(rootPath: string): FileSource {
         const res = await fetch(
           `/api/scan/files?path=${encodeURIComponent(rootPath)}`,
         );
-        if (!res.ok) return (cache = []);
+        if (!res.ok) {
+          cache = [];
+          return cache;
+        }
         cache = ((await res.json()) as { files?: string[] }).files ?? [];
         return cache;
       } catch {
-        return (cache = []);
+        cache = [];
+        return cache;
       }
     },
 

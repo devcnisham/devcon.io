@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import {
+  executionOf,
   type Plan,
   type ProjectProfile,
   type Step,
-  executionOf,
 } from "@/lib/catalog/types";
 import { copyText } from "@/lib/clipboard";
 import {
@@ -65,7 +65,8 @@ export function Prompts({
   const [showDone, setShowDone] = useState(false);
 
   const active = useMemo(
-    () => plan.steps.find((s) => !completed.has(s.id) && ready.has(s.id)) ?? null,
+    () =>
+      plan.steps.find((s) => !completed.has(s.id) && ready.has(s.id)) ?? null,
     [plan.steps, completed, ready],
   );
 
@@ -89,7 +90,10 @@ export function Prompts({
   const textFor = (step: Step): string => {
     if (executionOf(step) === "human") return buildChecklist(step, profile);
     const supplied = Object.fromEntries(
-      (step.inputs ?? []).map((i) => [i.key, answers[`${step.id}:${i.key}`] ?? ""]),
+      (step.inputs ?? []).map((i) => [
+        i.key,
+        answers[`${step.id}:${i.key}`] ?? "",
+      ]),
     );
     return buildPrompt(
       step,
@@ -125,7 +129,9 @@ export function Prompts({
   return (
     <div>
       <section className="mb-6">
-        <h2 className="mb-1 text-base font-semibold text-neutral-100">Prompts</h2>
+        <h2 className="mb-1 text-base font-semibold text-neutral-100">
+          Prompts
+        </h2>
         <p className="mb-4 text-sm text-neutral-500">
           One per step, carrying your stack, what&apos;s already built, and
           what&apos;s explicitly out of scope. Paste into whatever agent you use
@@ -159,9 +165,7 @@ export function Prompts({
           const isDone = completed.has(step.id);
           const blocked = !ready.has(step.id) && !isDone;
           const open = openId === step.id;
-          const text = open
-            ? textFor(step)
-            : "";
+          const text = open ? textFor(step) : "";
 
           return (
             <li
@@ -191,7 +195,9 @@ export function Prompts({
                     ) : null}
                     <span
                       className={`truncate text-sm ${
-                        isDone ? "text-neutral-600 line-through" : "text-neutral-100"
+                        isDone
+                          ? "text-neutral-600 line-through"
+                          : "text-neutral-100"
                       }`}
                     >
                       {step.title}
@@ -268,29 +274,37 @@ export function Prompts({
                             <span className="mb-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-neutral-500">
                               {input.label}
                               {value.trim() ? null : (
-                                <span className="text-amber-400/80">missing</span>
+                                <span className="text-amber-400/80">
+                                  missing
+                                </span>
                               )}
                             </span>
-                            {input.multiline ? (
-                              <textarea
-                                value={value}
-                                rows={3}
-                                placeholder={input.placeholder}
-                                onChange={(e) =>
-                                  setAnswers((a) => ({ ...a, [k]: e.target.value }))
-                                }
-                                className="w-full resize-y rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/30 focus:outline-none"
-                              />
+                            input.multiline ? (
+                            <textarea
+                              value={value}
+                              rows={3}
+                              placeholder={input.placeholder}
+                              onChange={(e) =>
+                                setAnswers((a) => ({
+                                  ...a,
+                                  [k]: e.target.value,
+                                }))
+                              }
+                              className="w-full resize-y rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/30 focus:outline-none"
+                            />
                             ) : (
-                              <input
-                                value={value}
-                                placeholder={input.placeholder}
-                                onChange={(e) =>
-                                  setAnswers((a) => ({ ...a, [k]: e.target.value }))
-                                }
-                                className="w-full rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/30 focus:outline-none"
-                              />
-                            )}
+                            <input
+                              value={value}
+                              placeholder={input.placeholder}
+                              onChange={(e) =>
+                                setAnswers((a) => ({
+                                  ...a,
+                                  [k]: e.target.value,
+                                }))
+                              }
+                              className="w-full rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/30 focus:outline-none"
+                            />
+                            )
                           </label>
                         );
                       })}
@@ -318,9 +332,7 @@ export function Prompts({
           onClick={() => setShowDone((v) => !v)}
           className="mt-3 text-xs text-neutral-500 hover:text-neutral-300"
         >
-          {showDone
-            ? "▴ hide completed"
-            : `▾ show ${doneCount} completed`}
+          {showDone ? "▴ hide completed" : `▾ show ${doneCount} completed`}
         </button>
       ) : null}
 

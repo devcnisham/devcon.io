@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ALL_STEPS } from "@/lib/catalog";
-import { type Step, executionOf } from "@/lib/catalog/types";
+import { executionOf, type Step } from "@/lib/catalog/types";
 import { buildPlan } from "@/lib/engine/plan";
 import { buildChecklist, buildPrompt } from "@/lib/engine/prompt";
 import { ALL_FIXTURES, COMMERCIAL_SAAS, HACKATHON_TEAM } from "./fixtures";
@@ -149,8 +149,8 @@ describe("prompt content", () => {
   });
 
   it("tells the agent what is out of scope", () => {
-    const step = plan.steps.find(
-      (s) => plan.antiSteps.some((a) => a.phase === s.phase),
+    const step = plan.steps.find((s) =>
+      plan.antiSteps.some((a) => a.phase === s.phase),
     );
     if (!step) return;
     expect(promptFor(step)).toMatch(/do NOT do these/i);
@@ -162,7 +162,9 @@ describe("prompt content", () => {
         envKeys: ["STRIPE_SECRET_KEY", "ANTHROPIC_API_KEY"],
       });
       // Anything that looks like an actual credential would be a hard failure.
-      expect(text, step.id).not.toMatch(/sk_live|sk_test|=\s*['"][A-Za-z0-9_-]{16,}/);
+      expect(text, step.id).not.toMatch(
+        /sk_live|sk_test|=\s*['"][A-Za-z0-9_-]{16,}/,
+      );
     }
   });
 
@@ -236,10 +238,14 @@ describe("steps an agent cannot do", () => {
   it("declares inputs for every needs-input step, and none for the others", () => {
     for (const step of ALL_STEPS) {
       if (executionOf(step) === "needs-input") {
-        expect(step.inputs?.length, `${step.id} needs input but declares none`)
-          .toBeGreaterThan(0);
+        expect(
+          step.inputs?.length,
+          `${step.id} needs input but declares none`,
+        ).toBeGreaterThan(0);
       } else {
-        expect(step.inputs ?? [], `${step.id} declares unused inputs`).toEqual([]);
+        expect(step.inputs ?? [], `${step.id} declares unused inputs`).toEqual(
+          [],
+        );
       }
     }
   });
@@ -256,7 +262,11 @@ describe("steps an agent cannot do", () => {
      * is typing.
      */
     const track = (id: string) =>
-      id.startsWith("comp-") ? "competition" : id.startsWith("c-") ? "commercial" : "academic";
+      id.startsWith("comp-")
+        ? "competition"
+        : id.startsWith("c-")
+          ? "commercial"
+          : "academic";
     const humansByTrack = new Map<string, number>();
     for (const s of ALL_STEPS.filter((s) => s.kind === "do")) {
       const t = track(s.id);
@@ -284,8 +294,20 @@ describe("agent preambles", () => {
   it("differs per agent while the body stays the same", () => {
     const plan = buildPlan(COMMERCIAL_SAAS);
     const target = plan.steps[0];
-    const claude = buildPrompt(target, COMMERCIAL_SAAS, plan, new Set(), "claude-code");
-    const cursor = buildPrompt(target, COMMERCIAL_SAAS, plan, new Set(), "cursor");
+    const claude = buildPrompt(
+      target,
+      COMMERCIAL_SAAS,
+      plan,
+      new Set(),
+      "claude-code",
+    );
+    const cursor = buildPrompt(
+      target,
+      COMMERCIAL_SAAS,
+      plan,
+      new Set(),
+      "cursor",
+    );
 
     expect(claude).not.toBe(cursor);
     // One prompt body, per-agent preamble — the plan's decision. The task
@@ -296,8 +318,20 @@ describe("agent preambles", () => {
 
   it("has a non-empty preamble for every agent", () => {
     const plan = buildPlan(COMMERCIAL_SAAS);
-    for (const agent of ["claude-code", "cursor", "lovable", "v0", "generic"] as const) {
-      const text = buildPrompt(plan.steps[0], COMMERCIAL_SAAS, plan, new Set(), agent);
+    for (const agent of [
+      "claude-code",
+      "cursor",
+      "lovable",
+      "v0",
+      "generic",
+    ] as const) {
+      const text = buildPrompt(
+        plan.steps[0],
+        COMMERCIAL_SAAS,
+        plan,
+        new Set(),
+        agent,
+      );
       expect(text.split("\n")[0].trim().length, agent).toBeGreaterThan(20);
     }
   });

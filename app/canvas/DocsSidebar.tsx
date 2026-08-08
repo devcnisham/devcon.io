@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { type DocNode, addChild, removeNode } from "@/lib/docs/types";
+import { addChild, type DocNode, removeNode } from "@/lib/docs/types";
 
 const WIDTH = 288;
 
@@ -13,7 +13,7 @@ function Chevron({ open }: { open: boolean }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      aria-hidden
+      aria-hidden="true"
     >
       <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -29,7 +29,7 @@ function DocIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
-      aria-hidden
+      aria-hidden="true"
     >
       <path
         d="M5 3h7l3 3v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"
@@ -48,7 +48,7 @@ function FileIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
-      aria-hidden
+      aria-hidden="true"
     >
       <path
         d="M5 3h7l3 3v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"
@@ -374,7 +374,7 @@ export function DocsSidebar({
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
-              aria-hidden
+              aria-hidden="true"
             >
               <circle cx="9" cy="9" r="5.5" />
               <path d="M13.5 13.5L17 17" strokeLinecap="round" />
@@ -448,61 +448,61 @@ export function DocsSidebar({
               </ul>
             )
           ) : (
-          <ul className="space-y-2">
-            {docs.map((node, i) => (
-              <DocCard
-                key={node.id}
-                node={node}
-                depth={0}
-                openIds={openIds}
-                onOpen={onOpenDoc}
-                onAdd={handleAdd}
-                onRemove={handleRemove}
-                // Import controls live inside the root card rather than in a
-                // page-level footer — they act on this tree, so they belong
-                // where the tree is.
-                actions={
-                  i === 0 ? (
-                    <div className="mt-1.5 space-y-1.5">
-                      <div className="flex gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => fileInput.current?.click()}
-                          disabled={importing}
-                          className="flex-1 rounded-md border border-white/12 bg-white/[0.06] px-2 py-1.5 text-xs text-neutral-200 transition-colors hover:bg-white/12 disabled:opacity-50"
-                        >
-                          {importing ? "Importing…" : "+ Import .md"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setFetchOpen((v) => !v)}
-                          className="flex-1 rounded-md border border-white/12 bg-white/[0.06] px-2 py-1.5 text-xs text-neutral-200 transition-colors hover:bg-white/12"
-                        >
-                          + Fetch
-                        </button>
-                      </div>
-
-                      {fetchOpen ? (
-                        <div className="rounded-md border border-white/10 bg-black/30 p-2">
-                          <input
-                            value={fetchUrl}
-                            onChange={(e) => setFetchUrl(e.target.value)}
-                            placeholder="https://github.com/owner/repo"
-                            className="w-full rounded border border-white/10 bg-neutral-900 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/25 focus:outline-none"
-                          />
-                          <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-amber-400/80">
-                            Needs a server route — the browser can&apos;t fetch a
-                            third-party repo directly (CORS). Wired when the
-                            backend lands.
-                          </p>
+            <ul className="space-y-2">
+              {docs.map((node, i) => (
+                <DocCard
+                  key={node.id}
+                  node={node}
+                  depth={0}
+                  openIds={openIds}
+                  onOpen={onOpenDoc}
+                  onAdd={handleAdd}
+                  onRemove={handleRemove}
+                  // Import controls live inside the root card rather than in a
+                  // page-level footer — they act on this tree, so they belong
+                  // where the tree is.
+                  actions={
+                    i === 0 ? (
+                      <div className="mt-1.5 space-y-1.5">
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => fileInput.current?.click()}
+                            disabled={importing}
+                            className="flex-1 rounded-md border border-white/12 bg-white/[0.06] px-2 py-1.5 text-xs text-neutral-200 transition-colors hover:bg-white/12 disabled:opacity-50"
+                          >
+                            {importing ? "Importing…" : "+ Import .md"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFetchOpen((v) => !v)}
+                            className="flex-1 rounded-md border border-white/12 bg-white/[0.06] px-2 py-1.5 text-xs text-neutral-200 transition-colors hover:bg-white/12"
+                          >
+                            + Fetch
+                          </button>
                         </div>
-                      ) : null}
-                    </div>
-                  ) : null
-                }
-              />
-            ))}
-          </ul>
+
+                        {fetchOpen ? (
+                          <div className="rounded-md border border-white/10 bg-black/30 p-2">
+                            <input
+                              value={fetchUrl}
+                              onChange={(e) => setFetchUrl(e.target.value)}
+                              placeholder="https://github.com/owner/repo"
+                              className="w-full rounded border border-white/10 bg-neutral-900 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-white/25 focus:outline-none"
+                            />
+                            <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-amber-400/80">
+                              Needs a server route — the browser can&apos;t
+                              fetch a third-party repo directly (CORS). Wired
+                              when the backend lands.
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null
+                  }
+                />
+              ))}
+            </ul>
           )}
         </nav>
 

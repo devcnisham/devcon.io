@@ -1,7 +1,7 @@
 import {
+  nowIso,
   type RegistryEntry,
   type RegistryModule,
-  nowIso,
   slugify,
 } from "../types";
 
@@ -26,7 +26,12 @@ export const FEATURE_STATUSES = [
 
 export type FeatureStatus = (typeof FEATURE_STATUSES)[number];
 
-export const FEATURE_PRIORITIES = ["low", "medium", "high", "critical"] as const;
+export const FEATURE_PRIORITIES = [
+  "low",
+  "medium",
+  "high",
+  "critical",
+] as const;
 export type FeaturePriority = (typeof FEATURE_PRIORITIES)[number];
 
 export interface Feature extends RegistryEntry {

@@ -13,7 +13,7 @@ function Icon({ path }: { path: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
-      aria-hidden
+      aria-hidden="true"
     >
       <path d={path} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -26,9 +26,11 @@ const ICONS = {
   board: "M3.5 4h4v12h-4z M8.5 4h4v8h-4z M13.5 4h3v10h-3z",
   prompts: "M11 2.5L4 11h4.5L9 17.5 16 9h-4.5L11 2.5z",
   funnel: "M3 4h14l-5 6v6l-4 2v-8L3 4z",
-  hidden: "M3 10s2.5-4.5 7-4.5S17 10 17 10s-2.5 4.5-7 4.5S3 10 3 10z M4 4l12 12",
+  hidden:
+    "M3 10s2.5-4.5 7-4.5S17 10 17 10s-2.5 4.5-7 4.5S3 10 3 10z M4 4l12 12",
   anti: "M10 3.5L17 16H3L10 3.5z M10 8v3.5 M10 13.5v.5",
-  deliver: "M5 3h7l3 3v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M7 10h6M7 13h4",
+  deliver:
+    "M5 3h7l3 3v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M7 10h6M7 13h4",
   registry: "M3 5h14v4H3z M3 11h14v4H3z M6 7h.01 M6 13h.01",
   integrations:
     "M10 7.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z M10 2.5v2 M10 15.5v2 M2.5 10h2 M15.5 10h2",

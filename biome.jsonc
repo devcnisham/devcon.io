@@ -1,0 +1,74 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.6/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": { "includes": ["**", "!.next", "!node_modules"] },
+  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2 },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": { "noUnusedVariables": "error" },
+      "style": { "useConst": "error" }
+    }
+  },
+  "javascript": { "formatter": { "quoteStyle": "double" } },
+
+  // Tailwind v4 puts `@theme`, `@utility` and friends in the stylesheet.
+  // Without this biome cannot parse globals.css at all, which is what produced
+  // the "Tailwind-specific syntax is disabled" errors that made `pnpm lint`
+  // look permanently broken.
+  "css": { "parser": { "tailwindDirectives": true } },
+
+  // `.jsonc`, not `.json`, purely so these reasons can live next to the rules
+  // they excuse. A disabled rule with no stated reason is indistinguishable
+  // from one somebody turned off to make the build go green.
+  //
+  // Every entry below is scoped to the files that actually need it. None of
+  // these rules is disabled repo-wide — each one still catches the bug it was
+  // written for everywhere else.
+  "overrides": [
+    {
+      // DevCon's whole secret model is emitting a LITERAL ${NAME} for the
+      // user's own MCP client to expand from their environment. Writing a real
+      // template literal here would inline the value, which is the one thing
+      // this product promises never to do.
+      "includes": [
+        "lib/catalog/providers/**",
+        "app/canvas/Integrations.tsx",
+        "app/docs/page.tsx",
+        "test/providers.test.ts"
+      ],
+      "linter": {
+        "rules": { "suspicious": { "noTemplateCurlyInString": "off" } }
+      }
+    },
+    {
+      // Both inputs appear only after a click the user just made — the
+      // local-path field on /start, the custom-integration form in
+      // Integrations. Focus follows their action rather than stealing it on
+      // page load, which is the case the rule exists to prevent.
+      "includes": ["app/start/page.tsx", "app/canvas/Integrations.tsx"],
+      "linter": { "rules": { "a11y": { "noAutofocus": "off" } } }
+    },
+    {
+      // The label does wrap its control. The input-vs-textarea choice is a
+      // ternary the rule cannot see through — checked by reading the markup.
+      "includes": ["app/canvas/Prompts.tsx"],
+      "linter": { "rules": { "a11y": { "noLabelWithoutControl": "off" } } }
+    },
+    {
+      // A generated thumbnail of identical placeholder blocks. Nothing has an
+      // id, and the grid never reorders, so the index is the identity.
+      "includes": ["app/WorkspaceThumb.tsx"],
+      "linter": { "rules": { "suspicious": { "noArrayIndexKey": "off" } } }
+    },
+    {
+      // `nonce` is the dependency on purpose: eventStore is not reactive, so
+      // bumping it is how a re-read gets requested.
+      "includes": ["app/canvas/Funnel.tsx"],
+      "linter": {
+        "rules": { "correctness": { "useExhaustiveDependencies": "off" } }
+      }
+    }
+  ]
+}
