@@ -1,0 +1,61 @@
+name: CI
+
+# The repo had no CI at all. Vercel builds on push, but it never runs the tests
+# — so until now the only thing enforcing `pnpm test` was somebody remembering.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A superseded push should not keep burning a runner.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: this job reads the code and reports a status. Nothing else.
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Build, test, docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Reads the `packageManager` field, so the pnpm version cannot drift from
+      # the one the lockfile was written with.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          # Matches the Vercel project's nodeVersion (24.x). Testing on a
+          # different major than the one that serves production is how a
+          # version-specific failure reaches users through a green pipeline.
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Ordered cheapest-first so the fastest signal fails first. docs:check
+      # takes about a second; the build takes the better part of a minute.
+      - name: Documented numbers match the code
+        run: pnpm docs:check
+
+      - name: Tests
+        run: pnpm test
+
+      # The real gate — `next build` runs TypeScript, and the typecheck happens
+      # AFTER "✓ Compiled successfully" prints. Reading only that line has
+      # already hidden 7 type errors in this repo once.
+      - name: Build
+        run: pnpm build
+
+      # NOT run here, deliberately: `pnpm lint`. Biome reports ~80 pre-existing
+      # errors, almost all a11y noise from scaffolded SVGs plus Tailwind v4
+      # at-rules it cannot parse. Wiring it in today would mean a permanently
+      # red pipeline, which teaches everyone to ignore the badge. Fix the noise
+      # first, then add the step.
