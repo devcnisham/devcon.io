@@ -50,8 +50,22 @@ Break these and things fail in non-obvious ways.
 
 ## Working agreement
 
-- `pnpm build` is the gate — it runs TypeScript. Lint has known a11y noise
-  from scaffolded SVGs. `pnpm test` runs 134 mutation-verified tests.
+- **Four gates, all of them green, all run by CI** on every push and PR
+  (`.github/workflows/ci.yml`): `pnpm docs:check`, `pnpm lint`, `pnpm test`
+  (<!--catalog:tests-->252<!--/catalog--> mutation-verified tests), `pnpm build`.
+  - `pnpm build` runs TypeScript, and the typecheck happens *after*
+    "✓ Compiled successfully" prints — reading only that line has already
+    hidden 7 type errors here once. Check the exit code.
+  - `pnpm lint` is clean. It used to report ~80 findings and this file blamed
+    "a11y noise from scaffolded SVGs"; the real cause was biome being unable to
+    parse `globals.css` without `css.parser.tailwindDirectives`. Rules still
+    disabled are scoped per file in `biome.jsonc`, each with its reason.
+  - `pnpm docs:check` fails when a documented number disagrees with the
+    catalog. Numbers in README, HANDOFF, features and this file sit inside HTML
+    comment markers and are written by `pnpm docs:sync` — see
+    `lib/docs/sync.ts` for the syntax. Do not write the marker form into a
+    synced file even as an example: the parser cannot tell your illustration
+    from a real marker, which is exactly how this line was first written.
 - **A green suite is not evidence a suite works.** Every assertion in
   `test/` was checked by breaking the implementation and confirming a test
   caught it. That found a test passing against a deleted invariant, and a
@@ -61,5 +75,8 @@ Break these and things fail in non-obvious ways.
   surfaces say so in the product; keep that.
 - The moat is the catalog and the measured loop, not the UI. Don't add
   surfaces to answer a defensibility worry.
-- Nothing is verified until it's been run. No prompt has been through an
-  agent yet — that's the next real task, not more features.
+- Nothing is verified until it's been run. <!--catalog:partial-->4<!--/catalog--> of <!--catalog:doSteps-->63<!--/catalog--> prompts have been
+  through an agent, and only one agent — the rubric's bar is two, so
+  `verificationState()` reports those as `partial` and the rest as
+  `unverified`. A second Claude Code run does not close it; that is the same
+  agent. This is still the next real task, not more features.
