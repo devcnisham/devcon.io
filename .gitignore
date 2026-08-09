@@ -1,0 +1,21 @@
+# Written fresh for v2, not inherited. Short on purpose — this build has no
+# framework yet, so anything listed here is something that actually exists on
+# disk right now.
+
+# Secrets. `.env.local` currently holds a Vercel OIDC token, so this line is
+# load-bearing from the first commit rather than something to add later.
+.env*
+!.env.example
+
+# Left over from v0.1 and deliberately not tracked here. The old tree lives on
+# the `archive/v0.1` branch and the `v0.1-archive` tag; these are just the
+# build outputs and personal notes that happen to still sit in this directory.
+node_modules/
+.next/
+.vercel/
+static_analysis_codeql_1/
+nisham/
+sumayya/
+
+.DS_Store
+*.tsbuildinfo
