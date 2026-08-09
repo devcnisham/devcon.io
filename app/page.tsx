@@ -1,12 +1,7 @@
 import { Empty, Shell } from "./shell";
 
 /**
- * Empty home.
- *
- * The spec reader and checker in `lib/ship/` are deliberately not rendered
- * here. They work — they caught a real overclaim on their first run — but a
- * half-built feature on the page argues for itself while the shape is still
- * being decided.
+ * Empty home. The only other destination is the work page.
  */
 export default function Home() {
   return (
