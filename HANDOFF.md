@@ -1,10 +1,13 @@
 # devcon v2 — handoff
 
-> Read this first, then `SHIP.md`. Written 2026-08-08 at the end of the session
-> that froze v0.1 and started v2 from an empty tree.
+> Read `CLAUDE.md` first, then this, then `v2/task.md`. Written 2026-08-08 at
+> the end of the session that froze v0.1 and started v2 from an empty tree.
 
-**Branch: `v2`** (orphan — no v0.1 history). Four commits. Everything pushed.
+**Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
+working tree clean, nothing local-only.
 **Gates all green: lint 0, tsc 0, build 0, and 0 client-side page chunks.**
+**Progress: 6 of 13 done-when conditions in `SHIP.md`** — the only progress
+number here that is produced by running commands rather than by self-report.
 
 ```bash
 pnpm install
@@ -49,13 +52,35 @@ views *inside* the work page rather than siblings of home. `/work` redirects to
 
 ### Waiting on you
 
-`v2/task.md`, `v2/product.md` and `v2/project.md` exist with only a heading
-each. You said you would specify what goes in them. Nothing was invented.
+`v2/product.md` and `v2/project.md` exist with only a heading each. You said you
+would specify what goes in them; nothing was invented. `v2/task.md` is written —
+27 tasks with real status.
 
 **Decide how these relate to `SHIP.md`**, which already holds what ships, what
 is cut, and the done-when conditions. Either it folds into `v2/` or it stays as
 the machine-checkable one — but two files claiming to be the source of truth is
-how the last version started rotting.
+how the last version started rotting: v0.1's README claimed 209 tests while the
+code said 252, and nothing noticed for weeks.
+
+### Four decisions blocked on you, not on work
+
+Listed in full in `v2/task.md`; repeated here because they gate everything else.
+
+1. **The work page has no way back to home.** Browser-back is the only exit.
+2. **The 14rem workspace rail** is a permanent commitment with nothing in it.
+3. **The checker executes arbitrary shell out of a markdown file.** Opening a
+   cloned repo's `SHIP.md` would run whatever it says. Unsolved.
+4. **`SHIP.md` vs the `v2/` docs** — see above.
+
+### The ordering most likely to be got wrong
+
+Hand-write `SHIP.md` for two real projects **before** building an MCP server to
+manage them (`v2/task.md` 15–16 before 23–25). If a hand-written spec changes
+no real decision on a real project, tooling will not rescue it — and that is an
+afternoon to find out now rather than months later.
+
+Tests and CI should land before the next feature. v0.1 proved both that the
+discipline works and that adding it late is how it gets skipped.
 
 ---
 
