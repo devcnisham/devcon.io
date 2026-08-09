@@ -46,7 +46,7 @@ decision) · **later**
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 17 | Checker executes arbitrary shell from markdown | **blocked** | Opening a cloned repo's `SHIP.md` would run whatever it says. Unsolved. |
+| 17 | Checker executes arbitrary shell from markdown | **done, macOS only** | Confined by seatbelt (`lib/ship/sandbox.ts`): no network, no filesystem outside the repo and toolchain, no `.git`/`.env*`/`.vercel`, empty environment. 14 attacks verified blocked by running them. Residual: a check can still destroy the repo's uncommitted working tree — writes cannot be denied, `tsc` is `incremental`. Non-macOS refuses to run rather than running unconfined. |
 | 18 | A check can sabotage the process running it | **done** | `pnpm build` fought the dev server over `.next`. Now `tsc --noEmit`. |
 | 19 | A check can expire | **done** | Commit-count check went stale in four commits. Now asserts a permanent property of history. |
 | 20 | `SHIP.md` vs `v2/` docs overlap | **blocked** | Two sources of truth is how v0.1 started rotting. **Needs your call.** |
@@ -55,7 +55,7 @@ decision) · **later**
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 21 | Tests — any at all | **next** | The one unticked mechanical condition. v0.1's mutation-verified discipline is worth rebuilding early, not bolting on. |
+| 21 | Tests — any at all | **started** | `test/sandbox.test.ts` — 19 assertions, all attacks against the real sandbox. `pnpm test` (node's runner, no dependency added). Mutation-verified: reverting the profile's carve-out to the wildcard form turns 5 of them red, so they are load-bearing. Nothing else in `lib/ship/` is covered — `parse.ts` has none. |
 | 22 | CI gates | **next** | v0.1 ended with four gates. v2 has none. |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |

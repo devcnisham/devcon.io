@@ -12,11 +12,12 @@ deliberate.
 
 ## Gates
 
-Four commands. All four pass right now; keep them passing.
+Five commands. All five pass right now; keep them passing.
 
 ```bash
 pnpm lint              # biome
 pnpm exec tsc --noEmit # types
+pnpm test              # node --test — attacks the sandbox for real
 pnpm build             # next build — ALSO typechecks
 pnpm dev               # localhost:3000
 ```
@@ -25,8 +26,12 @@ pnpm dev               # localhost:3000
 line is the bundler, not the gate. Read the exit code — in v0.1 that mistake
 hid 7 type errors.
 
-There are no tests and no CI yet. Both are open tasks and should land before
-the next feature, not after.
+Tests cover `lib/ship/sandbox.ts` and nothing else — `parse.ts` has none. There
+is still no CI. Both are open tasks and should land before the next feature.
+
+Every assertion in `test/sandbox.test.ts` runs a real command through the real
+sandbox. **Do not add one that inspects the profile's text** — the profile that
+leaked this repo's OIDC token read as correct.
 
 ## Rules
 
@@ -50,6 +55,13 @@ the next feature, not after.
 
 ## Gotchas that already cost time
 
+- **A wildcard deny does not override a specific allow in seatbelt.** In
+  `lib/ship/sandbox.ts`, `(deny file-read* …)` after
+  `(allow file-read-data (subpath …))` is a no-op in either order — the more
+  specific operation wins. The carve-outs must name the same operation as the
+  allow they have to beat. Written the obvious way, the profile leaked this
+  repo's live OIDC token. **Verify that file by running attacks, never by
+  reading it.**
 - **`\Z` is not a JavaScript regex token.** It matches the literal letter `z`.
   In `lib/ship/parse.ts` it truncated every section at its first `z` — "frozen"
   became "fro" and 13 of 14 conditions vanished. It read as bad markdown.

@@ -9,6 +9,10 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    // `lib/ship/` is run three ways: by the bundler, by `node --test`, and one
+    // day by an MCP server. Explicit `.ts` specifiers are the only form all
+    // three resolve, and node's type-stripping requires them.
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",

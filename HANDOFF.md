@@ -62,15 +62,15 @@ the machine-checkable one — but two files claiming to be the source of truth i
 how the last version started rotting: v0.1's README claimed 209 tests while the
 code said 252, and nothing noticed for weeks.
 
-### Four decisions blocked on you, not on work
+### Three decisions blocked on you, not on work
 
 Listed in full in `v2/task.md`; repeated here because they gate everything else.
 
 1. **The work page has no way back to home.** Browser-back is the only exit.
 2. **The 14rem workspace rail** is a permanent commitment with nothing in it.
-3. **The checker executes arbitrary shell out of a markdown file.** Opening a
-   cloned repo's `SHIP.md` would run whatever it says. Unsolved.
-4. **`SHIP.md` vs the `v2/` docs** — see above.
+3. **`SHIP.md` vs the `v2/` docs** — see above.
+
+The fourth — the checker running arbitrary shell — is closed. See below.
 
 ### The ordering most likely to be got wrong
 
@@ -90,21 +90,60 @@ discipline works and that adding it late is how it gets skipped.
    back to home except browser-back. The reference showed no such control, so
    this follows it rather than inventing one — but it needs an answer before
    anything real lives there.
-2. **The checker is unsolved, not finished.** Running shell out of a markdown
-   file means opening a cloned repo's `SHIP.md` executes whatever it says. And
-   a check can sabotage the process running it — `pnpm build` from inside the
-   dev server fought over `.next` and failed a build that was fine.
+2. **The checker is sandboxed, with two things left open.** Checks now run under
+   seatbelt (`lib/ship/sandbox.ts`): network denied, filesystem confined to the
+   repo and toolchain, `.git`/`.env*`/`.vercel` denied, environment replaced
+   rather than inherited. Fourteen attacks were run against it and all fourteen
+   were blocked — including reading this repo's live OIDC token, which the first
+   version of the profile handed straight back.
+   - **A check can still destroy the repo's uncommitted working tree.** Writes
+     have to be allowed: `tsc` is `incremental`, so even `--noEmit` writes
+     `tsconfig.tsbuildinfo`. History is protected; unstaged work is not. A
+     consent gate — show the commands, approve once per repo — is the next layer
+     and is not built.
+   - **macOS only.** Seatbelt does not exist on Linux or Windows, so every check
+     there returns `error` with the reason. That is deliberate: a sandbox that
+     silently degrades reports the same green as a real run.
+   - **`SHIP.md`'s own check #2 can no longer pass.** `git ls-remote … origin`
+     needs the network, and the network is denied unconditionally. Your call,
+     made knowingly. The box stays ticked because the fact is true; the check
+     now errors. Rewriting it as a local assertion is the same move that fixed
+     the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **No tests exist.** The one unticked mechanical box in `SHIP.md`. v0.1's
-   discipline — every assertion mutation-verified — is worth rebuilding early
-   rather than bolting on.
-5. **No CI.** v0.1 ended with a four-gate workflow; v2 has none yet.
+4. **Tests exist for the sandbox and nothing else.** `test/sandbox.test.ts`, 19
+   assertions, run with `pnpm test` — node's own runner, no dependency added.
+   Each one attacks the real sandbox rather than reading the profile, and they
+   are mutation-verified: reverting the profile's carve-out to the wildcard form
+   turns five of them red. `parse.ts` and the rest of `check.ts` have none.
+   - **`SHIP.md`'s check #7 — `test -d test && pnpm test` — now fails, and the
+     reason is worth knowing.** The checker runs it *inside* the sandbox, so the
+     suite is nested one level deeper and cannot create the bait file it attacks
+     with; all 19 error before asserting anything. `pnpm test` run directly is
+     green. Either narrow the check to `test -d test`, or give the suite a
+     `pnpm test:sandbox` of its own and point the check at the rest. **Do not
+     make the suite skip when it detects confinement** — that turns check #7
+     green while testing nothing, which is the exact failure the suite exists to
+     prevent.
+5. **No CI.** v0.1 ended with a four-gate workflow; v2 has none yet — and there
+   are now five gates, `pnpm test` among them.
 
 ---
 
 ## Things that cost time, so they do not cost it twice
 
+- **A wildcard deny does not override a specific allow in seatbelt.**
+  `(deny file-read* …)` placed after `(allow file-read-data (subpath …))` does
+  nothing at all — in either order. The more specific operation wins, and the
+  profile reads as airtight while leaking the whole repo. The carve-outs must
+  name `file-read-data` exactly, matching the allow. Cost: the first profile
+  returned this repo's live `VERCEL_OIDC_TOKEN` on the first attack run.
+- **A blocked-attack test can pass for the wrong reason, twice over.** "Cannot
+  read `~/.ssh/id_rsa`" passed because `~/.ssh` does not exist on this machine —
+  it proved nothing. And the `~/.npmrc` attack reported a *leak* because its
+  pattern was `/./`, which matched the string "Operation not permitted". An
+  attack test must assert on the file's contents and must run against bait that
+  actually exists.
 - **`\Z` is not a JavaScript regex token.** It matched the literal letter `z`,
   so `parse.ts` truncated every section at its first `z` — "frozen" became
   "fro" and thirteen of fourteen conditions vanished. It read as bad markdown,

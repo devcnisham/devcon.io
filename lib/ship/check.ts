@@ -1,8 +1,11 @@
-import { exec } from "node:child_process";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { Condition } from "./parse";
+import type { Condition } from "./parse.ts";
+import { sandboxArgv, sandboxEnv, sandboxUnavailable } from "./sandbox.ts";
 
-const run = promisify(exec);
+// execFile, not exec: the command reaches `/bin/sh` as one argv element inside
+// the sandbox rather than being pasted into a shell string out here.
+const run = promisify(execFile);
 
 /**
  * Runs the done-when checks.
@@ -35,13 +38,21 @@ async function one(c: Condition, cwd: string): Promise<Checked> {
     };
   }
 
+  const blocked = sandboxUnavailable();
+  if (blocked) {
+    return { ...c, verdict: "error", evidence: blocked, ms: 0 };
+  }
+
   const started = Date.now();
+  const { file, args } = sandboxArgv(c.check, cwd);
   try {
-    const { stdout, stderr } = await run(c.check, {
+    const { stdout, stderr } = await run(file, args, {
       cwd,
       timeout: TIMEOUT_MS,
       // A check that floods the page is a check nobody reads.
       maxBuffer: 1024 * 256,
+      // Never the parent's — see sandboxEnv.
+      env: sandboxEnv(),
     });
     const out = (stdout || stderr).trim();
     return {
@@ -53,25 +64,46 @@ async function one(c: Condition, cwd: string): Promise<Checked> {
   } catch (e) {
     const err = e as {
       code?: number;
+      signal?: string;
       killed?: boolean;
       stderr?: string;
       stdout?: string;
       message?: string;
     };
     const out = (err.stderr || err.stdout || err.message || "").trim();
+
+    // The sandbox refusing to start, or killing the shell outright, is not the
+    // check answering no. Reporting it as "fail" would blame the spec for a
+    // hole in the profile.
+    const sandboxDied =
+      err.signal === "SIGABRT" || err.code === 65 || err.code === 71;
+
+    const ms = Date.now() - started;
+    if (err.killed) {
+      return {
+        ...c,
+        verdict: "error",
+        evidence: `Timed out after ${TIMEOUT_MS / 1000}s`,
+        ms,
+      };
+    }
+    if (sandboxDied) {
+      const why =
+        "Sandbox stopped this before it could answer — the check needs something the profile denies, or the profile is wrong.";
+      return {
+        ...c,
+        verdict: "error",
+        evidence: `${why} ${out}`.slice(0, 400),
+        ms,
+      };
+    }
     return {
       ...c,
       // A command that could not run at all is not the same as one that ran and
       // said no. Collapsing them is how a broken check reads as a real failure.
-      verdict: err.killed
-        ? "error"
-        : typeof err.code === "number"
-          ? "fail"
-          : "error",
-      evidence: err.killed
-        ? `Timed out after ${TIMEOUT_MS / 1000}s`
-        : out.slice(0, 400) || `exit ${err.code}`,
-      ms: Date.now() - started,
+      verdict: typeof err.code === "number" ? "fail" : "error",
+      evidence: out.slice(0, 400) || `exit ${err.code}`,
+      ms,
     };
   }
 }
