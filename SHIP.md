@@ -28,6 +28,20 @@ of them moved the only number that counted.
 
 ## Done when
 
+- [x] v0.1 is frozen and reachable, not deleted
+      `check: git rev-parse --verify --quiet v0.1-archive`
+- [x] The freeze exists on the remote, not just this laptop
+      `check: git ls-remote --exit-code --tags origin v0.1-archive`
+- [x] v2 started from an empty tree with no inherited history
+      `check: test "$(git rev-list --count HEAD)" -le 3`
+- [x] The surface builds
+      `check: pnpm build`
+- [ ] The surface ships no client JavaScript of its own
+      `check: test -z "$(find .next/static/chunks/app -name 'page-*.js' 2>/dev/null)"`
+- [ ] Lint is clean and stays a gate
+      `check: pnpm lint`
+- [ ] Tests exist at all
+      `check: test -d test && pnpm test`
 - [ ] At least two more `SHIP.md` files exist, hand-written, for real projects
       that are not this one
 - [ ] Nisham can name one decision each of them changed
@@ -37,7 +51,6 @@ of them moved the only number that counted.
 - [ ] `check my ship plan` names drift in a deliberately-drifted spec
 - [ ] …and stays quiet against a clean one. A critic that always finds
       something is noise
-- [ ] Lint, tests and build wired before the second feature
 
 ## Assumptions
 

@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0b0c0e;
+  --color-raised: #131417;
+  --color-line: #23252a;
+  --color-text: #e7e8ea;
+  --color-muted: #9ca0a8;
+  --color-cut: #f0a03c;
+  --color-pass: #4ec98a;
+  --color-fail: #f2606a;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* One global floor rather than per-component courtesy — v0.1 shipped for
+   weeks with no reduced-motion handling anywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}

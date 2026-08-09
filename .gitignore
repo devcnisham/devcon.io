@@ -19,3 +19,8 @@ sumayya/
 
 .DS_Store
 *.tsbuildinfo
+
+# Machine-local agent settings, and Next's generated types. Neither is a
+# decision this project made.
+.claude/
+next-env.d.ts
