@@ -1,14 +1,10 @@
-import { Shell } from "../shell";
-
 /**
- * The work page.
+ * The work page owns the whole viewport.
  *
- * Workspace and canvas are two views of this one page, not two destinations,
- * so neither appears in the top nav. They are real routes rather than a
- * client-side toggle: a view you are looking at should be a URL you can send
- * someone, and it keeps the page server-rendered.
- *
- * The tab bar itself lives in each view, not here — see `views.tsx`.
+ * No app header here on purpose — the only chrome is the floating view switch,
+ * which each view renders itself (see `views.tsx`). Everything else is ground:
+ * a layered gradient and a dot grid, so the surface reads as a place to put
+ * things rather than as a page.
  */
 export default function WorkLayout({
   children,
@@ -16,8 +12,35 @@ export default function WorkLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Shell here="/work" bleed>
+    <div
+      className="relative flex h-dvh flex-col overflow-hidden"
+      style={{
+        /**
+         * Three washes over a lifted navy, not a flat near-black.
+         *
+         * The first pass used the same hues at roughly half these opacities
+         * over #0a0e14 and rendered as plain black — on a dark surface a wash
+         * has to be far stronger than it looks in the value to survive.
+         */
+        background: `
+          radial-gradient(1000px 700px at 14% 0%, rgba(46,104,168,0.55), transparent 64%),
+          radial-gradient(820px 560px at 92% -4%, rgba(116,88,182,0.42), transparent 60%),
+          radial-gradient(1200px 780px at 40% 106%, rgba(28,140,150,0.45), transparent 62%),
+          #0b1119
+        `,
+      }}
+    >
+      {/* Ground. Sits above the gradient and below everything else. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(255,255,255,0.13) 1px, transparent 1px)",
+          backgroundSize: "22px 22px",
+        }}
+      />
       {children}
-    </Shell>
+    </div>
   );
 }
