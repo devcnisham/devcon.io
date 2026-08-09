@@ -41,10 +41,12 @@ Four things decided in this session, all of them the user's calls:
 |---|---|
 | `app/page.tsx` | Empty home |
 | `app/work/` | The work page — full-bleed surface, floating switch |
-| `app/work/workspace/`, `app/work/canvas/` | Two empty views inside it |
+| `app/work/workspace/` | This repo's `SHIP.md`, parsed and checked live |
+| `app/work/canvas/` | Still empty |
 | `app/work/views.tsx` | The floating segmented switch |
 | `lib/ship/parse.ts` | Reads `SHIP.md` — works |
-| `lib/ship/check.ts` | Runs the done-when checks — works, **wired to nothing** |
+| `lib/ship/check.ts` | Runs the done-when checks — works, wired to the workspace |
+| `lib/ship/sandbox.ts` | Confines them. macOS only, by design |
 
 Page flow, from the sketch: `/` → `/work`, with workspace and canvas as two
 views *inside* the work page rather than siblings of home. `/work` redirects to

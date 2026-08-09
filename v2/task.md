@@ -37,8 +37,8 @@ decision) · **later**
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 12 | `SHIP.md` format — ships / not shipping / done-when | **done** | 8 cuts and 13 conditions recorded. |
-| 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Hidden — wired to nothing. |
-| 14 | Done-when checker (`lib/ship/check.ts`) | **done** | Works. Hidden. Caught its author overclaiming on first run. |
+| 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Rendered by `/work/workspace`. Still no tests. |
+| 14 | Done-when checker (`lib/ship/check.ts`) | **done** | Works, sandboxed, and now visible at `/work/workspace` — every verdict there comes from running its command on request. Caught its author overclaiming on the first run, and again on the first render. |
 | 15 | Hand-write specs for 2+ other real projects | **next** | The cheapest test of whether the bet holds. No code needed. |
 | 16 | Name one decision each of them changed | **next** | If none, the format is not useful and tooling will not save it. |
 
