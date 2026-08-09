@@ -1,1 +1,82 @@
 # Task
+
+Every task for v2 and where it stands. Updated 2026-08-08.
+
+**Progress: 6 of 13 done-when conditions in `SHIP.md` are met.** That is the
+only progress number that means anything here — it is checked by running
+commands, not by ticking boxes. Everything below is the work behind it.
+
+Status keys: **done** · **doing** · **next** · **blocked** (waiting on a
+decision) · **later**
+
+---
+
+## Foundation
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 1 | Freeze v0.1 — tag, branch, `ARCHIVE.md` | **done** | `v0.1-archive` at `f038349`, 123 files, on the remote. Still deployed. |
+| 2 | Start `v2` from an empty tree | **done** | Orphan branch, root commit touched exactly 2 files. |
+| 3 | `.gitignore` before anything can be staged | **done** | `.env.local` here holds a live Vercel OIDC token. Verified 0 secrets in any commit on any branch. |
+| 4 | Scaffold — Next 16, Tailwind v4, biome | **done** | Chosen fresh, not inherited. Nothing copied from v0.1. |
+
+## Surfaces
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 5 | Empty home page | **done** | `app/page.tsx` |
+| 6 | Work page, full-bleed | **done** | Three washes over lifted navy + dot grid. Matches the reference. |
+| 7 | Workspace + canvas as views inside work | **done** | `/work` → `/work/workspace`. Real routes, not a client toggle. |
+| 8 | Floating segmented switch | **done** | Lives in each view — a layout cannot see which child renders without a client hook. |
+| 9 | Zero client JS on every route | **done** | 0 page chunks. The concrete answer to v0.1's 173KB. |
+| 10 | A way back from the work page | **blocked** | No header means browser-back is the only exit. The reference showed no control, so none was invented. **Needs your call.** |
+| 11 | Decide the 14rem workspace rail | **blocked** | A permanent commitment with nothing in it. Cheap now, expensive later. |
+
+## The spec format
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 12 | `SHIP.md` format — ships / not shipping / done-when | **done** | 8 cuts and 13 conditions recorded. |
+| 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Hidden — wired to nothing. |
+| 14 | Done-when checker (`lib/ship/check.ts`) | **done** | Works. Hidden. Caught its author overclaiming on first run. |
+| 15 | Hand-write specs for 2+ other real projects | **next** | The cheapest test of whether the bet holds. No code needed. |
+| 16 | Name one decision each of them changed | **next** | If none, the format is not useful and tooling will not save it. |
+
+## Known problems
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 17 | Checker executes arbitrary shell from markdown | **blocked** | Opening a cloned repo's `SHIP.md` would run whatever it says. Unsolved. |
+| 18 | A check can sabotage the process running it | **done** | `pnpm build` fought the dev server over `.next`. Now `tsc --noEmit`. |
+| 19 | A check can expire | **done** | Commit-count check went stale in four commits. Now asserts a permanent property of history. |
+| 20 | `SHIP.md` vs `v2/` docs overlap | **blocked** | Two sources of truth is how v0.1 started rotting. **Needs your call.** |
+
+## Not started
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 21 | Tests — any at all | **next** | The one unticked mechanical condition. v0.1's mutation-verified discipline is worth rebuilding early, not bolting on. |
+| 22 | CI gates | **next** | v0.1 ended with four gates. v2 has none. |
+| 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
+| 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |
+| 25 | Cut rules | **later** | Written fresh, not ported from v0.1's 21 anti-steps. |
+| 26 | `v2/product.md`, `v2/project.md` | **blocked** | Awaiting your content. |
+| 27 | Deploy v2 | **later** | `main` still serves v0.1. Do not replace what is live until v2 is better. |
+
+---
+
+## The order that matters
+
+15 and 16 come before 23, 24 and 25. Hand-write the specs before building
+anything to manage them — if a hand-written `SHIP.md` does not change a real
+decision on a real project, the tooling will not rescue it, and finding that
+out costs an afternoon now versus months later.
+
+21 and 22 should land before the next feature, not after. v0.1 proved the
+discipline works and that adding it late is how it gets skipped.
+
+## The gap none of this closes
+
+Nobody has finished a project because of devcon — v0.1 or v2. There is still no
+number for *"of N who started, M shipped."* Every task above is an assertion
+that it will help, and none of them is evidence.
