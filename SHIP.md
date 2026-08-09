@@ -33,12 +33,12 @@ of them moved the only number that counted.
 - [x] The freeze exists on the remote, not just this laptop
       `check: git ls-remote --exit-code --tags origin v0.1-archive`
 - [x] v2 started from an empty tree with no inherited history
-      `check: test "$(git rev-list --count HEAD)" -le 3`
-- [x] The surface builds
-      `check: pnpm build`
-- [ ] The surface ships no client JavaScript of its own
+      `check: test "$(git show --name-only --format= $(git rev-list --max-parents=0 HEAD) | grep -c .)" -eq 2`
+- [x] The surface typechecks
+      `check: pnpm exec tsc --noEmit`
+- [x] The surface ships no client JavaScript of its own
       `check: test -z "$(find .next/static/chunks/app -name 'page-*.js' 2>/dev/null)"`
-- [ ] Lint is clean and stays a gate
+- [x] Lint is clean and stays a gate
       `check: pnpm lint`
 - [ ] Tests exist at all
       `check: test -d test && pnpm test`
@@ -56,8 +56,29 @@ of them moved the only number that counted.
 
 If one of these is wrong, the spec is wrong — not the build.
 
-- A spec is more useful than a plan. Untested. This is the whole bet, and the
-  three hand-written files below are the cheapest way to find out.
+- A spec is more useful than a plan. Untested. This is the whole bet, and
+  hand-writing a few of these on real projects is the cheapest way to find out.
 - Reading repo structure is enough to critique usefully, without reading source.
 - Living inside the agent beats a separate surface. v0.1's surface was never
-  the thing people bounced off, so this is inference, not evidence.
+  the thing people bounced off, so this is inference, not evidence. **A web app
+  is now being built anyway** — that reverses the "not shipping" entry above,
+  deliberately and on request, and the entry is kept rather than deleted so the
+  reversal is visible.
+
+## What this file has already taught
+
+Two things, both from running the checker against it rather than reasoning
+about it:
+
+- **A ticked box is a claim, not evidence.** "The surface builds" was ticked
+  without being run. The build was fine; the *check* failed, because it ran
+  `pnpm build` from inside the dev server and the two fought over `.next`. The
+  check is now `tsc --noEmit`, which touches nothing. **A check that can
+  sabotage the process running it is not a check** — and running shell out of a
+  markdown file means opening a cloned repo's `SHIP.md` executes whatever it
+  says. Unsolved.
+- **A check can expire.** "v2 started from an empty tree" was
+  `git rev-list --count HEAD -le 3` — true when written, false four commits
+  later, though the fact it described never changed. It now asserts the root
+  commit touched exactly two files, which is a permanent property of history
+  rather than a temporary one.
