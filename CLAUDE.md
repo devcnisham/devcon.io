@@ -10,6 +10,58 @@ your repo, reads what you actually built, and tells you what to cut.
 Branch `v2` is an **orphan** — it shares no history with v0.1. That is
 deliberate.
 
+## How a feature gets built
+
+The owner's workflow. Follow it in order for every feature.
+
+```
+idea → research → requirements → ui wireframe → ui design → database design
+→ api design → frontend development → backend development → integration
+→ testing → bug fixes → refactoring → code review → git commit
+→ push to github → CI pipeline → deploy to staging → QA testing
+→ deploy to production → monitor logs → collect feedback → improve
+```
+
+**Say which steps you skipped and why. Never run a step in name only.** A step
+reported as done that produced nothing is the same defect this whole tool
+exists to catch — a ticked box with no exit code behind it.
+
+As of 2026-08-09, eleven of those twenty-three steps have nothing to run
+against, and pretending otherwise would be theatre:
+
+| Step | State |
+|---|---|
+| database design | No database. v2 reads one local markdown file. |
+| api design | No API. Every route is a server component. |
+| CI pipeline | Does not exist — `v2/task.md` 22. |
+| deploy to staging | No staging environment. |
+| QA testing | No environment to test in beyond localhost. |
+| deploy to production | **`v2` is not deployed.** `main` still serves v0.1. |
+| monitor logs | Nothing deployed, so no logs. |
+| collect feedback | **No users.** Nobody has used devcon. |
+
+The last one is the project's central gap, not a missing tool. Building CI or
+staging does not close it.
+
+Steps that are real today and must actually happen: research, requirements,
+ui design, frontend development, integration, **testing**, bug fixes,
+refactoring, code review, git commit, push.
+
+### Hierarchy
+
+| Area | Covers |
+|---|---|
+| **Product** | product management · project management · design · architecture |
+| **Engineering** | development · database · integrations · testing · debugging · code quality · security · performance |
+| **Operations** | git · devops · deployment · monitoring · analytics · backup · automation |
+| **Main** | documentation · marketing · customer support · billing · release management · legal · maintenance |
+
+### Project stages
+
+planning · architecture · design · development · testing · security ·
+optimization · documentation · deployment · monitoring · maintenance ·
+iteration
+
 ## Gates
 
 Five commands. All five pass right now; keep them passing.
