@@ -8,13 +8,12 @@
 working tree clean, nothing local-only.
 **Gates all green: lint 0, tsc 0, test 0, build 0, and 0 client page chunks.**
 
-**Progress: 4 or 5 of 13 done-when conditions, depending on machine load** —
-and that instability is itself the finding. Measured twice within minutes:
-5 passing from the browser, 4 from the CLI. The difference was entirely
-`pnpm exec tsc --noEmit` crossing the checker's fixed 20s timeout on a loaded
-machine — it takes ~12s here at a load average of 32. **A timeout is not an
-exit code.** See open question 6; do not treat this number as settled until
-that is fixed.
+**Progress: 5 of 13 done-when conditions in `SHIP.md`** — the only progress
+number here produced by running commands rather than by self-report.
+
+It read 4 or 5 depending on machine load earlier the same day, which was a
+defect in the checker rather than in the repo. Fixed: see open question 6.
+Three consecutive runs now agree at the load that used to break it.
 
 ```bash
 pnpm install
@@ -152,16 +151,29 @@ discipline works and that adding it late is how it gets skipped.
      prevent.
 5. **No CI.** v0.1 ended with a four-gate workflow; v2 has none yet — and there
    are now five gates, `pnpm test` among them.
-6. **A verdict changes with machine load, and that undermines the whole
-   premise.** `check.ts` uses a fixed 20s timeout. `pnpm exec tsc --noEmit`
-   takes ~12s on this machine at load average 32, and has measured over 20s —
-   at which point a passing check reports `error`. The same repo gave 5 passes
-   in the browser and 4 from the CLI minutes apart. A tool that says "a ticked
-   box is a claim, an exit code is evidence" cannot have its evidence depend on
-   what else is running. Unfixed, and the fix is a decision rather than a patch:
-   a longer timeout, no timeout, a distinct `slow` verdict, or measure-then-
-   retry. Whichever it is, the timeout case must stay distinguishable from a
-   real failure.
+6. **A verdict changed with machine load — fixed 2026-08-09.** `check.ts`
+   allowed 20s and ran every check at once. `pnpm exec tsc --noEmit` takes
+   ~1.3s idle and over 20s at a load average of 32, so the same repo gave 5
+   passes in the browser and 4 from the CLI minutes apart, with a busy text
+   editor as the only variable. A tool that says "a ticked box is a claim, an
+   exit code is evidence" cannot have its evidence depend on what else is
+   running.
+
+   Both causes were real and both moved. The budget is 120s, because the honest
+   ceiling is "probably hung", not "slower than a build". And `checkAll` runs
+   four at a time rather than all of them, because unbounded concurrency
+   manufactured the load that tripped the old ceiling — thirteen sandboxed
+   commands at once, one of which (`pnpm test`) spawns nineteen more.
+
+   A timeout still reports `error` and never `fail`, and now says in its
+   evidence that it is not a failed condition and to re-run. Both are
+   parameters, which is what let `test/check.test.ts` drive the timeout to one
+   second instead of waiting two minutes. Mutation-verified: changing that
+   verdict to `fail` turns the test red.
+
+   **What remains open is the number, not the mechanism.** 120s and 4 are
+   judgement calls made without you. If a real check on a real project needs
+   longer, or the page feels slow, those are the two knobs.
 7. **`/work/canvas` has no specification.** It is an empty route that came from
    the sketch. `SHIP.md`, `v2/task.md` and this file all mention it only as a
    route that exists — none says what it is *for*. v0.1 had a canvas of service
@@ -173,6 +185,15 @@ discipline works and that adding it late is how it gets skipped.
 
 ## Things that cost time, so they do not cost it twice
 
+- **Stock `/usr/bin/git` on macOS is an xcrun shim, not git.** It dlopens
+  `libxcrun` from `/Applications/Xcode.app/Contents/Developer`. The sandbox
+  profile omitted that path, so every git check died with
+  "unable to load libxcrun" — and it looked fine from a terminal, because this
+  shell's PATH finds Homebrew's real git first. The dev server's PATH does not.
+  Found by rendering the page and reading the evidence it printed, not by
+  running the same checks from a shell where they had always worked. The
+  regression test calls `/usr/bin/git` by absolute path for exactly that
+  reason.
 - **A wildcard deny does not override a specific allow in seatbelt.**
   `(deny file-read* …)` placed after `(allow file-read-data (subpath …))` does
   nothing at all — in either order. The more specific operation wins, and the

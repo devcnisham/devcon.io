@@ -208,6 +208,23 @@ describe("a hostile check cannot reach the network", () => {
   });
 });
 
+describe("the toolchain a real check actually needs", () => {
+  test("stock /usr/bin/git runs — it is an xcrun shim, not git", async () => {
+    // Explicitly /usr/bin/git rather than `git`, because PATH here finds
+    // Homebrew's real binary first and that is what hid this. The stock one
+    // dlopens libxcrun from the Xcode toolchain, so a profile that omits
+    // /Applications/Xcode.app fails every git check on a normal Mac while
+    // passing on this one.
+    const r = await sh("/usr/bin/git rev-parse --verify HEAD");
+    assert.doesNotMatch(
+      r.out,
+      /xcrun: error|unable to load libxcrun/,
+      r.out.slice(0, 220),
+    );
+    assert.equal(r.code, 0, r.out.slice(0, 220));
+  });
+});
+
 describe("checkAll, against this repo's own SHIP.md", () => {
   test("the checks that should pass, do — the sandbox is not simply breaking everything", async () => {
     const spec = parseSpec(readFileSync(join(REPO, "SHIP.md"), "utf8"));

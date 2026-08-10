@@ -59,7 +59,7 @@ checks legitimately need a shell. What changed is what the shell can reach.
 unconfined. A sandbox that silently degrades reports the same green as a real
 one.
 
-*Verified by:* `pnpm test` — 19 assertions, each running a real command through
+*Verified by:* `pnpm test` — 20 assertions, each running a real command through
 the real sandbox. Mutation-verified: reverting one line of the profile turns
 five of them red.
 
@@ -127,13 +127,14 @@ This is a decision, not a task.
 
 ## Known defects
 
-- **A verdict can change with machine load.** `check.ts` uses a fixed 20s
-  timeout. On a loaded machine `pnpm exec tsc --noEmit` takes ~12s here and has
-  measured over 20s, which turns a passing check into `error`. The same repo
-  reported 5 passes in the browser and 4 from the CLI minutes apart, and the
-  difference was entirely load. **A timeout is not an exit code**, and a tool
-  whose premise is "an exit code is evidence" cannot have its answer depend on
-  what else is running. Unfixed — the right timeout is a real decision.
+- ~~A verdict can change with machine load.~~ **Fixed.** The budget was 20s and
+  every check ran at once; `pnpm exec tsc --noEmit` takes ~1.3s idle and over
+  20s at a load average of 32, so the same repo read 5 passes then 4, minutes
+  apart. Now 120s, four at a time, and a timeout reports `error` with "not a
+  failed condition — re-run" rather than `fail`. *Verified by:* 5/2/6 with zero
+  errors on three consecutive runs at the load that used to break it, plus
+  `test/check.test.ts`, mutation-verified. The remaining judgement calls are
+  the two numbers.
 - **A check can still destroy the repo's uncommitted working tree.** Writes
   cannot be denied: `tsc` is `incremental`, so even `--noEmit` writes
   `tsconfig.tsbuildinfo`. History is protected; unstaged work is not. A consent

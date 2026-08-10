@@ -26,8 +26,9 @@ pnpm dev               # localhost:3000
 line is the bundler, not the gate. Read the exit code — in v0.1 that mistake
 hid 7 type errors.
 
-Tests cover `lib/ship/sandbox.ts` and nothing else — `parse.ts` has none. There
-is still no CI. Both are open tasks and should land before the next feature.
+Tests cover `lib/ship/sandbox.ts` and `check.ts`. **`parse.ts` has none**, and
+there is still no CI. Both are open tasks and should land before the next
+feature.
 
 Every assertion in `test/sandbox.test.ts` runs a real command through the real
 sandbox. **Do not add one that inspects the profile's text** — the profile that
@@ -78,12 +79,22 @@ leaked this repo's OIDC token read as correct.
 - **`biome.jsonc` lists its own excludes.** `vcs.useIgnoreFile` is deprecated in
   2.5.7; dropping it silently pulled v0.1's leftover CodeQL database into lint.
 - **A fixed timeout makes a verdict depend on the machine, not the code.**
-  `check.ts` allows a check 20s. `pnpm exec tsc --noEmit` takes ~1.3s on an idle
-  machine and over 20s at a load average of 32 — so the same repo reported 5
-  passing conditions and then 4, minutes apart, and the only variable was two
-  VS Code helpers at 370% CPU. **A timeout is not an exit code.** Before
-  blaming the sandbox for slowness, time the command unsandboxed and check
-  `uptime` — four hypotheses died that way here.
+  `check.ts` allowed a check 20s and ran every check at once. `pnpm exec tsc
+  --noEmit` takes ~1.3s on an idle machine and over 20s at a load average of 32
+  — so the same repo reported 5 passing conditions and then 4, minutes apart,
+  and the only variable was two VS Code helpers at 370% CPU. **A timeout is not
+  an exit code.** Fixed: 120s, four at a time, and a timeout reports `error`
+  with an explanation rather than `fail`. **Before blaming the sandbox for
+  slowness, time the command unsandboxed and check `uptime`** — four hypotheses
+  died that way here, and `uptime` would have killed all four in one step.
+- **Stock `/usr/bin/git` on macOS is an xcrun shim, not git.** It dlopens
+  `libxcrun` from `/Applications/Xcode.app/Contents/Developer`, so a sandbox
+  profile that omits that path fails *every* git check with
+  "unable to load libxcrun" — which reads as a broken repo. It passed here for
+  weeks only because this shell's PATH finds Homebrew's real git first; the dev
+  server's PATH does not, and neither does a normal Mac's. **Test toolchain
+  binaries by absolute path, not by name** — `git` and `/usr/bin/git` are two
+  different programs.
 - **`preview_stop` does not reap `next-server`.** Three processes kept port
   3000 after the tool reported the server stopped, and they skewed every
   timing taken afterwards. `lsof -ti:3000 | xargs kill -9`.

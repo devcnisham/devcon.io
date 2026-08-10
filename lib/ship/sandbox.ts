@@ -58,6 +58,13 @@ const PROFILE = `(version 1)
     ;; git will not start without its global config.
     (literal (string-append (param "HOME") "/.gitconfig"))
     (subpath (string-append (param "HOME") "/.config/git"))
+    ;; Stock macOS /usr/bin/git is an xcrun shim that dlopens libxcrun from the
+    ;; Xcode toolchain. Without these, every git check dies with
+    ;; "unable to load libxcrun" — which reads as a broken repo, not a missing
+    ;; allow. It only looked fine here because this PATH finds Homebrew's git
+    ;; first; the dev server's PATH does not, and that is the common case.
+    (subpath "/Applications/Xcode.app/Contents/Developer")
+    (subpath "/Library/Developer")
     (subpath (param "NODE_DIR"))
     (subpath (string-append (param "HOME") "/Library/pnpm"))
     (subpath (string-append (param "HOME") "/.local/share/pnpm"))
@@ -66,6 +73,8 @@ const PROFILE = `(version 1)
 (allow file-map-executable
     (subpath "/usr") (subpath "/bin") (subpath "/sbin") (subpath "/opt")
     (subpath "/System") (subpath "/Library")
+    (subpath "/Applications/Xcode.app/Contents/Developer")
+    (subpath "/Library/Developer")
     (subpath (param "NODE_DIR"))
     (subpath (param "WORKING_DIR")))
 

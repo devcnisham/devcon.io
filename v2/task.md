@@ -2,12 +2,11 @@
 
 Every task for v2 and where it stands. Updated 2026-08-09.
 
-**Progress: 4 or 5 of 13 done-when conditions in `SHIP.md`, depending on
-machine load.** It is still the only progress number that means anything here —
-it is checked by running commands, not by ticking boxes — but as of 2026-08-09
-it is not stable, and the instability is task 28. Measured twice within
-minutes: 5 from the browser, 4 from the CLI, the difference being `tsc` and the
-checker's fixed 20s timeout. Everything below is the work behind it.
+**Progress: 5 of 13 done-when conditions in `SHIP.md`.** The only progress
+number that means anything here — checked by running commands, not by ticking
+boxes. It was unstable earlier on 2026-08-09, reading 4 or 5 depending on
+machine load; task 28 fixed that, and it now reads the same three runs running
+at the load that used to break it.
 
 Status keys: **done** · **doing** · **next** · **blocked** (waiting on a
 decision) · **later**
@@ -49,18 +48,18 @@ decision) · **later**
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 17 | Checker executes arbitrary shell from markdown | **done, macOS only** | Confined by seatbelt (`lib/ship/sandbox.ts`): no network, no filesystem outside the repo and toolchain, no `.git`/`.env*`/`.vercel`, empty environment. 14 attacks verified blocked by running them. Residual: a check can still destroy the repo's uncommitted working tree — writes cannot be denied, `tsc` is `incremental`. Non-macOS refuses to run rather than running unconfined. |
+| 17 | Checker executes arbitrary shell from markdown | **done, macOS only** | Confined by seatbelt (`lib/ship/sandbox.ts`): no network, no filesystem outside the repo and toolchain, no `.git`/`.env*`/`.vercel`, empty environment. Every attack verified by running it — see task 21 for the current count. Residual: a check can still destroy the repo's uncommitted working tree — writes cannot be denied, `tsc` is `incremental`. Non-macOS refuses to run rather than running unconfined. |
 | 18 | A check can sabotage the process running it | **done** | `pnpm build` fought the dev server over `.next`. Now `tsc --noEmit`. |
 | 19 | A check can expire | **done** | Commit-count check went stale in four commits. Now asserts a permanent property of history. |
 | 20 | `SHIP.md` vs `v2/` docs overlap | **blocked, worse** | Six documents describe v2's state — `SHIP.md`, this file, `HANDOFF.md`, `README.md`, `v2/overview.md`, `v2/v2_features.md` — and the last three only restate the first three. Each is marked derivative, which is a convention, not a mechanism. It already failed once inside a single session: `README.md` called the surfaces empty after the workspace shipped, and two files carried a stale progress number. Fold them back, or generate them from the checker. **Needs your call.** |
-| 28 | A verdict changes with machine load | **open** | `check.ts` has a fixed 20s timeout. `tsc --noEmit` takes ~12s here at load average 32 and has measured over 20s, turning a pass into `error`. Same repo, 5 passes in the browser and 4 from the CLI minutes apart. A timeout is not an exit code. The fix is a decision — longer, none, a distinct `slow` verdict, or measure-then-retry. |
+| 28 | A verdict changes with machine load | **done** | Two causes, both fixed: the 20s budget became 120s, and `checkAll` stopped running every check at once — it now runs four, because unbounded concurrency manufactured the load that tripped the ceiling. Timeout and concurrency are parameters so `test/check.test.ts` can drive them; a timeout still reports `error`, never `fail`, and now says so in its evidence. Verified: 5/2/6 with zero errors on three consecutive runs at load average 24, which previously produced 4 passes and 2 errors. |
 | 29 | `/work/canvas` has no specification | **blocked** | An empty route from the sketch that no document defines. An interactive node canvas would cost client JavaScript. **Needs your call.** |
 
 ## Not started
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 21 | Tests — any at all | **started** | `test/sandbox.test.ts` — 19 assertions, all attacks against the real sandbox. `pnpm test` (node's runner, no dependency added). Mutation-verified: reverting the profile's carve-out to the wildcard form turns 5 of them red, so they are load-bearing. Nothing else in `lib/ship/` is covered — `parse.ts` has none. |
+| 21 | Tests — any at all | **started** | 26 assertions across `test/sandbox.test.ts` (20, all attacks against the real sandbox) and `test/check.test.ts` (6 — timeouts, verdicts, bounded concurrency). `pnpm test`, node's runner, no dependency added. Every one mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
 | 22 | CI gates | **next** | v0.1 ended with four gates. v2 has none. |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |

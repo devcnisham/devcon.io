@@ -25,10 +25,42 @@ export interface Checked extends Condition {
   ms: number;
 }
 
-/** Long enough for a build, short enough that a hung check does not hang the page. */
-const TIMEOUT_MS = 20_000;
+/**
+ * How long a check may take, and how many may run at once.
+ *
+ * The first version allowed 20s and ran every check at once, and the pair of
+ * them made a verdict depend on the machine rather than on the code. This repo
+ * reported five passing conditions and then four, minutes apart, and the only
+ * variable was other software on the laptop: `pnpm exec tsc --noEmit` takes
+ * about 1.3s idle and over 20s at a load average of 32. **A timeout is not an
+ * exit code**, and a tool whose whole claim is that an exit code is evidence
+ * cannot have its answer change because a text editor is busy.
+ *
+ * Both numbers moved for the same reason:
+ *
+ * - 120s, because the honest ceiling is "a check that is still running is
+ *   probably hung", not "a check that is slower than a build is failing". A
+ *   real `pnpm build` fits with room to spare.
+ * - Four at a time, because unbounded concurrency manufactured the load that
+ *   tripped the old ceiling. Thirteen sandboxed commands at once, two of them
+ *   spawning entire toolchains — and one of those, `pnpm test`, spawning
+ *   nineteen more sandboxes of its own.
+ *
+ * This makes a timeout rarer. It cannot make it impossible, so the verdict for
+ * one stays `error` and never `fail`.
+ */
+export const DEFAULTS = { timeoutMs: 120_000, concurrency: 4 } as const;
 
-async function one(c: Condition, cwd: string): Promise<Checked> {
+export interface CheckOptions {
+  timeoutMs?: number;
+  concurrency?: number;
+}
+
+async function one(
+  c: Condition,
+  cwd: string,
+  timeoutMs: number,
+): Promise<Checked> {
   if (!c.check) {
     return {
       ...c,
@@ -48,7 +80,7 @@ async function one(c: Condition, cwd: string): Promise<Checked> {
   try {
     const { stdout, stderr } = await run(file, args, {
       cwd,
-      timeout: TIMEOUT_MS,
+      timeout: timeoutMs,
       // A check that floods the page is a check nobody reads.
       maxBuffer: 1024 * 256,
       // Never the parent's — see sandboxEnv.
@@ -80,10 +112,15 @@ async function one(c: Condition, cwd: string): Promise<Checked> {
 
     const ms = Date.now() - started;
     if (err.killed) {
+      // Never "fail". This says nothing about the condition — only that the
+      // command was still running, and the most common reason is a busy
+      // machine rather than a broken repo. Saying so on the page is the point:
+      // a reader who sees "error" and this sentence knows to re-run, where
+      // "fail" would have sent them to fix a condition that was fine.
       return {
         ...c,
         verdict: "error",
-        evidence: `Timed out after ${TIMEOUT_MS / 1000}s`,
+        evidence: `Still running after ${Math.round(timeoutMs / 1000)}s, so it was stopped. This is not a failed condition — it is no answer at all. A loaded machine is the usual cause; re-run before believing it.`,
         ms,
       };
     }
@@ -108,9 +145,40 @@ async function one(c: Condition, cwd: string): Promise<Checked> {
   }
 }
 
-/** All of them, concurrently — they are independent by construction. */
-export function checkAll(cs: Condition[], cwd: string): Promise<Checked[]> {
-  return Promise.all(cs.map((c) => one(c, cwd)));
+/**
+ * All of them, a few at a time.
+ *
+ * They are independent by construction, so order does not matter — but running
+ * every one at once does. `Promise.all` over the whole list put thirteen
+ * sandboxed commands on the machine simultaneously, and the checks that then
+ * timed out were the ones the storm had slowed down. Results are returned in
+ * the order given, whatever order they finished in.
+ */
+export async function checkAll(
+  cs: Condition[],
+  cwd: string,
+  opts: CheckOptions = {},
+): Promise<Checked[]> {
+  const timeoutMs = opts.timeoutMs ?? DEFAULTS.timeoutMs;
+  const limit = Math.max(1, opts.concurrency ?? DEFAULTS.concurrency);
+
+  const out = new Array<Checked>(cs.length);
+  let next = 0;
+
+  // One worker per slot, each taking the next unclaimed index. Simpler than a
+  // queue and it cannot lose or double-run an item.
+  async function worker() {
+    while (true) {
+      const i = next++;
+      if (i >= cs.length) return;
+      out[i] = await one(cs[i], cwd, timeoutMs);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, cs.length) }, () => worker()),
+  );
+  return out;
 }
 
 export function tally(checked: Checked[]) {

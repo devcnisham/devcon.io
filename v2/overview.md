@@ -30,12 +30,13 @@
 | Module | State |
 |---|---|
 | `lib/ship/parse.ts` | Works. **No tests.** |
-| `lib/ship/check.ts` | Works. Sandboxed. On screen. |
-| `lib/ship/sandbox.ts` | Works. macOS only, by design. 19 tests. |
+| `lib/ship/check.ts` | Works. Sandboxed. On screen. 6 tests. |
+| `lib/ship/sandbox.ts` | Works. macOS only, by design. 20 tests. |
 | `app/work/workspace/page.tsx` | Renders the checked spec |
 | `app/work/workspace/spec.tsx` | How a checked spec is drawn |
 | `app/work/views.tsx` | Floating workspace/canvas switch |
-| `test/sandbox.test.ts` | The only test file |
+| `test/sandbox.test.ts` | 20 assertions, all attacks against the real sandbox |
+| `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
 
 ### Gates — five, all green
 
@@ -61,6 +62,8 @@
 | Confine checks: no `.env*` / `.vercel` at all | done |
 | Confine checks: replaced environment, never inherited | done |
 | Refuse to run where there is no sandbox | done |
+| Bounded concurrency and a 120s budget, so a verdict does not move with machine load | done |
+| Report a timeout as `error` with "not a failed condition — re-run" | done |
 | Render the spec, checked, at `/work/workspace` | done |
 | Zero client JavaScript — 0 page chunks | done |
 | Consent gate before running a stranger's checks | not built |
@@ -86,12 +89,12 @@
 
 | Defect | State |
 |---|---|
-| A verdict changes with machine load — fixed 20s timeout, `tsc` ~12s here at load 32, measured over 20s | open, task 28 |
+| A verdict changed with machine load — 20s budget, every check at once | **fixed**, task 28 |
 | A check can destroy the repo's uncommitted working tree — writes cannot be denied | open |
 | `SHIP.md` check #7 fails by construction — nests the sandbox | open |
 | `SHIP.md` check #2 can never pass — needs the network | by decision |
 | `parse.ts` has no tests | open |
-| Five overlapping documents | open, task 20 |
+| Six overlapping documents, three of them derivative | open, task 20 |
 
 ### Decisions waiting on you
 
@@ -99,9 +102,9 @@
 |---|
 | The work page has no way back to home |
 | The 14rem workspace rail is a permanent commitment |
-| `SHIP.md` vs the `v2/` docs — now five files |
+| `SHIP.md` vs the `v2/` docs — now six files |
 | What `/work/canvas` is for |
-| What the checker's timeout should be |
+| Whether 120s and four-at-a-time are the right numbers — the mechanism is fixed, these two are judgement calls made without you |
 | `v2/product.md`, `v2/project.md` — headings only, awaiting your content |
 
 ### v0.1
