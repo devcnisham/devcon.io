@@ -38,6 +38,7 @@
 | `test/sandbox.test.ts` | 20 assertions, all attacks against the real sandbox |
 | `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
 | `test/cache.test.ts` | 6 assertions — TTL expiry, and an edit beating the clock |
+| `CHANGELOG.md` | Every change, newest first. Append-only. |
 | `lib/ship/cache.ts` | One check run shared by the views. 6 tests. |
 
 ### Gates — five, all green

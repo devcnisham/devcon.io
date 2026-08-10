@@ -91,7 +91,7 @@ Three gaps in this list are real, cheap and currently open:
   this checklist, and it found a real defect immediately — see the gotcha
   below. Still never verified below 408px: the preview pane will not go
   narrower, so a true 375px phone is untested.
-- **No changelog.** `README`, feature list and docs exist; a changelog does not.
+- ~~No changelog.~~ `CHANGELOG.md`, built from `git log`. The one document that does not restate current state, so it does not worsen task 20.
 - **No end-to-end tests.** Unit and integration exist; nothing drives the app
   as a user.
 
@@ -208,6 +208,7 @@ leaked this repo's OIDC token read as correct.
 | `v2/overview.md` | Everything as a flat list | Derivative |
 | `v2/v2_features.md` | The same ground in prose, with how each part was verified | Derivative |
 | `README.md` | Public-facing summary | Derivative |
+| `CHANGELOG.md` | Every change, newest first | Append-only history |
 | `v2/product.md`, `v2/project.md` | Empty — awaiting the owner's content | — |
 
 **Unresolved, and worse than it was.** Six documents describe v2's state and

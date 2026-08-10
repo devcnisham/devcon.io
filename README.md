@@ -30,6 +30,7 @@ of JavaScript to render a headline and one input.
 | `HANDOFF.md` | Current state and the decisions blocking progress |
 | `v2/task.md` | Every task and its status |
 | `SHIP.md` | What ships, what is cut and why, done-when conditions |
+| `CHANGELOG.md` | Every change, newest first — the only append-only file |
 | `v2/overview.md` | Everything, as a flat list — start here for state |
 | `v2/v2_features.md` | The same ground in prose, with how each part was verified |
 
