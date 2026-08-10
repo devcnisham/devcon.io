@@ -101,10 +101,19 @@ export async function checkedSpec(
   return { spec, checked, at: entry.at };
 }
 
-/** "just now", "8s ago", "2m ago" — plain enough to read without thinking. */
+/**
+ * "just now", "8s ago", "2m ago", "3h ago", "3d ago".
+ *
+ * Used for two different scales — how old a check run is (seconds) and when a
+ * project was last opened (days) — so it has to stay readable across both.
+ */
 export function ageLabel(at: number, now = Date.now()): string {
   const s = Math.max(0, Math.round((now - at) / 1000));
   if (s < 2) return "just now";
   if (s < 60) return `${s}s ago`;
-  return `${Math.round(s / 60)}m ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.round(h / 24)}d ago`;
 }

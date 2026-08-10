@@ -98,6 +98,9 @@ describe("ageLabel", () => {
     assert.equal(ageLabel(now, now), "just now");
     assert.equal(ageLabel(now - 8_000, now), "8s ago");
     assert.equal(ageLabel(now - 120_000, now), "2m ago");
+    // Days matter now that the dashboard stamps when a project was last opened.
+    assert.equal(ageLabel(now - 3 * 3_600_000, now), "3h ago");
+    assert.equal(ageLabel(now - 3 * 86_400_000, now), "3d ago");
   });
 
   test("never reports a negative age", () => {
