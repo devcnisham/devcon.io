@@ -144,7 +144,7 @@ discipline works and that adding it late is how it gets skipped.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
 4. **Tests cover the sandbox, the checker and the cache. `parse.ts` has
-   none.** 51 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
+   none.** 63 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
    (6) and `test/cache.test.ts` (6), run with `pnpm test` — node's own runner,
    no dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five

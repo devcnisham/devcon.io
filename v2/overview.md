@@ -33,7 +33,8 @@
 | `lib/ship/check.ts` | Works. Sandboxed. No caller right now. 6 tests. |
 | `lib/ship/sandbox.ts` | Works. macOS only, by design. 20 tests. |
 | `app/work/workspace/page.tsx` | Empty |
-| `app/page.tsx`, `app/open.tsx` | Dashboard — open folder, clone, recent |
+| `app/page.tsx`, `app/open.tsx`, `app/cards.tsx` | Dashboard — open, clone, stats, project cards |
+| `lib/detect.ts` | Reads a project's stack and gaps from its files. 12 tests. |
 | `app/connectors/page.tsx` | Integrations, read from `package.json` |
 | `app/settings/page.tsx` | What devcon is doing, read from the modules |
 | `lib/workspaces.ts`, `lib/clone.ts`, `lib/pick-folder.ts` | Import, clone, Finder dialog |
@@ -80,6 +81,10 @@
 | One check run shared between views, with its age always on screen | done |
 | Works on a phone — page scrolls as one, nav pinned | done |
 | Search the workspace — text, command, evidence and verdict | **removed** with the workspace; `filterSpec` and its 11 tests remain |
+| Detect a project's stack — framework, language, package manager | done |
+| Report what a project is missing, derived from its files | done |
+| Flag a `.env` not covered by `.gitignore` | done |
+| Dashboard stats and project cards | done |
 | One colour system — zero raw Tailwind colours in `app/` | done |
 | Changelog, built from `git log` | done |
 | End-to-end tests | not built |

@@ -21,6 +21,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **The dashboard reads every project it lists.** Stack from the lockfile and
+  dependencies; gaps from files that are absent — no git, no `.gitignore`, no
+  `SHIP.md`, no README, no tests, no CI. **A `.env` not covered by
+  `.gitignore` is flagged as urgent and sorted first**, because that one is
+  losing a key rather than being untidy. Derived from the repo, never a
+  pre-written checklist, so it can only report what it actually looked for.
+  Four stat cards and a card per project. 12 tests.
+
 - **Search on the workspace.** Filters conditions, cuts and assumptions by
   query. Matches a condition's text, its **command** and its **evidence**, so a
   commit hash or an error string from the output finds the row that produced
