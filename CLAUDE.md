@@ -62,6 +62,42 @@ planning · architecture · design · development · testing · security ·
 optimization · documentation · deployment · monitoring · maintenance ·
 iteration
 
+## Daily checklist
+
+The owner's nine groups. Same rule as above — **name what you skipped.**
+
+| Group | Items |
+|---|---|
+| **Planning** | review backlog · select today's tasks · estimate time · update kanban board |
+| **Development** | frontend · backend · database changes · api implementation · authentication · file storage · payments · notifications · background jobs |
+| **Debugging** | reported bugs · console errors · api issues · ui issues · responsive layout · performance bottlenecks |
+| **Code quality** | refactor · remove duplication · rename variables · folder structure · comments where needed · improve architecture |
+| **Testing** | unit · integration · end-to-end · manual · edge case · **mobile** · desktop |
+| **Git** | commit · push · meaningful messages · tag releases when needed |
+| **Deployment** | build production · run CI · deploy · verify · check logs · roll back if needed |
+| **Monitoring** | server logs · analytics · uptime · errors · database |
+| **Documentation** | README · api docs · changelog · feature list |
+
+### What this repo can actually tick, 2026-08-09
+
+Most of Development, all of Deployment and all of Monitoring have nothing
+behind them: no backend, no database, no API, no auth, no file storage, no
+payments, no notifications, no background jobs, no CI, nothing deployed, no
+logs, no analytics. Do not tick them.
+
+Three gaps in this list are real, cheap and currently open:
+
+- ~~Mobile testing has never been run.~~ Run 2026-08-09 on its first use of
+  this checklist, and it found a real defect immediately — see the gotcha
+  below. Still never verified below 408px: the preview pane will not go
+  narrower, so a true 375px phone is untested.
+- **No changelog.** `README`, feature list and docs exist; a changelog does not.
+- **No end-to-end tests.** Unit and integration exist; nothing drives the app
+  as a user.
+
+`v2/task.md` is the backlog. There is no kanban board and no time estimates,
+and inventing either would be process theatre.
+
 ## Gates
 
 Five commands. All five pass right now; keep them passing.
@@ -120,6 +156,17 @@ leaked this repo's OIDC token read as correct.
   became "fro" and 13 of 14 conditions vanished. It read as bad markdown.
 - **A percentage height on a flex child does not resolve.** `h-full` collapses.
   Use `absolute inset-0`.
+- **`h-dvh overflow-hidden` is a desktop-only idea.** The work page locked
+  itself to the viewport at every width, so on a phone the grid split into two
+  independent scroll boxes: the rail took half the screen and the conditions
+  list had 2832px of content trapped in the other 374px. Below `lg` the page
+  must scroll as one document. Found by measuring `scrollHeight` against
+  `clientHeight` per element, not by looking — the screenshot alone read as
+  merely cramped.
+- **A pinned control must be `fixed`, not `absolute`, once the page can
+  scroll.** The floating switch is the only navigation on the work page,
+  including the way home. Absolute meant it scrolled off the top of a phone and
+  stranded you exactly as before.
 - **A dark gradient needs far more opacity than the value suggests.** The first
   wash pass looked right in CSS and rendered flat black.
 - **A layout cannot see which child is rendering.** Marking an active tab from

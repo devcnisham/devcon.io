@@ -18,7 +18,7 @@ const VIEWS = [
 
 export function ViewTabs({ active }: { active: "workspace" | "canvas" }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-center">
+    <div className="pointer-events-none fixed inset-x-0 top-3 z-20 flex justify-center">
       <nav
         aria-label="View"
         className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-white/[0.07] bg-[#16191f]/85 p-1 shadow-lg shadow-black/40 backdrop-blur"

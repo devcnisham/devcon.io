@@ -13,7 +13,15 @@ export default function WorkLayout({
 }) {
   return (
     <div
-      className="relative flex h-dvh flex-col overflow-hidden"
+      /**
+       * Locked to the viewport only where that makes sense.
+       *
+       * `h-dvh overflow-hidden` at every width turned a phone into two
+       * independent 374px scroll boxes: the rail took half the screen and the
+       * conditions list had 2832px of content trapped in the other half. Below
+       * `lg` the page scrolls as one document instead.
+       */
+      className="relative flex min-h-dvh flex-col lg:h-dvh lg:overflow-hidden"
       style={{
         /**
          * Three washes over a lifted navy, not a flat near-black.

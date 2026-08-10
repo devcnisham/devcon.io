@@ -46,10 +46,10 @@ export default async function Workspace() {
   return (
     <>
       <ViewTabs active="workspace" />
-      <div className="grid min-h-0 flex-1 pt-16 lg:grid-cols-[14rem_minmax(0,1fr)]">
+      <div className="grid flex-1 pt-16 lg:min-h-0 lg:grid-cols-[14rem_minmax(0,1fr)]">
         {/* The rail. Translucent rather than filled so the ground shows
             through — a panel over the surface, not a second page. */}
-        <aside className="min-h-0 overflow-y-auto border-[var(--color-line)] px-5 pb-10 lg:border-r">
+        <aside className="px-5 pb-10 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-[var(--color-line)]">
           <h1 className="font-medium text-[13px] text-[var(--color-text)]">
             {spec.name}
           </h1>
@@ -81,7 +81,7 @@ export default async function Workspace() {
           </p>
         </aside>
 
-        <section className="min-h-0 overflow-y-auto px-6 pb-10 lg:px-10">
+        <section className="px-6 pb-10 lg:min-h-0 lg:overflow-y-auto lg:px-10">
           <div className="mx-auto max-w-2xl">
             <Drift lying={drift} />
 
