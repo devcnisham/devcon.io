@@ -233,6 +233,35 @@ describe("a hostile check cannot reach the network", () => {
   });
 });
 
+describe("the PATH-derived allowlist", () => {
+  test("never grants / or the home directory", async () => {
+    // The allowlist is built from PATH so a toolchain in an unusual place
+    // still runs. Adding each entry's *parent* looked harmless and granted
+    // everything: PATH contains `/bin`, whose parent is `/`.
+    //
+    // The attack tests below caught it, but only because a bait file happened
+    // to exist. This asserts the invariant directly.
+    const { args } = sandboxArgv("true", REPO);
+    const profileText = args[1];
+    const granted = [...profileText.matchAll(/\(subpath "([^"]+)"\)/g)].map(
+      (m) => m[1],
+    );
+
+    assert.ok(
+      !granted.includes("/"),
+      "the profile granted the filesystem root",
+    );
+    assert.ok(
+      !granted.includes(homedir()),
+      `the profile granted the whole home directory: ${homedir()}`,
+    );
+    assert.ok(
+      !granted.includes("/Users"),
+      "the profile granted every user's home",
+    );
+  });
+});
+
 describe("the toolchain a real check actually needs", () => {
   test("git resolves and runs — the way a check calls it", async () => {
     // `git`, from PATH, because that is what a SHIP.md condition writes.

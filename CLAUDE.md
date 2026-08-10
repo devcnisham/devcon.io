@@ -218,6 +218,13 @@ leaked this repo's OIDC token read as correct.
   repo's history — that `v0.1-archive` exists, that the root commit touched two
   files — and `actions/checkout` clones shallow without tags, so those
   conditions fail for a reason that is about CI rather than about the repo.
+- **Never allow a PATH entry's parent directory.** The sandbox derives its
+  toolchain allowlist from PATH so nvm, asdf, volta and a CI runner's pnpm all
+  work without being named. Adding each entry's `dirname` looked like a
+  harmless way to reach symlink targets and granted the **filesystem root**,
+  because PATH contains `/bin`. The attack tests caught it immediately, and
+  `test/sandbox.test.ts` now asserts the invariant directly rather than relying
+  on a bait file happening to exist.
 - **Do not hardcode the Xcode path — ask `xcode-select -p`.** The fix for the
   xcrun trap above allowed `/Applications/Xcode.app/Contents/Developer`, which
   is correct on this laptop and wrong on a CI runner, where Xcode installs as

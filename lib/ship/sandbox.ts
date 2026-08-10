@@ -36,7 +36,39 @@ const SANDBOX_EXEC = "/usr/bin/sandbox-exec";
  *
  * Verify with `pnpm ship:sandbox-check`, never by reading.
  */
-const PROFILE = `(version 1)
+/**
+ * The directories on PATH, as sandbox rules.
+ *
+ * Hardcoding where a toolchain lives is the bug this replaces, twice: the Xcode
+ * path was written for one laptop, and pnpm was allowed at
+ * `~/Library/pnpm` while a CI runner keeps it under `~/setup-pnpm`. nvm, asdf,
+ * volta and nix all put binaries somewhere else again.
+ *
+ * PATH is the list of places the machine has already decided a command may come
+ * from, so it is the honest answer to "what may a check execute". Read and
+ * map-executable only — nothing here grants a write.
+ *
+ * Entries are filtered to plain paths. A directory containing a quote or a
+ * paren would otherwise be interpolated into the profile and could rewrite it,
+ * which is the one thing the `-D` parameters exist to avoid.
+ */
+const SAFE_PATH_ENTRY = /^\/[A-Za-z0-9._+@/-]*$/;
+
+function pathDirRules(): string {
+  const seen = new Set<string>();
+  for (const dir of (process.env.PATH ?? "").split(":")) {
+    const trimmed = dir.trim();
+    if (!trimmed || !SAFE_PATH_ENTRY.test(trimmed)) continue;
+    // The directory itself, never its parent. Adding `dirname` looked like a
+    // harmless way to reach symlink targets and granted the whole home
+    // directory the moment PATH contained `~/bin` — the attack tests caught it
+    // on the first run.
+    seen.add(trimmed);
+  }
+  return [...seen].map((d) => `    (subpath ${JSON.stringify(d)})`).join("\n");
+}
+
+const PROFILE_TEMPLATE = `(version 1)
 (deny default)
 
 ;; The one control that makes the others matter: nothing read can leave.
@@ -71,9 +103,8 @@ const PROFILE = `(version 1)
     (subpath (param "DEVELOPER_DIR"))
     (subpath "/Library/Developer")
     (subpath (param "NODE_DIR"))
-    (subpath (string-append (param "HOME") "/Library/pnpm"))
-    (subpath (string-append (param "HOME") "/.local/share/pnpm"))
-    (subpath (param "WORKING_DIR")))
+    (subpath (param "WORKING_DIR"))
+__PATH_DIRS__)
 
 (allow file-map-executable
     (subpath "/usr") (subpath "/bin") (subpath "/sbin") (subpath "/opt")
@@ -81,7 +112,8 @@ const PROFILE = `(version 1)
     (subpath (param "DEVELOPER_DIR"))
     (subpath "/Library/Developer")
     (subpath (param "NODE_DIR"))
-    (subpath (param "WORKING_DIR")))
+    (subpath (param "WORKING_DIR"))
+__PATH_DIRS__)
 
 (allow file-write*
     (subpath (param "WORKING_DIR"))
@@ -100,6 +132,15 @@ const PROFILE = `(version 1)
     ;; A check reads history. It does not rewrite it.
     (subpath (string-append (param "WORKING_DIR") "/.git")))
 `;
+
+/** Built once — PATH does not change under a running server. */
+let profile: string | null = null;
+function sandboxProfile(): string {
+  if (!profile) {
+    profile = PROFILE_TEMPLATE.replaceAll("__PATH_DIRS__", pathDirRules());
+  }
+  return profile;
+}
 
 /**
  * Where the Xcode toolchain actually is on this machine.
@@ -161,7 +202,7 @@ export function sandboxArgv(
     file: SANDBOX_EXEC,
     args: [
       "-p",
-      PROFILE,
+      sandboxProfile(),
       // Passed as argv, never interpolated into the profile text, so a repo
       // path containing quotes or parens cannot rewrite the policy.
       "-D",
