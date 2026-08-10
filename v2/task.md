@@ -39,8 +39,8 @@ decision) · **later**
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 12 | `SHIP.md` format — ships / not shipping / done-when | **done** | 8 cuts and 13 conditions recorded. |
-| 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Rendered by `/work/workspace`. Still no tests. |
-| 14 | Done-when checker (`lib/ship/check.ts`) | **done** | Works, sandboxed, and now visible at `/work/workspace` — every verdict there comes from running its command on request. Caught its author overclaiming on the first run, and again on the first render. |
+| 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Read by the dashboard. Still no tests. |
+| 14 | Done-when checker (`lib/ship/check.ts`) | **done, unwired** | Works and is sandboxed. Was visible at `/work/workspace` until that view was cleared; nothing calls it now. Caught its author overclaiming on the first run, and again on the first render. |
 | 15 | Hand-write specs for 2+ other real projects | **next** | The cheapest test of whether the bet holds. No code needed. |
 | 16 | Name one decision each of them changed | **next** | If none, the format is not useful and tooling will not save it. |
 
@@ -53,7 +53,8 @@ decision) · **later**
 | 19 | A check can expire | **done** | Commit-count check went stale in four commits. Now asserts a permanent property of history. |
 | 20 | `SHIP.md` vs `v2/` docs overlap | **blocked, worse** | Six documents describe v2's state — `SHIP.md`, this file, `HANDOFF.md`, `README.md`, `v2/overview.md`, `v2/v2_features.md` — and the last three only restate the first three. Each is marked derivative, which is a convention, not a mechanism. It already failed once inside a single session: `README.md` called the surfaces empty after the workspace shipped, and two files carried a stale progress number. Fold them back, or generate them from the checker. **Needs your call.** |
 | 28 | A verdict changes with machine load | **done** | Two causes, both fixed: the 20s budget became 120s, and `checkAll` stopped running every check at once — it now runs four, because unbounded concurrency manufactured the load that tripped the ceiling. Timeout and concurrency are parameters so `test/check.test.ts` can drive them; a timeout still reports `error`, never `fail`, and now says so in its evidence. Verified: 5/2/6 with zero errors on three consecutive runs at load average 24, which previously produced 4 passes and 2 errors. |
-| 31 | Search the workspace | **done** | Filters conditions, cuts and assumptions. Matches text, command, evidence and verdict. Zero client JS — a `GET` form filtered on the server, reusing the cached check run. Drift is computed from the full set so a filter can never hide it. 11 tests. |
+| 31 | Search the workspace | **built, then removed** | Shipped at `45ae91e`; removed when the workspace was cleared on request. `filterSpec` and its 11 tests are untouched, so restoring it is UI work only. |
+| 32 | Workspace cleared | **done** | Emptied on request. `lib/ship/` untouched and still covered — `checkedSpec`, `tally`, `lies` and `filterSpec` currently have no caller. Waiting, not dead. |
 | 30 | Mobile layout | **done** | The work page was two trapped scroll boxes on a phone. Fixed and measured at 408px. **Never verified below 408px** — the preview pane will not go narrower. |
 | 29 | `/work/canvas` has no specification | **blocked** | An empty route from the sketch that no document defines. An interactive node canvas would cost client JavaScript. **Needs your call.** |
 
@@ -61,7 +62,7 @@ decision) · **later**
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 21 | Tests — any at all | **started** | 26 assertions across `test/sandbox.test.ts` (20, all attacks against the real sandbox) and `test/check.test.ts` (6 — timeouts, verdicts, bounded concurrency). `pnpm test`, node's runner, no dependency added. Every one mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
+| 21 | Tests — any at all | **started** | 51 assertions across `test/sandbox.test.ts` (20, all attacks against the real sandbox) and `test/check.test.ts` (6 — timeouts, verdicts, bounded concurrency). `pnpm test`, node's runner, no dependency added. Every one mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
 | 22 | CI gates | **next** | v0.1 ended with four gates. v2 has none. |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |

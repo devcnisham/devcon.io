@@ -22,7 +22,7 @@
 |---|---|
 | `/` | The plan's shape — parsed, not checked |
 | `/work` | Redirects to `/work/workspace` |
-| `/work/workspace` | This repo's `SHIP.md`, parsed and checked live |
+| `/work/workspace` | Empty — cleared on request, awaiting new contents |
 | `/work/canvas` | Empty — and nothing specifies what it is for. Says so on screen. |
 
 ### Modules
@@ -30,10 +30,14 @@
 | Module | State |
 |---|---|
 | `lib/ship/parse.ts` | Works. **No tests.** |
-| `lib/ship/check.ts` | Works. Sandboxed. On screen. 6 tests. |
+| `lib/ship/check.ts` | Works. Sandboxed. No caller right now. 6 tests. |
 | `lib/ship/sandbox.ts` | Works. macOS only, by design. 20 tests. |
-| `app/work/workspace/page.tsx` | Renders the checked spec |
-| `app/work/workspace/spec.tsx` | How a checked spec is drawn |
+| `app/work/workspace/page.tsx` | Empty |
+| `app/page.tsx`, `app/open.tsx` | Dashboard — open folder, clone, recent |
+| `app/connectors/page.tsx` | Integrations, read from `package.json` |
+| `app/settings/page.tsx` | What devcon is doing, read from the modules |
+| `lib/workspaces.ts`, `lib/clone.ts`, `lib/pick-folder.ts` | Import, clone, Finder dialog |
+| `test/clone.test.ts` | 8 assertions — URL injection, path validation |
 | `app/work/views.tsx` | Floating workspace/canvas switch |
 | `test/sandbox.test.ts` | 20 assertions, all attacks against the real sandbox |
 | `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
@@ -69,13 +73,13 @@
 | Refuse to run where there is no sandbox | done |
 | Bounded concurrency and a 120s budget, so a verdict does not move with machine load | done |
 | Report a timeout as `error` with "not a failed condition — re-run" | done |
-| Render the spec, checked, at `/work/workspace` | done |
+| Render the spec, checked, at `/work/workspace` | **removed** — cleared on request, in git at `45ae91e` |
 | Zero client JavaScript — 0 page chunks | done |
 | A way out of the work page | done |
 | Home shows the plan's shape without running checks | done |
 | One check run shared between views, with its age always on screen | done |
 | Works on a phone — page scrolls as one, nav pinned | done |
-| Search the workspace — text, command, evidence and verdict | done |
+| Search the workspace — text, command, evidence and verdict | **removed** with the workspace; `filterSpec` and its 11 tests remain |
 | One colour system — zero raw Tailwind colours in `app/` | done |
 | Changelog, built from `git log` | done |
 | End-to-end tests | not built |

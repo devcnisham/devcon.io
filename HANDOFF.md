@@ -45,13 +45,13 @@ Four things decided in this session, all of them the user's calls:
 
 | Path | What |
 |---|---|
-| `app/page.tsx` | The plan's shape — parsed, not checked. Says a tick is a claim. |
+| `app/page.tsx`, `app/connectors/`, `app/settings/` | Dashboard, integrations, settings — behind a left sidebar |
 | `app/work/` | The work page — full-bleed surface, floating switch |
-| `app/work/workspace/` | This repo's `SHIP.md`, parsed and checked live |
+| `app/work/workspace/` | Empty — cleared 2026-08-10, awaiting new contents |
 | `app/work/canvas/` | Still empty, and now says so |
 | `app/work/views.tsx` | The floating segmented switch |
 | `lib/ship/parse.ts` | Reads `SHIP.md` — works |
-| `lib/ship/check.ts` | Runs the done-when checks — works, wired to the workspace |
+| `lib/ship/check.ts` | Runs the done-when checks — works, **no caller since the workspace was cleared** |
 | `lib/ship/sandbox.ts` | Confines them. macOS only, by design |
 
 Page flow, from the sketch: `/` → `/work`, with workspace and canvas as two
@@ -142,7 +142,7 @@ discipline works and that adding it late is how it gets skipped.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
 4. **Tests cover the sandbox, the checker and the cache. `parse.ts` has
-   none.** 32 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
+   none.** 51 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
    (6) and `test/cache.test.ts` (6), run with `pnpm test` — node's own runner,
    no dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five

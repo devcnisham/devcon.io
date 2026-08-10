@@ -44,6 +44,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `CLAUDE.md`, with a record of which steps have nothing to run against.
 - **`v2/overview.md` and `v2/v2_features.md`.**
 
+#### Removed
+
+- **The workspace view.** Cleared on request — the rendered spec, its live
+  verdicts and evidence, the drift banner and the filter. In git at `45ae91e`.
+  `lib/ship/` is untouched and still covered by its tests; `checkedSpec`,
+  `tally`, `lies` and `filterSpec` simply have no caller for now.
+
 #### Fixed
 
 - **A verdict could change with machine load.** The budget was 20s and every

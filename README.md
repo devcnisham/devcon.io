@@ -15,7 +15,7 @@ pnpm dev        # localhost:3000
 |---|---|
 | `/` | Reads `SHIP.md` and shows the plan's shape — deliberately without running the checks |
 | `/work` | Redirects to the default view |
-| `/work/workspace` | This repo's `SHIP.md`, parsed and checked live |
+| `/work/workspace` | Empty — cleared on request, awaiting new contents |
 | `/work/canvas` | Full-bleed surface — empty, and unspecified. Says so rather than rendering nothing. |
 
 Every route is a server component. The build emits **zero client-side page
