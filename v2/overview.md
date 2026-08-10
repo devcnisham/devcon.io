@@ -38,6 +38,8 @@
 | `test/sandbox.test.ts` | 20 assertions, all attacks against the real sandbox |
 | `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
 | `test/cache.test.ts` | 6 assertions — TTL expiry, and an edit beating the clock |
+| `test/search.test.ts` | 11 assertions — matching, AND terms, regex metacharacters |
+| `lib/ship/search.ts` | Filters a checked spec. 11 tests. |
 | `CHANGELOG.md` | Every change, newest first. Append-only. |
 | `lib/ship/cache.ts` | One check run shared by the views. 6 tests. |
 
@@ -73,6 +75,7 @@
 | Home shows the plan's shape without running checks | done |
 | One check run shared between views, with its age always on screen | done |
 | Works on a phone — page scrolls as one, nav pinned | done |
+| Search the workspace — text, command, evidence and verdict | done |
 | One colour system — zero raw Tailwind colours in `app/` | done |
 | Changelog, built from `git log` | done |
 | End-to-end tests | not built |

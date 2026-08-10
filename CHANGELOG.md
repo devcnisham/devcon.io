@@ -21,6 +21,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **Search on the workspace.** Filters conditions, cuts and assumptions by
+  query. Matches a condition's text, its **command** and its **evidence**, so a
+  commit hash or an error string from the output finds the row that produced
+  it; `fail` narrows to what is failing. Terms are ANDed.
+  **No client JavaScript** — a `GET` form and `searchParams`, server-filtered,
+  reusing the cached check run. A drift warning is never hidden by a filter.
+
 - **Home page.** Reads `SHIP.md` and shows the plan's shape — the sentence,
   13 conditions, 6 ticked, 6 cut — and a way into the work page. Deliberately
   does not run the checks: parsing is microseconds, checking is seconds, and it

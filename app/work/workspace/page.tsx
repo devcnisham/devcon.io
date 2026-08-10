@@ -1,6 +1,8 @@
 import { ageLabel, checkedSpec } from "@/lib/ship/cache.ts";
 import { lies, tally } from "@/lib/ship/check.ts";
+import { filterSpec, oneParam } from "@/lib/ship/search.ts";
 import { ViewTabs } from "../views";
+import { NoMatches, Search } from "./search";
 import { Assumptions, Condition, Count, Cuts, Drift } from "./spec";
 
 /**
@@ -17,8 +19,13 @@ import { Assumptions, Condition, Count, Cuts, Drift } from "./spec";
  */
 export const dynamic = "force-dynamic";
 
-export default async function Workspace() {
+export default async function Workspace({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
   const root = process.cwd();
+  const query = oneParam((await searchParams).q);
   // Shared with the canvas — running every command once per view put the round
   // trip between them at roughly thirteen seconds each way.
   const result = await checkedSpec(root);
@@ -41,7 +48,11 @@ export default async function Workspace() {
 
   const { spec, checked, at } = result;
   const t = tally(checked);
+  // Drift is computed from the FULL set, never the filtered one. Hiding a
+  // ticked box that its own check disagrees with — because a search happened
+  // not to match it — would suppress the most important thing this page says.
   const drift = lies(checked);
+  const found = filterSpec(spec, checked, query);
 
   return (
     <>
@@ -84,18 +95,29 @@ export default async function Workspace() {
         <section className="px-6 pb-10 lg:min-h-0 lg:overflow-y-auto lg:px-10">
           <div className="mx-auto max-w-2xl">
             <Drift lying={drift} />
+            <Search result={found} />
 
-            <h2 className="font-medium text-[11px] text-[var(--color-muted)] uppercase tracking-[0.14em]">
-              Done when
-            </h2>
-            <ul className="mt-2">
-              {checked.map((c) => (
-                <Condition key={c.text} c={c} />
-              ))}
-            </ul>
+            {found.matches === 0 ? (
+              <NoMatches query={found.query} />
+            ) : (
+              <>
+                {found.conditions.length > 0 && (
+                  <>
+                    <h2 className="font-medium text-[11px] text-[var(--color-muted)] uppercase tracking-[0.14em]">
+                      Done when
+                    </h2>
+                    <ul className="mt-2">
+                      {found.conditions.map((c) => (
+                        <Condition key={c.text} c={c} />
+                      ))}
+                    </ul>
+                  </>
+                )}
 
-            <Cuts cuts={spec.cuts} />
-            <Assumptions assumptions={spec.assumptions} />
+                <Cuts cuts={found.cuts} />
+                <Assumptions assumptions={found.assumptions} />
+              </>
+            )}
           </div>
         </section>
       </div>
