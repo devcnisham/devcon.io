@@ -200,5 +200,10 @@ export function sandboxEnv(): NodeJS.ProcessEnv {
     // then warns about the EPERM on every single check. Pointing it at
     // /dev/null keeps the denial and drops the noise.
     npm_config_userconfig: "/dev/null",
+    // Answers xcrun's first question before it asks. Stock `/usr/bin/git` is a
+    // shim that resolves the toolchain by running `xcode-select` and then
+    // `xcodebuild`, and `xcodebuild` aborts under this profile. With the answer
+    // already in the environment it never gets that far.
+    DEVELOPER_DIR: xcodeDeveloperDir(),
   };
 }

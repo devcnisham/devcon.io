@@ -131,7 +131,15 @@ describe("availability", () => {
     const env = sandboxEnv();
     assert.deepEqual(
       Object.keys(env).sort(),
-      ["HOME", "LANG", "NODE_ENV", "PATH", "TMPDIR", "npm_config_userconfig"],
+      [
+        "DEVELOPER_DIR",
+        "HOME",
+        "LANG",
+        "NODE_ENV",
+        "PATH",
+        "TMPDIR",
+        "npm_config_userconfig",
+      ],
       "an allowlist — Next loads .env.local into process.env, tokens included",
     );
   });
