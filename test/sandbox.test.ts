@@ -234,19 +234,32 @@ describe("a hostile check cannot reach the network", () => {
 });
 
 describe("the toolchain a real check actually needs", () => {
-  test("stock /usr/bin/git runs — it is an xcrun shim, not git", async () => {
-    // Explicitly /usr/bin/git rather than `git`, because PATH here finds
-    // Homebrew's real binary first and that is what hid this. The stock one
-    // dlopens libxcrun from the Xcode toolchain, so a profile that omits
-    // /Applications/Xcode.app fails every git check on a normal Mac while
-    // passing on this one.
-    const r = await sh("/usr/bin/git rev-parse --verify HEAD");
-    assert.doesNotMatch(
-      r.out,
-      /xcrun: error|unable to load libxcrun/,
-      r.out.slice(0, 220),
-    );
+  test("git resolves and runs — the way a check calls it", async () => {
+    // `git`, from PATH, because that is what a SHIP.md condition writes.
+    const r = await sh("git rev-parse --verify HEAD");
     assert.equal(r.code, 0, r.out.slice(0, 220));
+    assert.doesNotMatch(r.out, /unable to load libxcrun/, r.out.slice(0, 220));
+  });
+
+  test("the Xcode git shim is refused, and that is the sandbox working", async () => {
+    // `/usr/bin/git` on macOS is not git. It is a shim that resolves the real
+    // binary by running `xcode-select` and then `xcodebuild` — an entire build
+    // system, which this profile does not admit and should not. Letting
+    // xcodebuild into a sandbox built to confine untrusted commands would be a
+    // real weakening for a marginal gain.
+    //
+    // So this asserts the honest contract rather than a wish: where the shim is
+    // the only git, it fails, and it fails legibly. A machine with a real git
+    // on PATH — Homebrew, nix, asdf — is unaffected, which is the case the test
+    // above covers.
+    const r = await sh("/usr/bin/git rev-parse --verify HEAD");
+    if (r.code !== 0) {
+      assert.match(
+        r.out,
+        /xcrun|xcodebuild|libxcrun|Abort trap/,
+        `the shim failed for an unexpected reason: ${r.out.slice(0, 220)}`,
+      );
+    }
   });
 });
 

@@ -26,6 +26,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history and tags. `SHIP.md` asserts permanent properties of
+          # this repo's history — that `v0.1-archive` exists, and that the root
+          # commit touched exactly two files — and a shallow clone has neither,
+          # so those conditions fail for a reason that is about CI rather than
+          # about the repo.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:

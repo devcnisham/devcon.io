@@ -207,6 +207,17 @@ leaked this repo's OIDC token read as correct.
   server's PATH does not, and neither does a normal Mac's. **Test toolchain
   binaries by absolute path, not by name** — `git` and `/usr/bin/git` are two
   different programs.
+- **The sandbox does not admit `xcodebuild`, so the Xcode git shim cannot run
+  in it.** `/usr/bin/git` resolves the real binary by running `xcode-select`
+  and then `xcodebuild`; letting a build system into a profile built to confine
+  untrusted commands would be a real weakening for a marginal gain. Checks call
+  `git` from PATH, so any machine with a real git — Homebrew, nix, asdf — is
+  fine. A machine whose only git is the shim cannot run git checks, and the
+  tests assert that contract rather than wishing otherwise.
+- **CI needs `fetch-depth: 0`.** `SHIP.md` asserts permanent properties of this
+  repo's history — that `v0.1-archive` exists, that the root commit touched two
+  files — and `actions/checkout` clones shallow without tags, so those
+  conditions fail for a reason that is about CI rather than about the repo.
 - **Do not hardcode the Xcode path — ask `xcode-select -p`.** The fix for the
   xcrun trap above allowed `/Applications/Xcode.app/Contents/Developer`, which
   is correct on this laptop and wrong on a CI runner, where Xcode installs as
