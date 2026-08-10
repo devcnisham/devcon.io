@@ -77,19 +77,40 @@ leaked this repo's OIDC token read as correct.
   `rm -rf .next`.
 - **`biome.jsonc` lists its own excludes.** `vcs.useIgnoreFile` is deprecated in
   2.5.7; dropping it silently pulled v0.1's leftover CodeQL database into lint.
+- **A fixed timeout makes a verdict depend on the machine, not the code.**
+  `check.ts` allows a check 20s. `pnpm exec tsc --noEmit` takes ~1.3s on an idle
+  machine and over 20s at a load average of 32 — so the same repo reported 5
+  passing conditions and then 4, minutes apart, and the only variable was two
+  VS Code helpers at 370% CPU. **A timeout is not an exit code.** Before
+  blaming the sandbox for slowness, time the command unsandboxed and check
+  `uptime` — four hypotheses died that way here.
+- **`preview_stop` does not reap `next-server`.** Three processes kept port
+  3000 after the tool reported the server stopped, and they skewed every
+  timing taken afterwards. `lsof -ti:3000 | xargs kill -9`.
 
 ## Documents
 
-| File | Holds |
-|---|---|
-| `SHIP.md` | What ships, what is cut and why, done-when conditions with runnable checks |
-| `HANDOFF.md` | Session state and open questions |
-| `v2/task.md` | Every task and its status |
-| `v2/product.md`, `v2/project.md` | Empty — awaiting the owner's content |
+| File | Holds | Authority |
+|---|---|---|
+| `SHIP.md` | What ships, what is cut and why, done-when conditions with runnable checks | **Wins every disagreement** |
+| `v2/task.md` | Every task and its status | Task status |
+| `HANDOFF.md` | Session state and open questions | Session state |
+| `v2/overview.md` | Everything as a flat list | Derivative |
+| `v2/v2_features.md` | The same ground in prose, with how each part was verified | Derivative |
+| `README.md` | Public-facing summary | Derivative |
+| `v2/product.md`, `v2/project.md` | Empty — awaiting the owner's content | — |
 
-**Unresolved:** `SHIP.md` and the `v2/` docs overlap. Two sources of truth is
-how v0.1 started rotting — its README claimed 209 tests while the code said
-252. This needs deciding before either grows.
+**Unresolved, and worse than it was.** Six documents describe v2's state and
+**three of them are derivative restatements**. The authority column above
+is a convention, not a mechanism — and a convention is exactly what failed in
+v0.1, whose README claimed 209 tests while the code said 252 and nothing
+noticed for weeks. Three of these already went stale within one session: the
+README called the surfaces empty after the workspace shipped, and two files
+carried a progress number that had been wrong for a day.
+
+This needed deciding before they grew. They grew. It is task 20, and the honest
+options are to fold the derivative three back into `SHIP.md` and `v2/task.md`,
+or to generate them from the checker rather than typing them.
 
 ## v0.1
 

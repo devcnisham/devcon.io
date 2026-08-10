@@ -2,9 +2,12 @@
 
 > **This file is derivative. It is not a source of truth.**
 > `SHIP.md` decides what ships and what is cut. `v2/task.md` holds task status.
-> `HANDOFF.md` holds session state. This file only describes what exists today,
-> and it is the fourth document in a repo whose `CLAUDE.md` already flags two
-> sources of truth as how v0.1 started rotting — v0.1's README claimed 209 tests
+> `HANDOFF.md` holds session state. `v2/overview.md` is this same ground as a
+> flat list. This file only describes what exists today and how it was checked.
+>
+> Six documents now describe v2's state and **three of them — this one,
+> `v2/overview.md` and `README.md` — only restate the other three.** `CLAUDE.md`
+> flags exactly this as how v0.1 started rotting: its README claimed 209 tests
 > while the code said 252. If this file and `SHIP.md` ever disagree, `SHIP.md`
 > is right and this one is stale.
 >

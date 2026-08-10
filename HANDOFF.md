@@ -63,13 +63,29 @@ views *inside* the work page rather than siblings of home. `/work` redirects to
 
 `v2/product.md` and `v2/project.md` exist with only a heading each. You said you
 would specify what goes in them; nothing was invented. `v2/task.md` is written —
-27 tasks with real status.
+29 tasks with real status.
 
 **Decide how these relate to `SHIP.md`**, which already holds what ships, what
 is cut, and the done-when conditions. Either it folds into `v2/` or it stays as
 the machine-checkable one — but two files claiming to be the source of truth is
 how the last version started rotting: v0.1's README claimed 209 tests while the
 code said 252, and nothing noticed for weeks.
+
+**This got worse on 2026-08-09, on request.** Six documents now describe v2's
+state — `SHIP.md`, `v2/task.md`, this file, `README.md`, `v2/overview.md` and
+`v2/v2_features.md` — and the last three only restate the first three. They are
+each marked derivative and point at `SHIP.md` as the one that wins, which is a
+convention rather than a mechanism.
+
+The prediction already came true inside a single session: `README.md` described
+the surfaces as empty after the workspace shipped, and two files carried a
+progress number that had been wrong for a day. Nothing caught either — I did,
+by hand, while looking for something else.
+
+The honest options are to fold the derivative three back into `SHIP.md` and
+`v2/task.md`, or to **generate them from the checker instead of typing them** —
+which is the same argument this tool makes about ticked boxes, turned on its
+own documentation.
 
 ### Three decisions blocked on you, not on work
 

@@ -1,14 +1,16 @@
 # v2 — overview
 
-> **Fifth document, and derivative like the fourth.** `SHIP.md` decides what
-> ships and what is cut; `v2/task.md` holds task status; `HANDOFF.md` holds
-> session state; `v2/v2_features.md` is the same ground as this file in prose,
-> with how each part was verified. This one is the flat list.
+> **Derivative. Not a source of truth.** `SHIP.md` decides what ships and what
+> is cut; `v2/task.md` holds task status; `HANDOFF.md` holds session state;
+> `v2/v2_features.md` is this same ground in prose, with how each part was
+> verified. This one is the flat list.
 >
-> `CLAUDE.md` flags two sources of truth as how v0.1 started rotting — its
-> README claimed 209 tests while the code said 252. There are now five. If any
-> of them disagree, `SHIP.md` wins and the rest are stale. **Consolidating
-> these is task 20 and it is still your call.**
+> Six documents now describe v2's state and **three of them — this one,
+> `v2/v2_features.md` and `README.md` — only restate the other three.**
+> `CLAUDE.md` flags exactly this as how v0.1 started rotting: its README
+> claimed 209 tests while the code said 252. If any of them disagree, `SHIP.md`
+> wins and the rest are stale. **Consolidating them is task 20, and it is still
+> your call.**
 >
 > Listed 2026-08-09.
 
