@@ -20,10 +20,10 @@
 
 | Route | State |
 |---|---|
-| `/` | Empty home |
+| `/` | The plan's shape — parsed, not checked |
 | `/work` | Redirects to `/work/workspace` |
 | `/work/workspace` | This repo's `SHIP.md`, parsed and checked live |
-| `/work/canvas` | Empty — and nothing specifies what it is for |
+| `/work/canvas` | Empty — and nothing specifies what it is for. Says so on screen. |
 
 ### Modules
 
@@ -37,6 +37,8 @@
 | `app/work/views.tsx` | Floating workspace/canvas switch |
 | `test/sandbox.test.ts` | 20 assertions, all attacks against the real sandbox |
 | `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
+| `test/cache.test.ts` | 6 assertions — TTL expiry, and an edit beating the clock |
+| `lib/ship/cache.ts` | One check run shared by the views. 6 tests. |
 
 ### Gates — five, all green
 
@@ -66,6 +68,9 @@
 | Report a timeout as `error` with "not a failed condition — re-run" | done |
 | Render the spec, checked, at `/work/workspace` | done |
 | Zero client JavaScript — 0 page chunks | done |
+| A way out of the work page | done |
+| Home shows the plan's shape without running checks | done |
+| One check run shared between views, with its age always on screen | done |
 | Consent gate before running a stranger's checks | not built |
 | MCP server + repo reader | not built |
 | The critique pass — **the actual product** | not built |
@@ -100,7 +105,6 @@
 
 | Decision |
 |---|
-| The work page has no way back to home |
 | The 14rem workspace rail is a permanent commitment |
 | `SHIP.md` vs the `v2/` docs — now six files |
 | What `/work/canvas` is for |

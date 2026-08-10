@@ -23,6 +23,24 @@ export function ViewTabs({ active }: { active: "workspace" | "canvas" }) {
         aria-label="View"
         className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-white/[0.07] bg-[#16191f]/85 p-1 shadow-lg shadow-black/40 backdrop-blur"
       >
+        {/* The way out. Without it the work page had exactly two links, both
+            of which kept you on the work page — you could click forever and
+            never leave, and browser-back was the only exit. It lives in this
+            cluster rather than in a restored app header, because a header
+            would cost the full-bleed surface the whole page is built on. */}
+        <Link
+          href="/"
+          title="Home"
+          className="rounded-xl px-3 py-1.5 text-[13px] text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        >
+          <span aria-hidden>←</span>
+          <span className="sr-only">Home</span>
+        </Link>
+        <span
+          aria-hidden
+          className="mx-0.5 h-4 w-px shrink-0 bg-[var(--color-line)]"
+        />
+
         {VIEWS.map((v) => {
           const on = v.label === active;
           return (
@@ -33,7 +51,7 @@ export function ViewTabs({ active }: { active: "workspace" | "canvas" }) {
               className={`rounded-xl px-3.5 py-1.5 text-[13px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                 on
                   ? "bg-white/[0.11] text-white"
-                  : "text-neutral-400 hover:text-neutral-100"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
               }`}
             >
               {v.label}

@@ -45,10 +45,10 @@ Four things decided in this session, all of them the user's calls:
 
 | Path | What |
 |---|---|
-| `app/page.tsx` | Empty home |
+| `app/page.tsx` | The plan's shape — parsed, not checked. Says a tick is a claim. |
 | `app/work/` | The work page — full-bleed surface, floating switch |
 | `app/work/workspace/` | This repo's `SHIP.md`, parsed and checked live |
-| `app/work/canvas/` | Still empty |
+| `app/work/canvas/` | Still empty, and now says so |
 | `app/work/views.tsx` | The floating segmented switch |
 | `lib/ship/parse.ts` | Reads `SHIP.md` — works |
 | `lib/ship/check.ts` | Runs the done-when checks — works, wired to the workspace |
@@ -90,7 +90,7 @@ own documentation.
 
 Listed in full in `v2/task.md`; repeated here because they gate everything else.
 
-1. **The work page has no way back to home.** Browser-back is the only exit.
+1. ~~The work page has no way back to home.~~ **Fixed** — a `←` link in the floating switch.
 2. **The 14rem workspace rail** is a permanent commitment with nothing in it.
 3. **`SHIP.md` vs the `v2/` docs** — see above.
 
@@ -110,10 +110,16 @@ discipline works and that adding it late is how it gets skipped.
 
 ## Open questions, in the order they will bite
 
-1. **The work page is a dead end.** With the app header gone there is no way
-   back to home except browser-back. The reference showed no such control, so
-   this follows it rather than inventing one — but it needs an answer before
-   anything real lives there.
+1. **The work page was a dead end — fixed 2026-08-09.** It had exactly two
+   links, `workspace` and `canvas`, and both kept you on the work page. You
+   could click forever and never leave; browser-back was the only exit. A `←`
+   home link now sits in the floating switch rather than in a restored app
+   header, which would have cost the full-bleed surface the page is built on.
+   **Found by clicking, not by reading** — every route returned 200 and every
+   anchor had a correct `href`, so nothing was broken in the sense a test or a
+   log would have shown. The empty canvas made it worse: switching to it moved
+   the tab highlight and changed nothing else, so a navigation that had worked
+   read as one that had failed. It now says `canvas — nothing here yet`.
 2. **The checker is sandboxed, with two things left open.** Checks now run under
    seatbelt (`lib/ship/sandbox.ts`): network denied, filesystem confined to the
    repo and toolchain, `.git`/`.env*`/`.vercel` denied, environment replaced
@@ -135,11 +141,13 @@ discipline works and that adding it late is how it gets skipped.
      the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **Tests exist for the sandbox and nothing else.** `test/sandbox.test.ts`, 19
-   assertions, run with `pnpm test` — node's own runner, no dependency added.
-   Each one attacks the real sandbox rather than reading the profile, and they
-   are mutation-verified: reverting the profile's carve-out to the wildcard form
-   turns five of them red. `parse.ts` and the rest of `check.ts` have none.
+4. **Tests cover the sandbox, the checker and the cache. `parse.ts` has
+   none.** 32 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
+   (6) and `test/cache.test.ts` (6), run with `pnpm test` — node's own runner,
+   no dependency added. Each attacks real behaviour rather than reading source,
+   and they are mutation-verified: reverting the profile's carve-out turns five
+   red, flipping a timeout verdict to `fail` turns one red, dropping the Xcode
+   allow turns one red.
    - **`SHIP.md`'s check #7 — `test -d test && pnpm test` — now fails, and the
      reason is worth knowing.** The checker runs it *inside* the sandbox, so the
      suite is nested one level deeper and cannot create the bait file it attacks

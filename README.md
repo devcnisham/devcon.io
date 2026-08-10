@@ -13,10 +13,10 @@ pnpm dev        # localhost:3000
 
 | Route | What |
 |---|---|
-| `/` | Home — empty |
+| `/` | Reads `SHIP.md` and shows the plan's shape — deliberately without running the checks |
 | `/work` | Redirects to the default view |
 | `/work/workspace` | This repo's `SHIP.md`, parsed and checked live |
-| `/work/canvas` | Full-bleed surface — empty, and unspecified |
+| `/work/canvas` | Full-bleed surface — empty, and unspecified. Says so rather than rendering nothing. |
 
 Every route is a server component. The build emits **zero client-side page
 chunks**, which is the deliberate answer to v0.1's landing page costing 173KB

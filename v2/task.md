@@ -26,12 +26,12 @@ decision) · **later**
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 5 | Empty home page | **done** | `app/page.tsx` |
+| 5 | Home page | **done** | `app/page.tsx` reads `SHIP.md` and shows the plan's shape — name, sentence, conditions, ticked, cut — and a way into the work page. Deliberately does **not** run the checks: parsing is microseconds, checking is seconds, and a landing page that takes 13s to say hello is broken. It says on screen that nothing there has been verified. |
 | 6 | Work page, full-bleed | **done** | Three washes over lifted navy + dot grid. Matches the reference. |
 | 7 | Workspace + canvas as views inside work | **done** | `/work` → `/work/workspace`. Real routes, not a client toggle. |
 | 8 | Floating segmented switch | **done** | Lives in each view — a layout cannot see which child renders without a client hook. |
 | 9 | Zero client JS on every route | **done** | 0 page chunks. The concrete answer to v0.1's 173KB. |
-| 10 | A way back from the work page | **blocked** | No header means browser-back is the only exit. The reference showed no control, so none was invented. **Needs your call.** |
+| 10 | A way back from the work page | **done** | Found by clicking rather than reading: the work page had exactly two links and both kept you on it, so you could click forever and never leave. A `←` home link now sits in the floating switch — not a restored header, which would cost the full-bleed surface. |
 | 11 | Decide the 14rem workspace rail | **blocked** | A permanent commitment with nothing in it. Cheap now, expensive later. |
 
 ## The spec format
