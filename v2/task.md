@@ -1,10 +1,13 @@
 # Task
 
-Every task for v2 and where it stands. Updated 2026-08-08.
+Every task for v2 and where it stands. Updated 2026-08-09.
 
-**Progress: 6 of 13 done-when conditions in `SHIP.md` are met.** That is the
-only progress number that means anything here — it is checked by running
-commands, not by ticking boxes. Everything below is the work behind it.
+**Progress: 4 or 5 of 13 done-when conditions in `SHIP.md`, depending on
+machine load.** It is still the only progress number that means anything here —
+it is checked by running commands, not by ticking boxes — but as of 2026-08-09
+it is not stable, and the instability is task 28. Measured twice within
+minutes: 5 from the browser, 4 from the CLI, the difference being `tsc` and the
+checker's fixed 20s timeout. Everything below is the work behind it.
 
 Status keys: **done** · **doing** · **next** · **blocked** (waiting on a
 decision) · **later**
@@ -49,7 +52,9 @@ decision) · **later**
 | 17 | Checker executes arbitrary shell from markdown | **done, macOS only** | Confined by seatbelt (`lib/ship/sandbox.ts`): no network, no filesystem outside the repo and toolchain, no `.git`/`.env*`/`.vercel`, empty environment. 14 attacks verified blocked by running them. Residual: a check can still destroy the repo's uncommitted working tree — writes cannot be denied, `tsc` is `incremental`. Non-macOS refuses to run rather than running unconfined. |
 | 18 | A check can sabotage the process running it | **done** | `pnpm build` fought the dev server over `.next`. Now `tsc --noEmit`. |
 | 19 | A check can expire | **done** | Commit-count check went stale in four commits. Now asserts a permanent property of history. |
-| 20 | `SHIP.md` vs `v2/` docs overlap | **blocked** | Two sources of truth is how v0.1 started rotting. **Needs your call.** |
+| 20 | `SHIP.md` vs `v2/` docs overlap | **blocked, worse** | Now four documents: `SHIP.md`, `v2/task.md`, `HANDOFF.md`, `v2/v2_features.md`. The new one is marked derivative and points at the others, but that is a convention, not a mechanism. Two sources of truth is how v0.1 started rotting. **Needs your call.** |
+| 28 | A verdict changes with machine load | **open** | `check.ts` has a fixed 20s timeout. `tsc --noEmit` takes ~12s here at load average 32 and has measured over 20s, turning a pass into `error`. Same repo, 5 passes in the browser and 4 from the CLI minutes apart. A timeout is not an exit code. The fix is a decision — longer, none, a distinct `slow` verdict, or measure-then-retry. |
+| 29 | `/work/canvas` has no specification | **blocked** | An empty route from the sketch that no document defines. An interactive node canvas would cost client JavaScript. **Needs your call.** |
 
 ## Not started
 

@@ -1,13 +1,20 @@
 # devcon v2 — handoff
 
 > Read `CLAUDE.md` first, then this, then `v2/task.md`. Written 2026-08-08 at
-> the end of the session that froze v0.1 and started v2 from an empty tree.
+> the end of the session that froze v0.1 and started v2; updated 2026-08-09,
+> the session that sandboxed the checker and put it on screen.
 
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean, nothing local-only.
-**Gates all green: lint 0, tsc 0, build 0, and 0 client-side page chunks.**
-**Progress: 6 of 13 done-when conditions in `SHIP.md`** — the only progress
-number here that is produced by running commands rather than by self-report.
+**Gates all green: lint 0, tsc 0, test 0, build 0, and 0 client page chunks.**
+
+**Progress: 4 or 5 of 13 done-when conditions, depending on machine load** —
+and that instability is itself the finding. Measured twice within minutes:
+5 passing from the browser, 4 from the CLI. The difference was entirely
+`pnpm exec tsc --noEmit` crossing the checker's fixed 20s timeout on a loaded
+machine — it takes ~12s here at a load average of 32. **A timeout is not an
+exit code.** See open question 6; do not treat this number as settled until
+that is fixed.
 
 ```bash
 pnpm install
@@ -129,6 +136,22 @@ discipline works and that adding it late is how it gets skipped.
      prevent.
 5. **No CI.** v0.1 ended with a four-gate workflow; v2 has none yet — and there
    are now five gates, `pnpm test` among them.
+6. **A verdict changes with machine load, and that undermines the whole
+   premise.** `check.ts` uses a fixed 20s timeout. `pnpm exec tsc --noEmit`
+   takes ~12s on this machine at load average 32, and has measured over 20s —
+   at which point a passing check reports `error`. The same repo gave 5 passes
+   in the browser and 4 from the CLI minutes apart. A tool that says "a ticked
+   box is a claim, an exit code is evidence" cannot have its evidence depend on
+   what else is running. Unfixed, and the fix is a decision rather than a patch:
+   a longer timeout, no timeout, a distinct `slow` verdict, or measure-then-
+   retry. Whichever it is, the timeout case must stay distinguishable from a
+   real failure.
+7. **`/work/canvas` has no specification.** It is an empty route that came from
+   the sketch. `SHIP.md`, `v2/task.md` and this file all mention it only as a
+   route that exists — none says what it is *for*. v0.1 had a canvas of service
+   nodes, but nothing is carried forward, and an interactive node canvas would
+   need client JavaScript, which this repo spends only when something earns it.
+   This is a decision, not a task.
 
 ---
 

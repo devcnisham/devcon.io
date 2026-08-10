@@ -3,8 +3,8 @@
 A shipping critic that runs inside your coding agent, keeps one `SHIP.md` in
 your repo, reads what you actually built, and tells you what to cut.
 
-**v2, in progress.** The surfaces exist and are empty; the product does not
-exist yet.
+**v2, in progress.** The spec reader, the checker and its sandbox work and are
+on screen. The critique pass — the actual product — does not exist yet.
 
 ```bash
 pnpm install
@@ -15,8 +15,8 @@ pnpm dev        # localhost:3000
 |---|---|
 | `/` | Home — empty |
 | `/work` | Redirects to the default view |
-| `/work/workspace` | Rail + area — empty |
-| `/work/canvas` | Full-bleed surface — empty |
+| `/work/workspace` | This repo's `SHIP.md`, parsed and checked live |
+| `/work/canvas` | Full-bleed surface — empty, and unspecified |
 
 Every route is a server component. The build emits **zero client-side page
 chunks**, which is the deliberate answer to v0.1's landing page costing 173KB
@@ -30,12 +30,23 @@ of JavaScript to render a headline and one input.
 | `HANDOFF.md` | Current state and the decisions blocking progress |
 | `v2/task.md` | Every task and its status |
 | `SHIP.md` | What ships, what is cut and why, done-when conditions |
+| `v2/overview.md` | Everything, as a flat list — start here for state |
+| `v2/v2_features.md` | The same ground in prose, with how each part was verified |
 
 ## What is not built
 
-No tests. No CI. No MCP server. No critique pass — which is the actual product;
-everything present is plumbing. `lib/ship/` can parse a `SHIP.md` and run its
-checks, and is wired to nothing.
+No CI. No MCP server. No critique pass — which is the actual product;
+everything present is plumbing. Tests cover the sandbox and nothing else:
+`parse.ts` has none.
+
+`/work/canvas` is an empty route that **nothing specifies**. It came from the
+sketch and no document says what it is for.
+
+Checks run confined — macOS seatbelt, no network, no filesystem outside the
+repo and toolchain, no `.git`, `.env*` or `.vercel`, and a replaced
+environment. Off macOS they refuse to run rather than running unconfined.
+A check can still destroy the repo's uncommitted working tree; writes cannot
+be denied.
 
 ## v0.1
 

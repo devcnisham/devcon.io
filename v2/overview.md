@@ -1,0 +1,115 @@
+# v2 — overview
+
+> **Fifth document, and derivative like the fourth.** `SHIP.md` decides what
+> ships and what is cut; `v2/task.md` holds task status; `HANDOFF.md` holds
+> session state; `v2/v2_features.md` is the same ground as this file in prose,
+> with how each part was verified. This one is the flat list.
+>
+> `CLAUDE.md` flags two sources of truth as how v0.1 started rotting — its
+> README claimed 209 tests while the code said 252. There are now five. If any
+> of them disagree, `SHIP.md` wins and the rest are stale. **Consolidating
+> these is task 20 and it is still your call.**
+>
+> Listed 2026-08-09.
+
+## Everything, listed
+
+### Routes
+
+| Route | State |
+|---|---|
+| `/` | Empty home |
+| `/work` | Redirects to `/work/workspace` |
+| `/work/workspace` | This repo's `SHIP.md`, parsed and checked live |
+| `/work/canvas` | Empty — and nothing specifies what it is for |
+
+### Modules
+
+| Module | State |
+|---|---|
+| `lib/ship/parse.ts` | Works. **No tests.** |
+| `lib/ship/check.ts` | Works. Sandboxed. On screen. |
+| `lib/ship/sandbox.ts` | Works. macOS only, by design. 19 tests. |
+| `app/work/workspace/page.tsx` | Renders the checked spec |
+| `app/work/workspace/spec.tsx` | How a checked spec is drawn |
+| `app/work/views.tsx` | Floating workspace/canvas switch |
+| `test/sandbox.test.ts` | The only test file |
+
+### Gates — five, all green
+
+| Command | What |
+|---|---|
+| `pnpm lint` | biome |
+| `pnpm exec tsc --noEmit` | types |
+| `pnpm test` | node's runner — attacks the sandbox for real |
+| `pnpm build` | next build — also typechecks; **read the exit code** |
+| `pnpm dev` | localhost:3000 |
+
+### Features
+
+| Feature | State |
+|---|---|
+| Read `SHIP.md` into a spec | done |
+| Run done-when checks, four verdicts | done |
+| Keep the tick and the verdict separate | done |
+| Report drift — ticked boxes whose check disagrees | done |
+| Confine checks: no network | done |
+| Confine checks: filesystem to repo + toolchain | done |
+| Confine checks: no `.git` writes | done |
+| Confine checks: no `.env*` / `.vercel` at all | done |
+| Confine checks: replaced environment, never inherited | done |
+| Refuse to run where there is no sandbox | done |
+| Render the spec, checked, at `/work/workspace` | done |
+| Zero client JavaScript — 0 page chunks | done |
+| Consent gate before running a stranger's checks | not built |
+| MCP server + repo reader | not built |
+| The critique pass — **the actual product** | not built |
+| Cut rules | not built |
+| CI | not built |
+| Tests for `parse.ts` | not built |
+| Anything at `/work/canvas` | no spec |
+
+### Cut on purpose
+
+| Cut | Why |
+|---|---|
+| A step catalog | 63 steps assumed the plan is knowable in advance. It is not. |
+| Accounts, backend, sync | `SHIP.md` is in your repo. Git is the sync. |
+| Telemetry | Nothing to measure until one person ships one thing. |
+| A second agent to run the work | You already have one. |
+| Anything copied from v0.1 | The archive is a record, not a parts bin. |
+| A web app | **Reversed on request** — being built anyway. Entry kept, not deleted, so the reversal stays visible. |
+
+### Defects
+
+| Defect | State |
+|---|---|
+| A verdict changes with machine load — fixed 20s timeout, `tsc` ~12s here at load 32, measured over 20s | open, task 28 |
+| A check can destroy the repo's uncommitted working tree — writes cannot be denied | open |
+| `SHIP.md` check #7 fails by construction — nests the sandbox | open |
+| `SHIP.md` check #2 can never pass — needs the network | by decision |
+| `parse.ts` has no tests | open |
+| Five overlapping documents | open, task 20 |
+
+### Decisions waiting on you
+
+| Decision |
+|---|
+| The work page has no way back to home |
+| The 14rem workspace rail is a permanent commitment |
+| `SHIP.md` vs the `v2/` docs — now five files |
+| What `/work/canvas` is for |
+| What the checker's timeout should be |
+| `v2/product.md`, `v2/project.md` — headings only, awaiting your content |
+
+### v0.1
+
+Frozen at tag `v0.1-archive`, kept on `archive/v0.1`, still deployed at
+<https://devcon-hazel.vercel.app>. Nothing deleted, nothing carried forward.
+
+Proved: prompts work when an agent runs them — 2 of 63 cleared a two-agent bar,
+checked by running the result.
+
+Did not prove: **nobody has finished a project because of devcon.** Still true
+of v2. There is no number for *"of N who started, M shipped."* Every row above
+is plumbing until that number exists.
