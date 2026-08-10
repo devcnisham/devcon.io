@@ -71,7 +71,7 @@ decision) · **later**
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 21 | Tests — any at all | **started** | 63 assertions across `test/sandbox.test.ts` (20, all attacks against the real sandbox) and `test/check.test.ts` (6 — timeouts, verdicts, bounded concurrency). `pnpm test`, node's runner, no dependency added. Every one mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
-| 22 | CI gates | **next** | v0.1 ended with four gates. v2 has none. |
+| 22 | CI gates | **written, never run** | `.github/workflows/gates.yml` — the five gates plus a zero-page-chunk check and a tracked-secret scan, on every push and PR. **macOS runner, not a preference:** on Linux `sandbox-exec` is missing, every attack command fails to start, and every "did not leak" assertion passes because nothing ran. `test/sandbox.test.ts` now refuses to run without a sandbox rather than report green. Each step was run locally and each custom step was proved to fail when it should. **The workflow itself has never executed — the first push is its first run.** |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |
 | 25 | Cut rules | **later** | Written fresh, not ported from v0.1's 21 anti-steps. |

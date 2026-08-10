@@ -102,7 +102,7 @@
 | MCP server + repo reader | not built |
 | The critique pass — **the actual product** | not built |
 | Cut rules | not built |
-| CI | not built |
+| CI — five gates, zero-chunk check, secret scan, on macOS | done |
 | Tests for `parse.ts` | not built |
 | Anything at `/work/canvas` | no spec |
 

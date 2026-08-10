@@ -21,6 +21,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **CI.** `.github/workflows/gates.yml` runs the five gates on every push and
+  pull request, plus two more: the build must emit zero page chunks, and no
+  `.env` or `.vercel` path may be tracked by git. **On macOS, deliberately** —
+  the sandbox tests drive real seatbelt, and on Linux they would pass without
+  running anything.
+
+- **The sandbox suite refuses to report green where it cannot test.** Without
+  `sandbox-exec` every attack command fails to start, produces no output, and
+  every "did not leak" assertion passes vacuously. It now fails loudly with the
+  reason instead.
+
 - **The workspace checks the open project, not this repo.** The first thing in
   v2 to run `lib/ship/` against a folder someone else may have written, which
   is the entire reason the sandbox was built. Stat cards, a card per condition

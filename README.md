@@ -46,18 +46,20 @@ it has never meant an empty network tab, and this README said otherwise until
 
 ## What is not built
 
-No CI. No MCP server. No critique pass — which is the actual product;
-everything present is plumbing. Tests cover the sandbox and nothing else:
-`parse.ts` has none.
+**The critique pass — which is the actual product.** Everything present is
+plumbing for it, and it is deliberately sequenced behind hand-writing a
+`SHIP.md` for two real projects: if a hand-written spec changes no real
+decision, tooling will not rescue it.
 
-`/work/canvas` is an empty route that **nothing specifies**. It came from the
-sketch and no document says what it is for.
+Also missing: an MCP server, cut rules, end-to-end tests, and tests for
+`parse.ts`. Connecting a service is not wired either — no OAuth, no token
+exchange. Integration panels tell you what a service needs; you set it up.
 
 Checks run confined — macOS seatbelt, no network, no filesystem outside the
-repo and toolchain, no `.git`, `.env*` or `.vercel`, and a replaced
-environment. Off macOS they refuse to run rather than running unconfined.
-A check can still destroy the repo's uncommitted working tree; writes cannot
-be denied.
+project and its toolchain, no `.git`, `.env*` or `.vercel`, and a replaced
+environment. Off macOS they refuse to run rather than running unconfined. A
+check can still change the project's own uncommitted files; writes cannot be
+denied.
 
 ## v0.1
 

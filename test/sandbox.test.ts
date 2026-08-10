@@ -101,6 +101,23 @@ after(() => {
 });
 
 describe("availability", () => {
+  test("refuses to report green where it cannot test anything", () => {
+    // Without a sandbox, `sh()` cannot start a process at all: execFile throws
+    // ENOENT, the output is empty, and every `cannotReach` assertion below
+    // passes because nothing leaked — because nothing ran. That is a green
+    // suite proving nothing, which is the failure this repo keeps hitting.
+    //
+    // So the suite fails loudly instead. A red run that says "cannot verify
+    // here" is worth more than a green one that means nothing, and it is the
+    // same choice `sandboxUnavailable` makes for real checks.
+    const why = sandboxUnavailable();
+    assert.equal(
+      why,
+      null,
+      `The sandbox is unavailable, so these tests cannot verify it: ${why}`,
+    );
+  });
+
   test("is active on macOS, and says why when it is not", () => {
     const why = sandboxUnavailable();
     if (process.platform === "darwin") {

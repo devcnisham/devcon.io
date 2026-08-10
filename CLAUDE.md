@@ -114,9 +114,16 @@ pnpm dev               # localhost:3000
 line is the bundler, not the gate. Read the exit code — in v0.1 that mistake
 hid 7 type errors.
 
-Tests cover `lib/ship/sandbox.ts` and `check.ts`. **`parse.ts` has none**, and
-there is still no CI. Both are open tasks and should land before the next
-feature.
+Tests cover `lib/ship/`, the workspace store, the detector and the canvas
+layout. **`parse.ts` has none** — still an open task.
+
+CI runs the five gates plus two more on every push:
+`.github/workflows/gates.yml`. **It runs on macOS and that is not a
+preference** — `test/sandbox.test.ts` drives the real seatbelt sandbox, and on
+Linux every attack command fails to start, produces no output, and every "did
+not leak" assertion passes because nothing ran. The suite now refuses to run
+without a sandbox rather than report green, so a Linux runner would be red
+instead of misleading.
 
 Every assertion in `test/sandbox.test.ts` runs a real command through the real
 sandbox. **Do not add one that inspects the profile's text** — the profile that

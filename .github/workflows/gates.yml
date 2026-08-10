@@ -1,0 +1,84 @@
+name: gates
+
+# Every push and every PR. There is no deploy step: `v2` is not deployed, and
+# `main` still serves v0.1.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    # macOS, and this is not a preference.
+    #
+    # `test/sandbox.test.ts` drives the real seatbelt sandbox, which exists only
+    # here. On Linux `sandbox-exec` is missing, so every attack command fails to
+    # start, produces no output, and every "did not leak" assertion passes
+    # because nothing ran. That is a green suite proving nothing — the exact
+    # defect this project exists to catch. The suite now refuses to run there
+    # rather than report it, so Linux CI would be red, not misleading.
+    runs-on: macos-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.25.0
+
+      - uses: actions/setup-node@v4
+        with:
+          # Native TypeScript type-stripping, so `node --test` runs the `.ts`
+          # files directly and the suite needs no build step or test runner.
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The five gates from CLAUDE.md, in the order they fail fastest.
+      - name: lint
+        run: pnpm lint
+
+      - name: types
+        run: pnpm exec tsc --noEmit
+
+      - name: test
+        run: pnpm test
+
+      - name: build
+        run: pnpm build
+
+      # `pnpm build` prints "✓ Compiled successfully" before it typechecks, so
+      # the line is the bundler and the exit code is the gate. Actions reads the
+      # exit code; this note is here so nobody adds a grep for that string.
+
+      - name: zero client page chunks
+        run: |
+          count=$(find .next/static/chunks/app -name 'page-*.js' 2>/dev/null | wc -l | tr -d ' ')
+          echo "page chunks: $count"
+          if [ "$count" != "0" ]; then
+            echo "::error::$count page chunk(s) emitted. A client component was added — say what it bought, and measure it."
+            find .next/static/chunks/app -name 'page-*.js'
+            exit 1
+          fi
+
+      # The repo's second rule, enforced rather than remembered. `.env.local`
+      # here holds a live token; `.gitignore` was the first file committed for
+      # that reason.
+      - name: no secret in the tree
+        run: |
+          # One list, one pattern. `git ls-files --error-unmatch a b c` was the
+          # obvious spelling and is wrong: it returns non-zero when *any*
+          # argument is untracked, so a genuinely committed .env sitting beside
+          # two untracked ones reports clean.
+          leaked=$(git ls-files | grep -E '^\.env|^\.vercel/' || true)
+          if [ -n "$leaked" ]; then
+            echo "::error::Tracked secret paths: $leaked"
+            exit 1
+          fi
+          echo "no tracked .env or .vercel paths"
