@@ -13,10 +13,12 @@ pnpm dev        # localhost:3000
 
 | Route | What |
 |---|---|
-| `/` | Reads `SHIP.md` and shows the plan's shape — deliberately without running the checks |
+| `/` | Dashboard — open a folder or clone a repo, and a card per project read from its files |
+| `/connectors` | Integrations — what this project covers, and what nothing covers yet |
+| `/settings` | What devcon is doing, read from the modules that do it |
 | `/work` | Redirects to the default view |
-| `/work/workspace` | Empty — cleared on request, awaiting new contents |
-| `/work/canvas` | Empty — cleared on request |
+| `/work/workspace` | Empty — names the open project |
+| `/work/canvas` | Empty — names the open project |
 
 Every route is a server component. The build emits **zero client-side page
 chunks**, which is the deliberate answer to v0.1's landing page costing 173KB

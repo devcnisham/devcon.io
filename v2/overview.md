@@ -20,10 +20,12 @@
 
 | Route | State |
 |---|---|
-| `/` | The plan's shape — parsed, not checked |
+| `/` | Dashboard — open/clone, stats, a card per project |
+| `/connectors` | Integrations — coverage and what nothing covers yet |
+| `/settings` | What devcon is doing, read from the modules |
 | `/work` | Redirects to `/work/workspace` |
-| `/work/workspace` | Empty — cleared on request, awaiting new contents |
-| `/work/canvas` | Empty — cleared on request |
+| `/work/workspace` | Empty — names the open project, nothing else |
+| `/work/canvas` | Empty — names the open project, nothing else |
 
 ### Modules
 
@@ -35,6 +37,7 @@
 | `app/work/workspace/page.tsx` | Empty |
 | `app/page.tsx`, `app/open.tsx`, `app/cards.tsx` | Dashboard — open, clone, stats, project cards |
 | `lib/detect.ts` | Reads a project's stack and gaps from its files. 12 tests. |
+| `app/connector-cards.tsx` | Integration rows and capability-coverage cards |
 | `app/connectors/page.tsx` | Integrations, read from `package.json` |
 | `app/settings/page.tsx` | What devcon is doing, read from the modules |
 | `lib/workspaces.ts`, `lib/clone.ts`, `lib/pick-folder.ts` | Import, clone, Finder dialog |
@@ -77,7 +80,7 @@
 | Render the spec, checked, at `/work/workspace` | **removed** — cleared on request, in git at `45ae91e` |
 | Zero client JavaScript — 0 page chunks | done |
 | A way out of the work page | done |
-| Home shows the plan's shape without running checks | done |
+| Home is the dashboard — projects, stats, open and clone | done |
 | One check run shared between views, with its age always on screen | done |
 | Works on a phone — page scrolls as one, nav pinned | done |
 | Search the workspace — text, command, evidence and verdict | **removed** with the workspace; `filterSpec` and its 11 tests remain |
@@ -85,6 +88,8 @@
 | Report what a project is missing, derived from its files | done |
 | Flag a `.env` not covered by `.gitignore` | done |
 | Dashboard stats and project cards | done |
+| Open a project from its card — the work page names it | done |
+| Integrations: capability coverage, what nothing covers yet | done |
 | One colour system — zero raw Tailwind colours in `app/` | done |
 | Changelog, built from `git log` | done |
 | End-to-end tests | not built |

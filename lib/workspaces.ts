@@ -25,6 +25,15 @@ export interface Workspace {
 
 export const STORE = join(homedir(), ".devcon", "workspaces.json");
 
+/**
+ * Which project the work page is showing.
+ *
+ * A separate file rather than a field on the list, so the list keeps the shape
+ * it already has on disk and nobody's existing `workspaces.json` has to be
+ * migrated or silently dropped.
+ */
+export const ACTIVE = join(homedir(), ".devcon", "active.json");
+
 /** `~/code/app` → `/Users/you/code/app`. Typed paths usually start with `~`. */
 export function expandHome(p: string, home = homedir()): string {
   const t = p.trim();
@@ -145,4 +154,52 @@ export async function describeWorkspace(
     () => false,
   );
   return { exists, hasSpec };
+}
+
+/** Remember which project the work page should open. */
+export async function setActive(path: string, file = ACTIVE): Promise<void> {
+  await mkdir(join(file, ".."), { recursive: true });
+  await writeFile(file, `${JSON.stringify({ path })}\n`, "utf8");
+}
+
+/**
+ * The project the work page is showing, or null.
+ *
+ * Checked against the disk every time. A remembered path whose folder has
+ * since been deleted would have the work page name a project that is not
+ * there — the same class of claim this tool exists to catch.
+ */
+export async function getActive(
+  file = ACTIVE,
+  store = STORE,
+): Promise<Workspace | null> {
+  let path: string;
+  try {
+    path = JSON.parse(await readFile(file, "utf8"))?.path;
+  } catch {
+    return null;
+  }
+  if (typeof path !== "string" || !path) return null;
+
+  const stillThere = await stat(path).then(
+    (s) => s.isDirectory(),
+    () => false,
+  );
+  if (!stillThere) return null;
+
+  const list = await listWorkspaces(store);
+  return list.find((w) => w.path === path) ?? null;
+}
+
+/** Forgetting the open project clears it, rather than leaving a dangling row. */
+export async function clearActiveIf(
+  path: string,
+  file = ACTIVE,
+): Promise<void> {
+  try {
+    const current = JSON.parse(await readFile(file, "utf8"))?.path;
+    if (current === path) await writeFile(file, "{}\n", "utf8");
+  } catch {
+    // No active file is the same as nothing to clear.
+  }
 }

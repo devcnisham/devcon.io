@@ -1,3 +1,4 @@
+import { getActive } from "@/lib/workspaces.ts";
 import { ViewTabs } from "../views";
 
 /**
@@ -11,10 +12,14 @@ import { ViewTabs } from "../views";
  * than a navigation that worked. The label existed for that reason. The tabs
  * stay, so the way out is still here.
  */
-export default function Canvas() {
+export const dynamic = "force-dynamic";
+
+export default async function Canvas() {
+  const project = await getActive();
+
   return (
     <>
-      <ViewTabs active="canvas" />
+      <ViewTabs active="canvas" project={project?.name} />
       <div className="min-h-0 flex-1" />
     </>
   );

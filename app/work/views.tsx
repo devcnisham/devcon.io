@@ -16,7 +16,14 @@ const VIEWS = [
   { href: "/work/canvas", label: "canvas" },
 ] as const;
 
-export function ViewTabs({ active }: { active: "workspace" | "canvas" }) {
+export function ViewTabs({
+  active,
+  project,
+}: {
+  active: "workspace" | "canvas";
+  /** Which project is open. Null means none has been chosen yet. */
+  project?: string | null;
+}) {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-3 z-20 flex justify-center">
       <nav
@@ -58,6 +65,21 @@ export function ViewTabs({ active }: { active: "workspace" | "canvas" }) {
             </Link>
           );
         })}
+
+        {/* Which project this page is about. Without it the work page is the
+            same for every project, and opening one from the dashboard would
+            look like it did nothing. */}
+        {project && (
+          <>
+            <span
+              aria-hidden="true"
+              className="mx-0.5 h-4 w-px shrink-0 bg-[var(--color-line)]"
+            />
+            <span className="max-w-[9rem] truncate px-2 text-[12.5px] text-[var(--color-muted)]">
+              {project}
+            </span>
+          </>
+        )}
       </nav>
     </div>
   );

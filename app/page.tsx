@@ -120,9 +120,9 @@ export default async function Dashboard({
         )}
 
         <p className="mt-6 max-w-xl text-[11.5px] text-[var(--color-muted)]/80 leading-relaxed">
-          Opening one of these does not switch the work page yet — both its
-          views are empty. The cards say what they can prove from the files and
-          nothing more.
+          Opening a card makes that project the one the work page is about. Both
+          of its views are still empty, so what you get is the project&rsquo;s
+          name on the switch and nothing else yet.
         </p>
       </section>
     </HomeShell>

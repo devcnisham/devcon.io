@@ -5,7 +5,9 @@ import { cloneRepo } from "@/lib/clone.ts";
 import { pickFolder } from "@/lib/pick-folder.ts";
 import {
   addWorkspace,
+  clearActiveIf,
   removeWorkspace,
+  setActive,
   validatePath,
 } from "@/lib/workspaces.ts";
 
@@ -62,8 +64,26 @@ export async function cloneWorkspace(formData: FormData) {
   return back({ added: result.path });
 }
 
+/** Clicking a project card: make it the open one, then go to the work page. */
+export async function openWorkspace(formData: FormData) {
+  const raw = String(formData.get("path") ?? "");
+  const valid = await validatePath(raw);
+
+  // A folder that has gone missing sends you back with the reason rather than
+  // opening a work page for something that is not there.
+  if (!valid.ok) return back({ error: valid.error, path: raw });
+
+  await addWorkspace(valid.path);
+  await setActive(valid.path);
+  redirect("/work");
+}
+
 export async function forgetWorkspace(formData: FormData) {
   const path = String(formData.get("path") ?? "");
-  if (path) await removeWorkspace(path);
+  if (path) {
+    await removeWorkspace(path);
+    // Otherwise the work page would keep naming a project the list forgot.
+    await clearActiveIf(path);
+  }
   redirect("/");
 }

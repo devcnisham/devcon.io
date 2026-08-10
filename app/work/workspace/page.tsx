@@ -1,4 +1,5 @@
 import { Empty } from "@/app/shell";
+import { getActive } from "@/lib/workspaces.ts";
 import { ViewTabs } from "../views";
 
 /**
@@ -14,10 +15,14 @@ import { ViewTabs } from "../views";
  * waiting, not dead, and deleting them would throw away the only part of this
  * repo that has been attacked and mutation-verified.
  */
-export default function Workspace() {
+export const dynamic = "force-dynamic";
+
+export default async function Workspace() {
+  const project = await getActive();
+
   return (
     <>
-      <ViewTabs active="workspace" />
+      <ViewTabs active="workspace" project={project?.name} />
       <div className="flex min-h-0 flex-1 items-center justify-center pt-16">
         <Empty label="workspace — nothing here yet" />
       </div>

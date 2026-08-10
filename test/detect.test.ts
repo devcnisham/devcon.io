@@ -152,3 +152,44 @@ describe("gaps", () => {
     assert.deepEqual(gaps(d), []);
   });
 });
+
+describe("connector coverage", () => {
+  test("a capability with nothing installed is reported, not omitted", async () => {
+    const { coverage, detectConnectors } = await import("../lib/connectors.ts");
+    // A folder with no package.json at all: every capability is uncovered.
+    const list = await detectConnectors("/definitely/not/here");
+    const cover = coverage(list);
+
+    assert.equal(cover.length, 6, "every capability must appear");
+    assert.equal(
+      cover.every((c) => c.installed.length === 0),
+      true,
+    );
+    // Silence is not coverage — each one must still offer options.
+    assert.equal(
+      cover.every((c) => c.options.length > 0),
+      true,
+    );
+  });
+
+  test("an installed package covers its capability", async () => {
+    const { coverage, detectConnectors } = await import("../lib/connectors.ts");
+    const dir = project({
+      "package.json": JSON.stringify({
+        dependencies: { "@supabase/supabase-js": "2" },
+      }),
+    });
+    const cover = coverage(await detectConnectors(dir));
+
+    const db = cover.find((c) => c.capability === "database");
+    assert.deepEqual(
+      db?.installed.map((c) => c.id),
+      ["supabase"],
+    );
+    // Installing a database must not mark auth as covered.
+    assert.equal(
+      cover.find((c) => c.capability === "auth")?.installed.length,
+      0,
+    );
+  });
+});

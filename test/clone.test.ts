@@ -113,3 +113,55 @@ describe("expandHome", () => {
     assert.equal(expandHome("/a/~/b", "/Users/x"), "/a/~/b");
   });
 });
+
+describe("the active project", () => {
+  test("round-trips, and is null before anything is opened", async () => {
+    const { getActive, setActive, addWorkspace } = await import(
+      "../lib/workspaces.ts"
+    );
+    const home = tmp();
+    const active = join(home, "active.json");
+    const store = join(home, "workspaces.json");
+    const proj = tmp();
+
+    assert.equal(await getActive(active, store), null);
+
+    await addWorkspace(proj, store);
+    await setActive(proj, active);
+    assert.equal((await getActive(active, store))?.path, proj);
+  });
+
+  test("a folder that has since been deleted is not reported as open", async () => {
+    // The work page naming a project that is not there is the same class of
+    // claim this tool exists to catch.
+    const { getActive, setActive, addWorkspace } = await import(
+      "../lib/workspaces.ts"
+    );
+    const home = tmp();
+    const active = join(home, "active.json");
+    const store = join(home, "workspaces.json");
+    const proj = tmp();
+
+    await addWorkspace(proj, store);
+    await setActive(proj, active);
+    rmSync(proj, { recursive: true, force: true });
+
+    assert.equal(await getActive(active, store), null);
+  });
+
+  test("forgetting the open project clears it", async () => {
+    const { clearActiveIf, getActive, setActive, addWorkspace } = await import(
+      "../lib/workspaces.ts"
+    );
+    const home = tmp();
+    const active = join(home, "active.json");
+    const store = join(home, "workspaces.json");
+    const proj = tmp();
+
+    await addWorkspace(proj, store);
+    await setActive(proj, active);
+    await clearActiveIf(proj, active);
+
+    assert.equal(await getActive(active, store), null);
+  });
+});

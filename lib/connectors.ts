@@ -228,6 +228,36 @@ export function filterConnectors(
   return { items, query };
 }
 
+/** One capability, and whether this project has anything for it. */
+export interface Coverage {
+  capability: Capability;
+  label: string;
+  installed: ConnectorState[];
+  options: ConnectorState[];
+}
+
+/**
+ * What the project has, and what it has nothing for.
+ *
+ * The uncovered rows are the useful half. "No database" read off a
+ * `package.json` is a fact about this project; a generic "you should pick a
+ * database" is advice that fits every project and helps none of them.
+ *
+ * Silence is not coverage: a capability with nothing installed says so rather
+ * than being left out of the list.
+ */
+export function coverage(list: ConnectorState[]): Coverage[] {
+  return ORDER.map((capability) => {
+    const options = list.filter((c) => c.capability === capability);
+    return {
+      capability,
+      label: CAPABILITY_LABEL[capability],
+      installed: options.filter((c) => c.installed),
+      options,
+    };
+  });
+}
+
 const ORDER: Capability[] = [
   "database",
   "auth",

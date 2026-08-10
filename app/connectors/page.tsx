@@ -1,22 +1,28 @@
 import {
   byCapability,
   CAPABILITY_LABEL,
-  type ConnectorState,
+  coverage,
   detectConnectors,
   filterConnectors,
 } from "@/lib/connectors.ts";
 import { oneParam } from "@/lib/ship/search.ts";
 import { listWorkspaces } from "@/lib/workspaces.ts";
+import { Stat } from "../cards";
+import {
+  ConnectorRow,
+  CoveredCapability,
+  MissingCapability,
+} from "../connector-cards";
 import { HomeShell } from "../home-shell";
 
 /**
- * Integrations — the services this project uses.
+ * Integrations — the services this project uses, and the ones it has nothing
+ * for.
  *
- * "Installed" is read from the project's `package.json`, so it is evidence
- * rather than a checkbox someone ticked. It says the package is present; it
- * does **not** say the thing works. Only a runnable check can say that, and
- * that check is not built, so nothing here says "connected" on its own
- * authority.
+ * Everything is read from the project's `package.json` as the page renders.
+ * "Installed" means a package is present; it does **not** mean the service
+ * works. Only a runnable check could say that, and there is not one yet, so
+ * nothing here claims it.
  */
 export const dynamic = "force-dynamic";
 
@@ -32,32 +38,93 @@ export default async function Connectors({
   const target = recent?.path ?? process.cwd();
 
   const all = await detectConnectors(target);
+  const cover = coverage(all);
+  const missing = cover.filter((c) => c.installed.length === 0);
+  const covered = cover.filter((c) => c.installed.length > 0);
+
   const { items } = filterConnectors(all, query);
   const installed = items.filter((c) => c.installed);
   const groups = byCapability(items.filter((c) => !c.installed));
 
   return (
-    <HomeShell
-      here="/connectors"
-      title="Integrations"
-      intro="The services this project uses, and what each one needs before it will work."
-    >
-      <form method="get" action="/connectors">
-        <input
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder="Search integrations…"
-          aria-label="Search integrations"
-          className="w-full rounded-xl border border-[var(--color-line)] bg-black/25 px-4 py-3 text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-muted)]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+    <HomeShell here="/connectors" title="Integrations">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat
+          n={all.length}
+          label="integrations"
+          hint="services devcon knows about"
         />
-      </form>
+        <Stat
+          n={installed.length}
+          label="installed here"
+          hint="a package is in the dependencies"
+          tone={installed.length > 0 ? "pass" : "text"}
+        />
+        <Stat
+          n={`${covered.length}/${cover.length}`}
+          label="capabilities covered"
+          hint="database, auth, hosting and the rest"
+          tone={missing.length > 0 ? "cut" : "pass"}
+        />
+        <Stat
+          n={all.filter((c) => c.mcp).length}
+          label="with MCP"
+          hint="the agent can drive these directly"
+        />
+      </div>
 
       <p className="mt-3 text-[11.5px] text-[var(--color-muted)]">
         Reading <span className="font-mono">{target}</span>
+      </p>
+
+      {missing.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-medium text-[var(--color-text)] text-lg tracking-tight">
+            Nothing covers these yet
+          </h2>
+          <p className="mt-1 text-[12.5px] text-[var(--color-muted)]">
+            Read from this project&rsquo;s dependencies, not from a list of
+            things every project ought to have.
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {missing.map((row) => (
+              <MissingCapability key={row.capability} row={row} />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {covered.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-medium text-[var(--color-text)] text-lg tracking-tight">
+            Covered
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {covered.map((row) => (
+              <CoveredCapability key={row.capability} row={row} />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className="mt-12">
+        <h2 className="font-medium text-[var(--color-text)] text-lg tracking-tight">
+          All integrations
+        </h2>
+
+        <form method="get" action="/connectors" className="mt-4">
+          <input
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="Search integrations…"
+            aria-label="Search integrations"
+            className="w-full rounded-xl border border-[var(--color-line)] bg-black/25 px-4 py-3 text-[13.5px] text-[var(--color-text)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-muted)]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+          />
+        </form>
+
         {query && (
-          <>
-            {" · "}
+          <p className="mt-2 text-[12px] text-[var(--color-muted)]">
             {items.length} of {all.length} match “{query}”{" "}
             <a
               href="/connectors"
@@ -65,147 +132,49 @@ export default async function Connectors({
             >
               clear
             </a>
-          </>
+          </p>
         )}
-      </p>
 
-      {installed.length > 0 && (
-        <section className="mt-8">
-          <h2 className="font-mono text-[11px] text-[var(--color-pass)] uppercase tracking-[0.16em]">
-            Installed · {installed.length}
-          </h2>
-          <ul className="mt-3 space-y-2">
-            {installed.map((c) => (
-              <Row key={c.id} c={c} />
-            ))}
-          </ul>
-        </section>
-      )}
+        {installed.length > 0 && (
+          <div className="mt-6">
+            <h3 className="font-mono text-[11px] text-[var(--color-pass)] uppercase tracking-[0.16em]">
+              Installed · {installed.length}
+            </h3>
+            <ul className="mt-3 space-y-2">
+              {installed.map((c) => (
+                <ConnectorRow key={c.id} c={c} />
+              ))}
+            </ul>
+          </div>
+        )}
 
-      {groups.map(([capability, list]) => (
-        <section key={capability} className="mt-8">
-          <h2 className="font-mono text-[11px] text-[var(--color-muted)] uppercase tracking-[0.16em]">
-            {CAPABILITY_LABEL[capability]}
-          </h2>
-          <ul className="mt-3 space-y-2">
-            {list.map((c) => (
-              <Row key={c.id} c={c} />
-            ))}
-          </ul>
-        </section>
-      ))}
+        {groups.map(([capability, list]) => (
+          <div key={capability} className="mt-6">
+            <h3 className="font-mono text-[11px] text-[var(--color-muted)] uppercase tracking-[0.16em]">
+              {CAPABILITY_LABEL[capability]}
+            </h3>
+            <ul className="mt-3 space-y-2">
+              {list.map((c) => (
+                <ConnectorRow key={c.id} c={c} />
+              ))}
+            </ul>
+          </div>
+        ))}
 
-      {items.length === 0 && (
-        <p className="mt-8 text-[13.5px] text-[var(--color-muted)]">
-          Nothing matches “{query}”.
-        </p>
-      )}
+        {items.length === 0 && (
+          <p className="mt-6 text-[13.5px] text-[var(--color-muted)]">
+            Nothing matches “{query}”.
+          </p>
+        )}
+      </section>
 
       <p className="mt-10 text-[11.5px] text-[var(--color-muted)]/80 leading-relaxed">
         devcon never asks for, shows or stores an API key. Each panel names the
         environment variables a service needs; the values go in your{" "}
         <span className="font-mono">.env.local</span>, which is gitignored.
+        Connecting is not wired up — no OAuth, no token exchange, no MCP config
+        written.
       </p>
     </HomeShell>
-  );
-}
-
-/**
- * One integration.
- *
- * "Connect" opens setup rather than starting an OAuth flow — there is no token
- * exchange, and a button that claimed to connect without one would be the
- * ticked box with nothing behind it.
- */
-function Row({ c }: { c: ConnectorState }) {
-  return (
-    <li
-      className={`rounded-xl border ${
-        c.installed
-          ? "border-[var(--color-pass)]/40 bg-[var(--color-pass)]/[0.05]"
-          : "border-[var(--color-line)] bg-[var(--color-raised)]/50"
-      }`}
-    >
-      <details>
-        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 [&::-webkit-details-marker]:hidden">
-          <span
-            aria-hidden="true"
-            className={`grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${c.tile} font-medium text-[15px] text-white/90`}
-          >
-            {c.name[0]}
-          </span>
-
-          <span className="min-w-0 flex-1">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="font-medium text-[14px] text-[var(--color-text)]">
-                {c.name}
-              </span>
-              {c.mcp && (
-                <span className="rounded border border-[var(--color-line)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-muted)]">
-                  MCP
-                </span>
-              )}
-            </span>
-            <span className="mt-0.5 block text-[12.5px] text-[var(--color-muted)]">
-              {c.what} · {c.tier}
-            </span>
-          </span>
-
-          <span className="flex shrink-0 items-center gap-2">
-            {/* Inside the summary on purpose, so the docs are reachable without
-                opening the panel. target=_blank, so the toggle it also triggers
-                is harmless. */}
-            <a
-              href={c.docs}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="rounded-lg border border-[var(--color-line)] px-2.5 py-1.5 text-[12.5px] text-[var(--color-muted)] transition-colors hover:border-[var(--color-muted)]/50 hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-            >
-              Docs ↗
-            </a>
-            <span
-              className={`rounded-lg border px-3 py-1.5 text-[13px] ${
-                c.installed
-                  ? "border-[var(--color-pass)]/40 text-[var(--color-pass)]"
-                  : "border-[var(--color-line)] text-[var(--color-text)]"
-              }`}
-            >
-              {c.installed ? "Installed" : "Connect"}
-            </span>
-          </span>
-        </summary>
-
-        <div className="border-[var(--color-line)] border-t px-4 py-3">
-          {c.env.length > 0 ? (
-            <>
-              <p className="text-[11.5px] text-[var(--color-muted)]">
-                Environment variables — names only, values go in{" "}
-                <span className="font-mono">.env.local</span>
-              </p>
-              <ul className="mt-1.5 space-y-0.5">
-                {c.env.map((e) => (
-                  <li
-                    key={e}
-                    className="font-mono text-[11.5px] text-[var(--color-text)]/85 [overflow-wrap:anywhere]"
-                  >
-                    {e}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="text-[11.5px] text-[var(--color-muted)]">
-              No keys or accounts needed.
-            </p>
-          )}
-
-          <p className="mt-3 text-[11px] text-[var(--color-muted)]/70 leading-relaxed">
-            {c.installed
-              ? "The package is in this project's dependencies. That is not proof it works — a runnable check would be, and that is not built yet."
-              : "No OAuth or token exchange is wired up. This tells you what the service needs; you set it up."}
-          </p>
-        </div>
-      </details>
-    </li>
   );
 }

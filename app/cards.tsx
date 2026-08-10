@@ -3,7 +3,7 @@ import type { Detected, Gap } from "@/lib/detect.ts";
 import { stackLine } from "@/lib/detect.ts";
 import { ageLabel } from "@/lib/ship/cache.ts";
 import type { Workspace } from "@/lib/workspaces.ts";
-import { forgetWorkspace } from "./actions.ts";
+import { forgetWorkspace, openWorkspace } from "./actions.ts";
 
 /**
  * The dashboard's pieces.
@@ -117,84 +117,97 @@ export function ProjectCard({ row }: { row: ProjectRow }) {
   );
 
   return (
-    <li className="flex flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-raised)]/40">
-      <Preview row={row} />
+    <li className="flex flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-raised)]/40 transition-colors hover:border-[var(--color-muted)]/40">
+      <form action={openWorkspace} className="flex min-h-0 flex-1 flex-col">
+        <input type="hidden" name="path" value={row.path} />
+        {/* The whole card is the control. A link would be tidier, but opening a
+            project writes which one is active, and a GET that mutates is wrong
+            the first time something prefetches it. */}
+        <button
+          type="submit"
+          className="flex min-h-0 flex-1 flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        >
+          <Preview row={row} />
 
-      <div className="flex min-h-0 flex-1 flex-col border-[var(--color-line)] border-t px-4 py-3">
-        <div className="flex items-start gap-2">
-          <p className="min-w-0 flex-1 truncate font-medium text-[14px] text-[var(--color-text)]">
-            {row.name}
-          </p>
-          {!row.exists && <Tag tone="fail">missing</Tag>}
-        </div>
-
-        <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--color-muted)]/70">
-          {row.path}
-        </p>
-
-        {row.exists && (
-          <>
-            <p className="mt-2 text-[12px] text-[var(--color-muted)]">
-              {stack || "Stack not detected"} · {ageLabel(row.lastOpenedAt)}
-            </p>
-
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {row.hasSpec ? (
-                <Tag tone="pass">SHIP.md</Tag>
-              ) : (
-                <Tag tone="cut">no SHIP.md</Tag>
-              )}
-              {row.hasGit && <Tag>git</Tag>}
-              {row.hasTests && <Tag>tests</Tag>}
-              {row.hasCi && <Tag>CI</Tag>}
+          <div className="flex min-h-0 w-full flex-1 flex-col border-[var(--color-line)] border-t px-4 py-3">
+            <div className="flex items-start gap-2">
+              <p className="min-w-0 flex-1 truncate font-medium text-[14px] text-[var(--color-text)]">
+                {row.name}
+              </p>
+              {!row.exists && <Tag tone="fail">missing</Tag>}
             </div>
 
-            {shown.length > 0 && (
-              <div className="mt-3 border-[var(--color-line)] border-t pt-2.5">
-                <p className="text-[11px] text-[var(--color-muted)]/80">
-                  Missing — read from the folder, not a checklist
+            <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--color-muted)]/70">
+              {row.path}
+            </p>
+
+            {row.exists && (
+              <>
+                <p className="mt-2 text-[12px] text-[var(--color-muted)]">
+                  {stack || "Stack not detected"} · {ageLabel(row.lastOpenedAt)}
                 </p>
-                <ul className="mt-1 space-y-0.5">
-                  {shown.slice(0, 4).map((g) => (
-                    <li
-                      key={g.id}
-                      className={`text-[12px] ${
-                        g.urgent
-                          ? "text-[var(--color-fail)]"
-                          : "text-[var(--color-muted)]"
-                      }`}
-                    >
-                      {g.label}
-                    </li>
-                  ))}
-                  {shown.length > 4 && (
-                    <li className="text-[11.5px] text-[var(--color-muted)]/70">
-                      and {shown.length - 4} more
-                    </li>
+
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {row.hasSpec ? (
+                    <Tag tone="pass">SHIP.md</Tag>
+                  ) : (
+                    <Tag tone="cut">no SHIP.md</Tag>
                   )}
-                </ul>
-              </div>
+                  {row.hasGit && <Tag>git</Tag>}
+                  {row.hasTests && <Tag>tests</Tag>}
+                  {row.hasCi && <Tag>CI</Tag>}
+                </div>
+
+                {shown.length > 0 && (
+                  <div className="mt-3 border-[var(--color-line)] border-t pt-2.5">
+                    <p className="text-[11px] text-[var(--color-muted)]/80">
+                      Missing — read from the folder, not a checklist
+                    </p>
+                    <ul className="mt-1 space-y-0.5">
+                      {shown.slice(0, 4).map((g) => (
+                        <li
+                          key={g.id}
+                          className={`text-[12px] ${
+                            g.urgent
+                              ? "text-[var(--color-fail)]"
+                              : "text-[var(--color-muted)]"
+                          }`}
+                        >
+                          {g.label}
+                        </li>
+                      ))}
+                      {shown.length > 4 && (
+                        <li className="text-[11.5px] text-[var(--color-muted)]/70">
+                          and {shown.length - 4} more
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
 
-        {!row.exists && (
-          <p className="mt-2 text-[12px] text-[var(--color-muted)]">
-            The folder is gone. Nothing was deleted by devcon — only this row
-            remembers it.
-          </p>
-        )}
+            {!row.exists && (
+              <p className="mt-2 text-[12px] text-[var(--color-muted)]">
+                The folder is gone. Nothing was deleted by devcon — only this
+                row remembers it.
+              </p>
+            )}
+          </div>
+        </button>
+      </form>
 
-        <form action={forgetWorkspace} className="mt-3 pt-0">
-          <input type="hidden" name="path" value={row.path} />
-          <button
-            type="submit"
-            className="rounded text-[12px] text-[var(--color-muted)] underline underline-offset-4 transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-          >
-            Forget
-          </button>
-        </form>
-      </div>
+      {/* A sibling, not a child — nested forms are invalid HTML and the inner
+          one is dropped, which would make Forget silently open the project. */}
+      <form action={forgetWorkspace} className="px-4 pb-3">
+        <input type="hidden" name="path" value={row.path} />
+        <button
+          type="submit"
+          className="rounded text-[12px] text-[var(--color-muted)] underline underline-offset-4 transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+        >
+          Forget
+        </button>
+      </form>
     </li>
   );
 }
