@@ -24,8 +24,8 @@
 | `/connectors` | Integrations — coverage and what nothing covers yet |
 | `/settings` | What devcon is doing, read from the modules |
 | `/work` | Redirects to `/work/workspace` |
-| `/work/workspace` | Empty — names the open project, nothing else |
-| `/work/canvas` | Empty — names the open project, nothing else |
+| `/work/workspace` | The open project's `SHIP.md`, checked in the sandbox |
+| `/work/canvas` | The open project as draggable cards |
 
 ### Modules
 
@@ -34,7 +34,9 @@
 | `lib/ship/parse.ts` | Works. **No tests.** |
 | `lib/ship/check.ts` | Works. Sandboxed. No caller right now. 6 tests. |
 | `lib/ship/sandbox.ts` | Works. macOS only, by design. 20 tests. |
-| `app/work/workspace/page.tsx` | Empty |
+| `app/work/workspace/page.tsx`, `spec-cards.tsx` | The open project's spec, checked |
+| `app/work/canvas/page.tsx`, `board.tsx` | Draggable cards. 4.4 KB gzip of client JS. |
+| `lib/canvas.ts` | Card positions per project. 13 tests. |
 | `app/page.tsx`, `app/open.tsx`, `app/cards.tsx` | Dashboard — open, clone, stats, project cards |
 | `lib/detect.ts` | Reads a project's stack and gaps from its files. 12 tests. |
 | `app/connector-cards.tsx` | Integration rows and capability-coverage cards |
@@ -78,14 +80,14 @@
 | Refuse to run where there is no sandbox | done |
 | Bounded concurrency and a 120s budget, so a verdict does not move with machine load | done |
 | Report a timeout as `error` with "not a failed condition — re-run" | done |
-| Render the spec, checked, at `/work/workspace` | **removed** — cleared on request, in git at `45ae91e` |
+| Render the spec, checked, at `/work/workspace` | done — **now against the open project, not this repo** |
 | Zero client JavaScript — 0 page chunks | done, **but 172.5 KB gzip of framework runtime loads anyway** |
 | Canvas: drag, two-finger pan, shift-drag select, positions persisted | done — 4.4 KB gzip, measured |
 | A way out of the work page | done |
 | Home is the dashboard — projects, stats, open and clone | done |
 | One check run shared between views, with its age always on screen | done |
 | Works on a phone — page scrolls as one, nav pinned | done |
-| Search the workspace — text, command, evidence and verdict | **removed** with the workspace; `filterSpec` and its 11 tests remain |
+| Search the workspace — text, command, evidence and verdict | done |
 | Detect a project's stack — framework, language, package manager | done |
 | Report what a project is missing, derived from its files | done |
 | Flag a `.env` not covered by `.gitignore` | done |

@@ -17,8 +17,8 @@ pnpm dev        # localhost:3000
 | `/connectors` | Integrations — what this project covers, and what nothing covers yet |
 | `/settings` | What devcon is doing, read from the modules that do it |
 | `/work` | Redirects to the default view |
-| `/work/workspace` | Empty — names the open project |
-| `/work/canvas` | Empty — names the open project |
+| `/work/workspace` | The open project's `SHIP.md`, every condition checked in the sandbox |
+| `/work/canvas` | The open project as cards you can drag, pan and select |
 
 Every route is a server component and the build emits **zero page chunks** —
 no per-page application JavaScript. One client component exists, the canvas

@@ -21,6 +21,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **The workspace checks the open project, not this repo.** The first thing in
+  v2 to run `lib/ship/` against a folder someone else may have written, which
+  is the entire reason the sandbox was built. Stat cards, a card per condition
+  carrying its tick, verdict, command and raw evidence, and the filter back.
+  Drift is computed from the whole spec, so a search can never hide a ticked
+  box whose command disagrees. A project with no `SHIP.md` gets its detected
+  gaps instead, the leaked `.env` first.
+
 - **The canvas drags.** Cards built on the server from the open project's
   files — its stack, each gap, each installed integration, the shipping
   sentence — and arranged by you. Two-finger pan, shift-drag marquee select,
