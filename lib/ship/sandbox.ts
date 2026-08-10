@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname } from "node:path";
 
@@ -59,11 +60,15 @@ const PROFILE = `(version 1)
     (literal (string-append (param "HOME") "/.gitconfig"))
     (subpath (string-append (param "HOME") "/.config/git"))
     ;; Stock macOS /usr/bin/git is an xcrun shim that dlopens libxcrun from the
-    ;; Xcode toolchain. Without these, every git check dies with
+    ;; Xcode toolchain. Without this, every git check dies with
     ;; "unable to load libxcrun" — which reads as a broken repo, not a missing
-    ;; allow. It only looked fine here because this PATH finds Homebrew's git
-    ;; first; the dev server's PATH does not, and that is the common case.
-    (subpath "/Applications/Xcode.app/Contents/Developer")
+    ;; allow.
+    ;;
+    ;; The path is asked for, not assumed. Hardcoding
+    ;; /Applications/Xcode.app/Contents/Developer worked on the machine it was
+    ;; written on and failed on the first CI run, where Xcode is installed as
+    ;; Xcode_26.6.app. See DEVELOPER_DIR below.
+    (subpath (param "DEVELOPER_DIR"))
     (subpath "/Library/Developer")
     (subpath (param "NODE_DIR"))
     (subpath (string-append (param "HOME") "/Library/pnpm"))
@@ -73,7 +78,7 @@ const PROFILE = `(version 1)
 (allow file-map-executable
     (subpath "/usr") (subpath "/bin") (subpath "/sbin") (subpath "/opt")
     (subpath "/System") (subpath "/Library")
-    (subpath "/Applications/Xcode.app/Contents/Developer")
+    (subpath (param "DEVELOPER_DIR"))
     (subpath "/Library/Developer")
     (subpath (param "NODE_DIR"))
     (subpath (param "WORKING_DIR")))
@@ -95,6 +100,34 @@ const PROFILE = `(version 1)
     ;; A check reads history. It does not rewrite it.
     (subpath (string-append (param "WORKING_DIR") "/.git")))
 `;
+
+/**
+ * Where the Xcode toolchain actually is on this machine.
+ *
+ * `/Applications/Xcode.app` is the common answer and not the only one — a CI
+ * runner may have `Xcode_26.6.app`, and a machine with only the Command Line
+ * Tools has none of it. `xcode-select -p` is the question macOS answers for
+ * itself, so it is asked once and cached rather than guessed.
+ *
+ * A fallback path that does not exist is harmless: seatbelt allows a subpath
+ * that is never read.
+ */
+let developerDir: string | null = null;
+function xcodeDeveloperDir(): string {
+  if (developerDir) return developerDir;
+  try {
+    developerDir = execFileSync("/usr/bin/xcode-select", ["-p"], {
+      encoding: "utf8",
+      timeout: 5_000,
+    }).trim();
+  } catch {
+    developerDir = "";
+  }
+  if (!developerDir) {
+    developerDir = "/Library/Developer/CommandLineTools";
+  }
+  return developerDir;
+}
 
 /**
  * Why checks cannot run here, or null if they can.
@@ -137,6 +170,8 @@ export function sandboxArgv(
       `HOME=${home}`,
       "-D",
       `NODE_DIR=${nodeDir}`,
+      "-D",
+      `DEVELOPER_DIR=${xcodeDeveloperDir()}`,
       "/bin/sh",
       "-c",
       command,

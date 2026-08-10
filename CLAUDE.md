@@ -207,6 +207,13 @@ leaked this repo's OIDC token read as correct.
   server's PATH does not, and neither does a normal Mac's. **Test toolchain
   binaries by absolute path, not by name** — `git` and `/usr/bin/git` are two
   different programs.
+- **Do not hardcode the Xcode path — ask `xcode-select -p`.** The fix for the
+  xcrun trap above allowed `/Applications/Xcode.app/Contents/Developer`, which
+  is correct on this laptop and wrong on a CI runner, where Xcode installs as
+  `Xcode_26.6.app`. Every git check failed there with the same
+  "unable to load libxcrun" message. **The first CI run caught it; no amount of
+  local testing could have.** The profile now takes the developer dir as a
+  parameter, probed once.
 - **`preview_stop` does not reap `next-server`.** Three processes kept port
   3000 after the tool reported the server stopped, and they skewed every
   timing taken afterwards. `lsof -ti:3000 | xargs kill -9`.
