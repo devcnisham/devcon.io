@@ -39,7 +39,8 @@
 | `lib/detect.ts` | Reads a project's stack and gaps from its files. 12 tests. |
 | `app/connector-cards.tsx` | Integration rows and capability-coverage cards |
 | `app/connectors/page.tsx` | Integrations, read from `package.json` |
-| `app/settings/page.tsx` | What devcon is doing, read from the modules |
+| `app/settings/page.tsx`, `app/settings-cards.tsx` | What devcon is doing, and what this machine can do |
+| `lib/diagnostics.ts` | Probes the host — platform, node, sandbox, Finder dialog, git |
 | `lib/workspaces.ts`, `lib/clone.ts`, `lib/pick-folder.ts` | Import, clone, Finder dialog |
 | `test/clone.test.ts` | 8 assertions — URL injection, path validation |
 | `app/work/views.tsx` | Floating workspace/canvas switch |
@@ -90,6 +91,7 @@
 | Dashboard stats and project cards | done |
 | Open a project from its card — the work page names it | done |
 | Integrations: capability coverage, what nothing covers yet | done |
+| Settings: host probes, live check numbers, stated rules | done |
 | One colour system — zero raw Tailwind colours in `app/` | done |
 | Changelog, built from `git log` | done |
 | End-to-end tests | not built |

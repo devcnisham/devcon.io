@@ -17,7 +17,11 @@
   },
 
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2 },
-  "linter": { "enabled": true, "rules": { "recommended": true } },
+  // `preset`, not `recommended`. The old spelling is deprecated in 2.5.7 and
+  // goes away in the next major. Changed by hand rather than by `biome migrate`,
+  // which rewrites this file and drops the comments above and below — both of
+  // which record a defect that cost real time.
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
   "javascript": { "formatter": { "quoteStyle": "double" } },
 
   // Tailwind v4 puts `@theme` and friends in the stylesheet. Without this biome

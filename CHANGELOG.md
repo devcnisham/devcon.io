@@ -21,6 +21,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **Settings probes this machine rather than assuming it.** Platform, node,
+  the check sandbox, the Finder dialog and git are each checked when the page
+  loads, and anything unavailable says why. Several of those are macOS-only,
+  and listing them as working because the code exists would be a claim rather
+  than a fact. The check numbers are imported from the modules that use them,
+  so the page cannot drift from the behaviour it describes.
+
+- **Integrations reports what nothing covers yet** — read from this project's
+  `package.json`, not from a list of things every project ought to have. A
+  capability with nothing installed says so rather than being omitted.
+
+- **Clicking a project card opens it.** The work page names the open project.
+  Active project lives in its own `~/.devcon/active.json` and is checked
+  against the disk on every read, so a deleted folder reports as nothing open.
+
 - **The dashboard reads every project it lists.** Stack from the lockfile and
   dependencies; gaps from files that are absent — no git, no `.gitignore`, no
   `SHIP.md`, no README, no tests, no CI. **A `.env` not covered by
