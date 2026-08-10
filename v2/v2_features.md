@@ -74,6 +74,63 @@ Drift — ticked boxes whose command disagrees — gets the top of the page.
 *Verified by:* loading it. It reported drift on its first render, and caught two
 defects in its own source that reading the code had not.
 
+### Home — `/`
+
+Reads `SHIP.md` and shows the plan's **shape**: the sentence, how many
+conditions exist, how many are ticked, how many things were cut.
+
+It deliberately does not run the checks. Parsing is microseconds; checking is
+seconds, and a landing page that takes thirteen seconds to say hello is a
+broken landing page. So it says on screen that nothing there has been
+verified and that a tick is the author's claim, then sends you to the work
+page for the evidence. `readSpec` exists for exactly that split — the shape is
+not the state.
+
+*Verified by:* loading it and reading the rendered HTML — 13 conditions,
+6 ticked, 6 cut, matching `SHIP.md`.
+
+### A way out of the work page
+
+The work page had exactly two links, `workspace` and `canvas`, and both kept
+you on it. You could click forever and never leave; browser-back was the only
+exit. A `←` home link now sits in the floating switch rather than in a restored
+app header, which would have cost the full-bleed surface.
+
+*Verified by:* clicking. Every route already returned 200 and every anchor
+already had a correct `href` — nothing was broken in any sense a log or a test
+would have shown. There was simply nowhere to go.
+
+### One shared check run — `lib/ship/cache.ts`
+
+Both views show verdicts, and running every command once per view put a view
+switch at roughly thirteen seconds each way. The last run is held for fifteen
+seconds.
+
+**Any edit to `SHIP.md` beats the clock** — content is compared before the TTL
+is, because seeing yesterday's verdicts after an edit would be worse than any
+slow render. The age is always printed on screen. A cached verdict that hides
+when it was taken is precisely the unchecked claim this tool exists to catch.
+
+*Verified by:* `test/cache.test.ts` — 6 assertions covering reuse inside the
+TTL, expiry past it, and an edit invalidating immediately.
+
+### It works on a phone
+
+Below `lg` the work page scrolls as one document and the floating switch is
+pinned. Before this it locked itself to the viewport at every width, so a phone
+got two independent scroll boxes: the rail took half the screen and the
+conditions list had 2832px of content trapped in the other 374px.
+
+*Verified by:* measuring `scrollHeight` against `clientHeight` per element at
+408px. **Never verified below 408px** — the preview pane will not go narrower,
+so a true 375px phone is untested.
+
+### One colour system
+
+Every colour comes from `--color-pass`, `--color-fail`, `--color-cut`,
+`--color-text`, `--color-muted` and `--color-line`. Zero raw Tailwind colours
+remain in `app/`.
+
 ### Zero client JavaScript
 
 Every route is a server component. The build emits **0 page chunks**.
@@ -145,6 +202,10 @@ This is a decision, not a task.
 - **`SHIP.md` check #2 can never pass.** `git ls-remote … origin` needs the
   network, which is denied unconditionally.
 - **`parse.ts` has no tests.**
+- **No end-to-end tests.** Unit and integration exist; nothing drives the app
+  as a user. The last open item from the owner's daily checklist.
+- **Mobile is unverified below 408px.** Fixed and measured at 408; the preview
+  pane will not go narrower.
 
 ## The gap none of this closes
 

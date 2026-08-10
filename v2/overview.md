@@ -72,6 +72,10 @@
 | A way out of the work page | done |
 | Home shows the plan's shape without running checks | done |
 | One check run shared between views, with its age always on screen | done |
+| Works on a phone — page scrolls as one, nav pinned | done |
+| One colour system — zero raw Tailwind colours in `app/` | done |
+| Changelog, built from `git log` | done |
+| End-to-end tests | not built |
 | Consent gate before running a stranger's checks | not built |
 | MCP server + repo reader | not built |
 | The critique pass — **the actual product** | not built |
