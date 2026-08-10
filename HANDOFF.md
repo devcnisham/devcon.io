@@ -48,7 +48,7 @@ Four things decided in this session, all of them the user's calls:
 | `app/page.tsx`, `app/connectors/`, `app/settings/` | Dashboard, integrations, settings — behind a left sidebar |
 | `app/work/` | The work page — full-bleed surface, floating switch |
 | `app/work/workspace/` | Empty — cleared 2026-08-10, awaiting new contents |
-| `app/work/canvas/` | Still empty, and now says so |
+| `app/work/canvas/` | Empty — cleared 2026-08-10 |
 | `app/work/views.tsx` | The floating segmented switch |
 | `lib/ship/parse.ts` | Reads `SHIP.md` — works |
 | `lib/ship/check.ts` | Runs the done-when checks — works, **no caller since the workspace was cleared** |
@@ -119,7 +119,9 @@ discipline works and that adding it late is how it gets skipped.
    anchor had a correct `href`, so nothing was broken in the sense a test or a
    log would have shown. The empty canvas made it worse: switching to it moved
    the tab highlight and changed nothing else, so a navigation that had worked
-   read as one that had failed. It now says `canvas — nothing here yet`.
+   read as one that had failed. A label fixed that, and both labels were
+   removed again on 2026-08-10 when the views were cleared — so the symptom is
+   back by choice. Worth remembering when either view is filled in.
 2. **The checker is sandboxed, with two things left open.** Checks now run under
    seatbelt (`lib/ship/sandbox.ts`): network denied, filesystem confined to the
    repo and toolchain, `.git`/`.env*`/`.vercel` denied, environment replaced

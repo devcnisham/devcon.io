@@ -46,6 +46,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Removed
 
+- **Both work-page views.** The canvas is a bare surface again — the
+  `canvas — nothing here yet` label went with it, which trades away the cue
+  that made switching views read as a working navigation rather than a dead
+  link.
 - **The workspace view.** Cleared on request — the rendered spec, its live
   verdicts and evidence, the drift banner and the filter. In git at `45ae91e`.
   `lib/ship/` is untouched and still covered by its tests; `checkedSpec`,

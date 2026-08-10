@@ -23,7 +23,7 @@
 | `/` | The plan's shape — parsed, not checked |
 | `/work` | Redirects to `/work/workspace` |
 | `/work/workspace` | Empty — cleared on request, awaiting new contents |
-| `/work/canvas` | Empty — and nothing specifies what it is for. Says so on screen. |
+| `/work/canvas` | Empty — cleared on request |
 
 ### Modules
 
