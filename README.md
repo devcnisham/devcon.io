@@ -20,9 +20,17 @@ pnpm dev        # localhost:3000
 | `/work/workspace` | Empty — names the open project |
 | `/work/canvas` | Empty — names the open project |
 
-Every route is a server component. The build emits **zero client-side page
-chunks**, which is the deliberate answer to v0.1's landing page costing 173KB
-of JavaScript to render a headline and one input.
+Every route is a server component and the build emits **zero page chunks** —
+no per-page application JavaScript. One client component exists, the canvas
+board, and it costs **4.4 KB gzip**, measured by building with and without it.
+
+**The framework baseline is not zero, and the number is uncomfortable.** Every
+route loads 8 scripts totalling **172.5 KB gzip** of Next.js and React runtime,
+whether or not the page has any client code. v0.1's landing page — the thing
+this rule exists to condemn — was 173 KB. Measured against a production build,
+not estimated. "Zero client JavaScript" means zero *application* JavaScript;
+it has never meant an empty network tab, and this README said otherwise until
+2026-08-10.
 
 ## Reading order
 

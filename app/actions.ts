@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import type { Layout } from "@/lib/canvas.ts";
+import { saveLayout } from "@/lib/canvas.ts";
 import { cloneRepo } from "@/lib/clone.ts";
 import { pickFolder } from "@/lib/pick-folder.ts";
 import {
@@ -86,4 +88,14 @@ export async function forgetWorkspace(formData: FormData) {
     await clearActiveIf(path);
   }
   redirect("/");
+}
+
+/**
+ * Where the canvas cards sit.
+ *
+ * The project path comes from the server, never from the client — a layout
+ * write that trusted a path from the page could be pointed anywhere.
+ */
+export async function saveCanvasLayout(projectPath: string, layout: Layout) {
+  await saveLayout(projectPath, layout);
 }

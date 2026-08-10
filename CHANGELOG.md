@@ -21,6 +21,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **The canvas drags.** Cards built on the server from the open project's
+  files — its stack, each gap, each installed integration, the shipping
+  sentence — and arranged by you. Two-finger pan, shift-drag marquee select,
+  dragging a selection moves all of it. Positions persist per project under
+  `~/.devcon/canvas/`; positions only, so a gap you fix disappears next load
+  rather than lingering because a layout file remembered it. **4.4 KB gzip**,
+  measured by building with and without it. No dependency: most of React
+  Flow's ~50 KB would have gone unused.
+
 - **Settings probes this machine rather than assuming it.** Platform, node,
   the check sandbox, the Finder dialog and git are each checked when the page
   loads, and anything unavailable says why. Several of those are macOS-only,
@@ -79,6 +88,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `tally`, `lies` and `filterSpec` simply have no caller for now.
 
 #### Fixed
+
+- **The "zero client JavaScript" claim was overstated, and is now measured.**
+  Every route loads 8 scripts totalling **172.5 KB gzip** of Next.js and React
+  runtime before any of this repo's code — near-identical to the 173 KB v0.1
+  landing page the rule exists to condemn. `0 page chunks` is true and worth
+  keeping, but it counts *application* code; it was being read as an empty
+  network tab. README and `CLAUDE.md` now carry the number and no longer claim
+  this answers v0.1.
 
 - **A verdict could change with machine load.** The budget was 20s and every
   check ran at once; `tsc --noEmit` takes ~1.3s idle and over 20s at a load

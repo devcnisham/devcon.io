@@ -79,7 +79,8 @@
 | Bounded concurrency and a 120s budget, so a verdict does not move with machine load | done |
 | Report a timeout as `error` with "not a failed condition — re-run" | done |
 | Render the spec, checked, at `/work/workspace` | **removed** — cleared on request, in git at `45ae91e` |
-| Zero client JavaScript — 0 page chunks | done |
+| Zero client JavaScript — 0 page chunks | done, **but 172.5 KB gzip of framework runtime loads anyway** |
+| Canvas: drag, two-finger pan, shift-drag select, positions persisted | done — 4.4 KB gzip, measured |
 | A way out of the work page | done |
 | Home is the dashboard — projects, stats, open and clone | done |
 | One check run shared between views, with its age always on screen | done |

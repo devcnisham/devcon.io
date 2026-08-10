@@ -134,9 +134,15 @@ leaked this repo's OIDC token read as correct.
   reason. Verified: 0 occurrences of `.env`, `.env.local` or `.vercel/` in any
   commit on any branch.
 - **Zero client JavaScript unless something earns it.** Every route is a server
-  component; the build emits 0 page chunks. v0.1's landing page cost 173KB gzip
-  to render a headline and one input. If a `"use client"` goes in, say what it
-  bought.
+  component; the build emits 0 page chunks. If a `"use client"` goes in, say
+  what it bought **and measure it** — build with and without, diff the gzipped
+  chunks. `app/work/canvas/board.tsx` is the only one, and it cost 4.4 KB.
+  **Do not repeat the claim that this answers v0.1's 173 KB.** Measured on
+  2026-08-10 against a production build: every route already loads 172.5 KB
+  gzip of framework runtime before any of this repo's code. 0 page chunks
+  measures application code, which is real and worth keeping — it is not an
+  empty network tab, and saying so was the same unchecked claim this tool
+  exists to catch.
 - **State what isn't done.** Do not tick a box you have not run — the checker
   in `lib/ship/` caught its own author doing exactly that on its first run.
 - **Verify by running, not reading.** Every real defect this session came from
