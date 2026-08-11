@@ -21,6 +21,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Changed
 
+- **CI actions taken the rest of the way, on request** — `actions/checkout` v5
+  → **v7**, `actions/setup-node` v5 → **v7**, `pnpm/action-setup` v5 → **v6**.
+  The entry below argued for stopping at v5 and the owner's call was to go to
+  latest; recorded here rather than quietly rewritten, the same way `SHIP.md`
+  keeps the web-app reversal visible.
+
+  Every major between here and latest was read before the bump, and two of them
+  matter to this repo:
+
+  - **`setup-node` v6 narrowed v5's automatic caching to npm only.** v5 had
+    started caching automatically for any `packageManager` field, and this
+    `package.json` has one (`pnpm@10.25.0`). The previous commit kept
+    `cache: pnpm` written out rather than deleting it in favour of that new
+    default — **one major later the default no longer covers pnpm at all.** A
+    workflow that had trusted it would have lost its pnpm cache on v6 and
+    stayed green while doing it. The reasoning was a guess about release notes;
+    it happened to be right, and the line stays with the evidence attached.
+  - **`checkout` v6 moved persisted credentials out of `.git/config`** and into
+    a file under `$RUNNER_TEMP`. Checked against `lib/ship/sandbox.ts` rather
+    than assumed: `$RUNNER_TEMP` sits outside `$GITHUB_WORKSPACE`, so a check
+    confined to the repo subpath cannot reach the token by construction and no
+    carve-out is needed. The suite's `.git` attacks are writes asserted with
+    `existsSync`, not reads of a token that used to live there, so none of them
+    silently starts passing for the wrong reason — the failure recorded on
+    2026-08-09, where `~/.ssh` did not exist and the attack proved nothing.
+
+  Not applicable but read anyway: `checkout` v7 blocks fork checkouts for
+  `pull_request_target` and `workflow_run`, and this workflow uses neither.
+  `pnpm/action-setup` v6 adds pnpm v11 support; `version: 10.25.0` is unchanged.
+
 - **CI actions bumped to v5** — `actions/checkout`, `actions/setup-node` and
   `pnpm/action-setup`. Not a version-chasing bump: v4 of all three declares
   `using: node20`, which GitHub has deprecated. The runner force-runs them on

@@ -25,11 +25,18 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      # v5 on all three, and the reason is the runtime rather than features:
-      # v4 declares `using: node20`, which GitHub deprecated — the runner
-      # force-runs it on node24 today and will stop. Read from each action.yml
-      # at the tag, not from the changelog.
-      - uses: actions/checkout@v5
+      # Latest major on all three. Every one of these declares `using: node24`;
+      # v4 declared `node20`, which GitHub deprecated. Read out of each
+      # action.yml at the tag rather than out of a changelog.
+      #
+      # checkout v6 moved the persisted credentials out of `.git/config` and
+      # into a file under `$RUNNER_TEMP`. That is outside `$GITHUB_WORKSPACE`,
+      # so `lib/ship/sandbox.ts` — which confines a check to the repo subpath —
+      # already cannot reach it, and it does not need a new carve-out. The
+      # profile's `.git` denials are unaffected; the suite's `.git` attacks are
+      # writes asserted with `existsSync`, not reads of a token that used to
+      # live there.
+      - uses: actions/checkout@v7
         with:
           # Full history and tags. `SHIP.md` asserts permanent properties of
           # this repo's history — that `v0.1-archive` exists, and that the root
@@ -38,15 +45,17 @@ jobs:
           # about the repo.
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.25.0
 
-      # setup-node v5 auto-caches when `package.json` has a `packageManager`
-      # field, which this one does. `cache: pnpm` stays explicit rather than
-      # relying on that — a cache that turns itself on is a cache that can turn
-      # itself off in a release note nobody read.
-      - uses: actions/setup-node@v5
+      # `cache: pnpm` is written out on purpose, and one major proved why.
+      # setup-node v5 started caching automatically for any `packageManager`
+      # field — this `package.json` has one — and v6 narrowed that same
+      # automatic caching to npm only. A workflow that had deleted this line in
+      # favour of the v5 default would have silently lost its pnpm cache on v6
+      # and stayed green while doing it.
+      - uses: actions/setup-node@v7
         with:
           # Native TypeScript type-stripping, so `node --test` runs the `.ts`
           # files directly and the suite needs no build step or test runner.
