@@ -96,9 +96,16 @@ const PROFILE_TEMPLATE = `(version 1)
     (subpath "/usr") (subpath "/bin") (subpath "/sbin") (subpath "/opt")
     (subpath "/System") (subpath "/Library") (subpath "/dev")
     (subpath "/private/var") (subpath "/private/etc") (subpath "/private/tmp")
-    ;; git will not start without its global config.
-    (literal (string-append (param "HOME") "/.gitconfig"))
-    (subpath (string-append (param "HOME") "/.config/git"))
+    ;; No allow for HOME/.gitconfig or HOME/.config/git, and that is the point.
+    ;; They were here under the belief that "git will not start without its
+    ;; global config". It does: sandboxEnv sets GIT_CONFIG_GLOBAL=/dev/null and
+    ;; GIT_CONFIG_NOSYSTEM=1, so git never looks. Retested by deleting these
+    ;; two lines and running the suite rather than by re-reading the comment.
+    ;;
+    ;; Keeping them would have granted a read nothing performs — and worse,
+    ;; left the door open to the failure that made them pointless: a global
+    ;; config whose include names a path this profile denies is fatal to every
+    ;; git invocation, not ignored.
     ;; Stock macOS /usr/bin/git is an xcrun shim that dlopens libxcrun from the
     ;; Xcode toolchain. Without this, every git check dies with
     ;; "unable to load libxcrun" — which reads as a broken repo, not a missing

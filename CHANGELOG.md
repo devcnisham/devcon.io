@@ -19,6 +19,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### 2026-08-11
 
+#### Changed
+
+- **The three entries `v2/parked.md` opened with were done the same day, on
+  request, and the file is now empty.** Each was left undone for a stated
+  reason, and two of those reasons turned out to be wrong on contact:
+
+  - **`GIT_CONFIG_NOSYSTEM` now has a test, and a control.** It was parked as
+    untestable because proving it appeared to need writing `/etc/gitconfig`,
+    which needs root. `GIT_CONFIG_SYSTEM` moves the system config to a path of
+    the test's choosing, so the same claim is checkable by anyone. The control
+    run reads the bait with the suppression off — an assertion that a value is
+    absent proves nothing if git never looked, which is this suite's oldest
+    lesson. Mutation-verified: removing `GIT_CONFIG_NOSYSTEM` turns 3 red.
+  - **The two dead `$HOME` git-config allows are gone from the profile.** They
+    were kept on the grounds that their comment — "git will not start without
+    its global config" — had not been retested. Retested by deleting them and
+    running the suite: it does start, because `GIT_CONFIG_GLOBAL=/dev/null`
+    means git never looks. **A check can no longer read `~/.gitconfig` at
+    all**, and that is asserted rather than left as "nothing broke", because a
+    removal verified only by absence of failure is not verified. The comment
+    that replaced them says what was observed instead of what was believed.
+  - **`"type": "module"` in `package.json`**, which drops the
+    `MODULE_TYPELESS_PACKAGE_JSON` warning every suite printed — eight per run,
+    locally and in CI. Both config files were already ESM (`next.config.ts`,
+    `postcss.config.mjs`), so nothing needed rewriting. **Measured rather than
+    assumed**, because this repo's zero-client-JavaScript property depends on
+    the build: full production build before and after, route table byte-for-byte
+    identical, page chunks 0 both times.
+
+  `test/sandbox.test.ts` 30 → 32, suite 124 → 126.
+
 #### Fixed
 
 - **A git config include outside the repo killed every git check.** Task 42,
@@ -53,6 +84,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   turns 2. **`GIT_CONFIG_NOSYSTEM` has no failing test behind it** — proving it
   needs an `/etc/gitconfig` with a bad include, and writing that needs root.
   Recorded in `v2/parked.md` rather than counted as covered.
+  **Superseded within the day — see Changed, above.** It was testable after all:
+  `GIT_CONFIG_SYSTEM` moves the system config, and no root is needed. Left
+  standing rather than edited, because this file is history and the wrong
+  reason is the useful part: "needs root" was inferred, not checked.
 
 #### Added
 

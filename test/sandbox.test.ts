@@ -204,6 +204,27 @@ describe("a hostile check cannot read", () => {
     assert.notEqual(r.code, 0);
   });
 
+  test("the user's global git config", async () => {
+    // The profile allowed this until 2026-08-11, on the belief that git would
+    // not start without it. Since `GIT_CONFIG_GLOBAL=/dev/null` git never looks
+    // — so the allow was removed, and this asserts the narrowing is real rather
+    // than merely harmless. `~/.gitconfig` routinely holds a name, an email and
+    // sometimes a credential helper's arguments.
+    const global = join(homedir(), ".gitconfig");
+    const r = await sh(`cat ${JSON.stringify(global)}`);
+    // Guarded, because a machine without one would make this prove nothing —
+    // the `~/.ssh` mistake this file already recorded.
+    if (existsSync(global)) {
+      assert.match(r.out, /not permitted/i, r.out.slice(0, 200));
+      assert.doesNotMatch(
+        r.out,
+        /\[user\]|\[core\]|email/i,
+        r.out.slice(0, 200),
+      );
+    }
+    assert.notEqual(r.code, 0);
+  });
+
   test("another repository on the same machine", async () => {
     const r = await sh("cat /Users/*/Desktop/projects/*/package.json 2>&1");
     assert.doesNotMatch(r.out, /"name"/, r.out.slice(0, 200));
@@ -412,18 +433,35 @@ describe("git config from outside the repo", () => {
     if (scratch) rmSync(scratch, { recursive: true, force: true });
   });
 
-  /** One command in the scratch repo, with the scratch HOME. */
-  async function inFakeHome(command: string) {
+  /**
+   * One command in the scratch repo, with the scratch HOME.
+   *
+   * `envPatch` exists for the control runs: a blocked-config test that never
+   * shows the config being read when the suppression is off proves nothing.
+   * A key set to `undefined` is removed rather than passed as the string
+   * "undefined".
+   */
+  async function inFakeHome(
+    command: string,
+    // Not `NodeJS.ProcessEnv`: this project's declaration makes `NODE_ENV`
+    // required, so a one-key patch would not typecheck.
+    envPatch: Record<string, string | undefined> = {},
+  ) {
     const realHome = process.env.HOME;
     process.env.HOME = fakeHome;
     try {
       const { file, args } = sandboxArgv(command, fakeRepo);
+      const env = sandboxEnv(fakeRepo);
+      for (const [k, v] of Object.entries(envPatch)) {
+        if (v === undefined) delete env[k];
+        else env[k] = v;
+      }
       try {
         const { stdout, stderr } = await run(file, args, {
           cwd: fakeRepo,
           timeout: 60_000,
           maxBuffer: 1024 * 256,
-          env: sandboxEnv(fakeRepo),
+          env,
         });
         return { code: 0 as number | string, out: `${stdout}${stderr}` };
       } catch (e) {
@@ -518,6 +556,47 @@ describe("git config from outside the repo", () => {
     const r = await inFakeHome("git config --get devcon.probe");
     assert.equal(r.code, 0, r.out.slice(0, 300));
     assert.match(r.out, /local-config-was-read/, r.out.slice(0, 300));
+  });
+
+  test("a system-wide config is skipped, control first", async () => {
+    if (!gitOk) {
+      assert.ok(true, "no real git on PATH — nothing to verify");
+      return;
+    }
+    // `GIT_CONFIG_NOSYSTEM` was set defensively and had no test behind it,
+    // because proving it appeared to need writing `/etc/gitconfig` — root, and
+    // a test needing sudo is a test nobody runs. `GIT_CONFIG_SYSTEM` moves the
+    // system config to a path of the test's choosing, which makes the same
+    // claim checkable by anyone.
+    //
+    // The bait is readable inside the repo on purpose. Asserting on a denial
+    // message would pass just as well if git had never looked, so this asserts
+    // on the value's absence and proves separately that the value is there to
+    // be found.
+    const systemConfig = join(fakeRepo, "system-gitconfig");
+    writeFileSync(
+      systemConfig,
+      "[devcon]\n\tsystem = SYSTEM-CONFIG-WAS-READ\n",
+    );
+
+    const control = await inFakeHome("git config --get devcon.system", {
+      GIT_CONFIG_SYSTEM: systemConfig,
+      GIT_CONFIG_NOSYSTEM: undefined,
+    });
+    assert.match(
+      control.out,
+      /SYSTEM-CONFIG-WAS-READ/,
+      `the bait was never read even with the suppression off, so the test below proves nothing: ${control.out.slice(0, 300)}`,
+    );
+
+    const r = await inFakeHome("git config --get devcon.system", {
+      GIT_CONFIG_SYSTEM: systemConfig,
+    });
+    assert.doesNotMatch(
+      r.out,
+      /SYSTEM-CONFIG-WAS-READ/,
+      `GIT_CONFIG_NOSYSTEM did not suppress the system config: ${r.out.slice(0, 300)}`,
+    );
   });
 
   test("the repo under check is trusted, so ownership never refuses it", async () => {

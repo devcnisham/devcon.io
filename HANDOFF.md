@@ -11,7 +11,7 @@
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean.
 
-**Gates: lint 0, tsc 0, test 0 (124 tests), build 0, 0 page chunks.**
+**Gates: lint 0, tsc 0, test 0 (126 tests), build 0, 0 page chunks.**
 **CI is green** — `.github/workflows/gates.yml`, seven gates, macOS.
 
 **Progress: 5 of 13 done-when conditions in `SHIP.md`** — measured by running
@@ -92,7 +92,7 @@ Four things decided in this session, all of them the user's calls:
 | `lib/diagnostics.ts` | Host probes for the console |
 | `.github/workflows/gates.yml` | Seven gates on every push. Green. |
 
-**124 tests.** `parse` 34 · `sandbox` 30 · `detect` 14 · `canvas` 12 ·
+**126 tests.** `parse` 34 · `sandbox` 32 · `detect` 14 · `canvas` 12 ·
 `clone` 11 · `search` 11 · `cache` 6 · `check` 6. Counted by running each file,
 not by remembering. Every module in `lib/` now has a suite.
 
@@ -171,7 +171,7 @@ how it gets skipped.
    seatbelt (`lib/ship/sandbox.ts`): network denied, filesystem confined to the
    repo and toolchain, `.git`/`.env*`/`.vercel` denied, environment replaced
    rather than inherited, and **git pointed at the repo's own config and no
-   other** — see the gotcha below. **Thirty assertions run against it, every
+   other** — see the gotcha below. **Thirty-two assertions run against it, every
    attack blocked** — including reading this repo's live OIDC token, which the
    first version of the profile handed straight back.
    - **A check can still destroy the repo's uncommitted working tree.** Writes
@@ -189,8 +189,8 @@ how it gets skipped.
      the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **Tests cover every module in `lib/`.** 124 assertions — `parse` 34 ·
-   `sandbox` 30 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
+4. **Tests cover every module in `lib/`.** 126 assertions — `parse` 34 ·
+   `sandbox` 32 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
    `cache` 6 · `check` 6 — run with `pnpm test`, node's own runner, no
    dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five

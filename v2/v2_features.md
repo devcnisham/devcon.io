@@ -74,7 +74,7 @@ check is injected back to replace what the global config would have carried.
 The profile was not widened: an include may name any path, and CI proved what
 sits on the other end of one.
 
-*Verified by:* `pnpm test` — 30 assertions, each running a real command through
+*Verified by:* `pnpm test` — 32 assertions, each running a real command through
 the real sandbox. Mutation-verified: reverting one line of the profile turns
 five of them red, and removing `GIT_CONFIG_GLOBAL` turns six. The suite
 **refuses to run** where there is no sandbox rather than passing vacuously, and

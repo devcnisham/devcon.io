@@ -33,7 +33,7 @@
 |---|---|
 | `lib/ship/parse.ts` | Reads `SHIP.md`. 34 tests. |
 | `lib/ship/check.ts` | Works. Sandboxed. Runs the open project's checks. 6 tests. |
-| `lib/ship/sandbox.ts` | Works. macOS only, by design. 30 tests. |
+| `lib/ship/sandbox.ts` | Works. macOS only, by design. 32 tests. |
 | `app/work/workspace/page.tsx`, `spec-cards.tsx` | The open project's spec, checked |
 | `app/work/canvas/page.tsx`, `board.tsx` | Draggable cards. 4.4 KB gzip of client JS. |
 | `lib/canvas.ts` | Card positions per project. 12 tests. |
@@ -47,7 +47,7 @@
 | `lib/workspaces.ts`, `lib/clone.ts`, `lib/pick-folder.ts` | Import, clone, Finder dialog |
 | `test/clone.test.ts` | 11 assertions — URL injection, path validation, active project |
 | `app/work/views.tsx` | Floating workspace/canvas switch |
-| `test/sandbox.test.ts` | 30 assertions — attacks, plus git config from outside the repo |
+| `test/sandbox.test.ts` | 32 assertions — attacks, plus git config from outside the repo |
 | `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
 | `test/cache.test.ts` | 6 assertions — TTL expiry, and an edit beating the clock |
 | `test/search.test.ts` | 11 assertions — matching, AND terms, regex metacharacters |
@@ -129,7 +129,7 @@
 | `SHIP.md` check #7 fails by construction — nests the sandbox | open |
 | `SHIP.md` check #2 can never pass — needs the network | by decision |
 | ~~`parse.ts` has no tests~~ | **fixed 2026-08-11**, 34 tests, task 13 |
-| ~~A git config include outside the repo killed every git check~~ | **fixed 2026-08-11**, 6 tests, task 42 |
+| ~~A git config include outside the repo killed every git check~~ | **fixed 2026-08-11**, 8 tests, task 42 |
 | `bullets()` swallows prose written between two bullets | open, asserted, task 41 |
 | A cut with no `**bold**` name is dropped silently | open, asserted, task 41 |
 | Six overlapping documents, three of them derivative | open, task 20 |
