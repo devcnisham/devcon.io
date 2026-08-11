@@ -11,7 +11,7 @@
 > while the code said 252. If this file and `SHIP.md` ever disagree, `SHIP.md`
 > is right and this one is stale.
 >
-> Written 2026-08-09. Every "verified by" line below names a command that was
+> Written 2026-08-09, updated 2026-08-10. Every "verified by" line below names a command that was
 > actually run, not a thing that was read.
 
 ## Built
@@ -59,35 +59,70 @@ checks legitimately need a shell. What changed is what the shell can reach.
 unconfined. A sandbox that silently degrades reports the same green as a real
 one.
 
-*Verified by:* `pnpm test` — 20 assertions, each running a real command through
+*Verified by:* `pnpm test` — 24 assertions, each running a real command through
 the real sandbox. Mutation-verified: reverting one line of the profile turns
-five of them red.
+five of them red. The suite **refuses to run** where there is no sandbox rather
+than passing vacuously, and asserts the generated profile never grants `/`,
+`/Users` or a home directory.
 
 ### The workspace — `/work/workspace`
 
-Renders this repo's `SHIP.md`, checked live. Rail holds the spec's identity and
-a tally; the main column holds every condition with its tick, verdict, command,
-timing and raw evidence, then the cuts and the assumptions.
+Renders the **open project's** `SHIP.md`, checked live — not this repo's. That
+is the whole reason the sandbox exists: the commands come out of a markdown
+file in a folder someone else may have written.
 
-Drift — ticked boxes whose command disagrees — gets the top of the page.
+Stat cards, then a card per condition with its tick, verdict, command, timing
+and raw evidence, then cuts and assumptions. A filter matches text, command and
+evidence. Drift — ticked boxes whose command disagrees — gets the top of the
+page and is computed from the **whole** spec, so a search can never hide it.
 
-*Verified by:* loading it. It reported drift on its first render, and caught two
-defects in its own source that reading the code had not.
+A project with no `SHIP.md` gets its detected gaps instead, urgent first. That
+is the Mode 1 student, not an error state.
 
-### Home — `/`
+*Verified by:* running it against two projects — this repo (5 passing, 2
+failing, 6 yours, 13 cards, drift banner) and a bare Express folder with a
+committed `.env` (seven gaps, the leak first). Drift survives three filter
+queries including one that matches nothing.
 
-Reads `SHIP.md` and shows the plan's **shape**: the sentence, how many
-conditions exist, how many are ticked, how many things were cut.
+### The dashboard — `/`
 
-It deliberately does not run the checks. Parsing is microseconds; checking is
-seconds, and a landing page that takes thirteen seconds to say hello is a
-broken landing page. So it says on screen that nothing there has been
-verified and that a tick is the author's claim, then sends you to the work
-page for the evidence. `readSpec` exists for exactly that split — the shape is
-not the state.
+Open a folder through a **real Finder window** — the server asks macOS, because
+the browser cannot: `showDirectoryPicker()` is Chromium-only and never exposes
+an absolute path. Or clone a repo by URL, validated first, since `git clone`
+accepts transports that execute commands.
 
-*Verified by:* loading it and reading the rendered HTML — 13 conditions,
-6 ticked, 6 cut, matching `SHIP.md`.
+Every project is then a card read from its own files: stack from the lockfile
+and dependencies, gaps from what is absent. **A `.env` not covered by
+`.gitignore` is flagged urgent and sorted first** — that gap is losing a key,
+not being untidy, and the dangerous case is the one where an ignore file exists
+so it all looks handled. Clicking a card opens that project.
+
+*Verified by:* seeding two projects and reading the render — a bare Vite folder
+reported `Vite · JavaScript` with the leak first and a red bar; this repo
+reported `Next.js · TypeScript · pnpm`. Nine injection strings asserted
+rejected by the clone validator.
+
+### Integrations — `/connectors` · The console — `/console`
+
+Integrations reports what this project has installed and, more usefully, **what
+nothing covers yet** — read from its `package.json`, not from a list of things
+every project ought to have. The console probes what this machine can actually
+do: platform, node, the sandbox, the Finder dialog, git. Anything unavailable
+says why instead of showing a tick.
+
+### The canvas — `/work/canvas`
+
+The open project's facts as cards you can drag, two-finger pan and shift-drag
+to select. Positions persist per project under `~/.devcon/canvas/`; positions
+only, so a gap you fix disappears next load rather than lingering.
+
+*Verified by:* driving it — a card dropped at +180,+140 landed at exactly
+`translate3d(220px, 180px)`, the wheel moved the board, shift-drag selected all
+three cards, and a fresh server render returned the dropped positions from
+disk.
+
+**Cost 4.4 KB gzip**, measured by building with and without it. v2's only
+client component.
 
 ### A way out of the work page
 
@@ -163,7 +198,6 @@ request. The entry is kept rather than deleted so the reversal stays visible.
 | MCP server + repo reader | `v2/task.md` 23 |
 | The critique pass — *the actual product* | `v2/task.md` 24 |
 | Cut rules | `v2/task.md` 25 |
-| CI | `v2/task.md` 22 |
 
 Everything built so far is plumbing for the critique pass.
 
@@ -172,15 +206,16 @@ real projects and name one decision each changed *before* building tooling to
 manage them. If a hand-written spec changes no real decision, the tooling will
 not rescue it — and that costs an afternoon to find out now rather than months.
 
-## No spec at all
+## CI
 
-**`/work/canvas` is an empty route and nothing says what it is for.** It came
-from the sketch; `SHIP.md`, `v2/task.md` and `HANDOFF.md` all mention it only as
-a route that exists. v0.1 had a canvas of service nodes, but nothing is carried
-forward, and an interactive node canvas would need client JavaScript — which
-this repo spends only when something earns it.
+`.github/workflows/gates.yml` — the five gates plus a zero-page-chunk check and
+a tracked-secret scan, on every push and pull request. **macOS**, because the
+sandbox tests would pass without running anything on Linux.
 
-This is a decision, not a task.
+*Verified by:* it going green. Six runs to get there, and every failure was a
+real portability bug this laptop could not have produced — a hardcoded Xcode
+path, the xcrun shim, a shallow clone with no tags, and pnpm in an unexpected
+place. That is the entire argument for having it.
 
 ## Known defects
 
@@ -202,6 +237,9 @@ This is a decision, not a task.
 - **`SHIP.md` check #2 can never pass.** `git ls-remote … origin` needs the
   network, which is denied unconditionally.
 - **`parse.ts` has no tests.**
+- **`SHIP.md` check #2 stays failing by decision.** `git ls-remote … origin`
+  needs the network; the sandbox denies it. The box stays ticked because the
+  fact is true, and the check reports the disagreement rather than hiding it.
 - **No end-to-end tests.** Unit and integration exist; nothing drives the app
   as a user. The last open item from the owner's daily checklist.
 - **Mobile is unverified below 408px.** Fixed and measured at 408; the preview

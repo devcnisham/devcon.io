@@ -21,6 +21,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **Settings became the console.** `/console`; `/settings` redirects rather
+  than 404s.
+
+- **CI is green.** Six runs to get there, and every failure was a real
+  portability bug this laptop could not have produced: a hardcoded
+  `/Applications/Xcode.app` path (the runner has `Xcode_26.6.app`), the xcrun
+  git shim needing `xcodebuild` (refused on purpose — a build system does not
+  belong in a sandbox built to confine untrusted commands), a shallow clone
+  with no tags, and pnpm installed somewhere this profile had never heard of.
+  The sandbox now derives its toolchain allowlist from `PATH` rather than
+  naming directories, which fixes the class instead of the instances.
+
 - **CI.** `.github/workflows/gates.yml` runs the five gates on every push and
   pull request, plus two more: the build must emit zero page chunks, and no
   `.env` or `.vercel` path may be tracked by git. **On macOS, deliberately** —

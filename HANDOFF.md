@@ -1,24 +1,55 @@
 # devcon v2 — handoff
 
-> Read `CLAUDE.md` first, then this, then `v2/task.md`. Written 2026-08-08 at
-> the end of the session that froze v0.1 and started v2; updated 2026-08-09,
-> the session that sandboxed the checker and put it on screen.
+> Read `CLAUDE.md` first, then this, then `v2/task.md`. Started 2026-08-08 when
+> v0.1 was frozen; rewritten 2026-08-10 at the end of the session that built
+> the five surfaces, the canvas, and CI.
 
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
-working tree clean, nothing local-only.
-**Gates all green: lint 0, tsc 0, test 0, build 0, and 0 client page chunks.**
+working tree clean.
 
-**Progress: 5 of 13 done-when conditions in `SHIP.md`** — the only progress
-number here produced by running commands rather than by self-report.
+**Gates: lint 0, tsc 0, test 0 (84 tests), build 0, 0 page chunks.**
+**CI is green** — `.github/workflows/gates.yml`, seven gates, macOS.
 
-It read 4 or 5 depending on machine load earlier the same day, which was a
-defect in the checker rather than in the repo. Fixed: see open question 6.
-Three consecutive runs now agree at the load that used to break it.
+**Progress: 5 of 13 done-when conditions in `SHIP.md`** — measured by running
+the commands, not by reading ticks. Stable across runs since the timeout fix.
+One condition drifts: *"The freeze exists on the remote"* is ticked and its
+check fails, because the sandbox denies the network by design. That is a known,
+deliberate disagreement, not a regression.
 
 ```bash
 pnpm install
 pnpm dev        # localhost:3000
 ```
+
+---
+
+## Where to start next session
+
+Read this section first; the rest is history and detail.
+
+**Three things are true and worth knowing before touching anything:**
+
+1. **The app works end to end for one story.** Open a folder (real Finder
+   dialog) or clone a repo → it appears as a card with its stack and its gaps →
+   click it → the work page checks *that project's* `SHIP.md` in the sandbox,
+   or shows its gaps if it has none → the canvas shows the same facts as cards
+   you can drag.
+2. **`SHIP.md` still cuts a web app**, and one is being built anyway. The entry
+   is kept rather than deleted so the reversal stays visible.
+3. **Nobody has finished a project because of devcon.** That has not changed
+   and no feature here changes it.
+
+**The next real move is not code.** `v2/task.md` 15 and 16: hand-write a
+`SHIP.md` for two projects that are not this one, and name one decision each
+changed. If a hand-written spec changes no real decision, none of the tooling
+matters — and that is an afternoon to find out, not a quarter.
+
+**Cheap and open, if you want code instead:** `parse.ts` still has no tests,
+there are no end-to-end tests, and `SHIP.md`'s own check #7 fails by
+construction (it runs `pnpm test` *inside* the sandbox, where the suite cannot
+create the bait file it attacks with).
+
+---
 
 ---
 
@@ -45,18 +76,24 @@ Four things decided in this session, all of them the user's calls:
 
 | Path | What |
 |---|---|
-| `app/page.tsx`, `app/connectors/`, `app/settings/` | Dashboard, integrations, settings — behind a left sidebar |
-| `app/work/` | The work page — full-bleed surface, floating switch |
-| `app/work/workspace/` | Empty — cleared 2026-08-10, awaiting new contents |
-| `app/work/canvas/` | Empty — cleared 2026-08-10 |
-| `app/work/views.tsx` | The floating segmented switch |
-| `lib/ship/parse.ts` | Reads `SHIP.md` — works |
-| `lib/ship/check.ts` | Runs the done-when checks — works, **no caller since the workspace was cleared** |
-| `lib/ship/sandbox.ts` | Confines them. macOS only, by design |
+| `app/page.tsx`, `open.tsx`, `cards.tsx` | Dashboard — Finder dialog, clone, stats, a card per project |
+| `app/connectors/` | Integrations — coverage, what nothing covers yet, MCP badges |
+| `app/console/` | What devcon is doing and what this machine can do, probed |
+| `app/work/workspace/` | The open project's `SHIP.md`, checked in the sandbox |
+| `app/work/canvas/` | The same project as draggable cards |
+| `lib/ship/` | parse · check · sandbox · cache · search |
+| `lib/detect.ts` | A project's stack and gaps, read from its files |
+| `lib/workspaces.ts`, `clone.ts`, `pick-folder.ts` | Import, clone, real Finder dialog |
+| `lib/canvas.ts` | Card positions, per project |
+| `lib/diagnostics.ts` | Host probes for the console |
+| `.github/workflows/gates.yml` | Seven gates on every push. Green. |
 
-Page flow, from the sketch: `/` → `/work`, with workspace and canvas as two
-views *inside* the work page rather than siblings of home. `/work` redirects to
-`/work/workspace`.
+**84 tests.** `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 ·
+`search` 11 · `cache` 6 · `check` 6. `parse.ts` has none.
+
+Everything devcon stores lives under `~/.devcon/` — the project list, which
+project is open, and canvas layouts. **Never inside a tracked repo**, where it
+would land in someone's diff and their submission.
 
 ### Waiting on you
 
@@ -144,7 +181,7 @@ discipline works and that adding it late is how it gets skipped.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
 4. **Tests cover the sandbox, the checker and the cache. `parse.ts` has
-   none.** 63 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
+   none.** 84 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
    (6) and `test/cache.test.ts` (6), run with `pnpm test` — node's own runner,
    no dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five
@@ -159,8 +196,13 @@ discipline works and that adding it late is how it gets skipped.
      make the suite skip when it detects confinement** — that turns check #7
      green while testing nothing, which is the exact failure the suite exists to
      prevent.
-5. **No CI.** v0.1 ended with a four-gate workflow; v2 has none yet — and there
-   are now five gates, `pnpm test` among them.
+5. **CI exists and is green** — `.github/workflows/gates.yml`. Seven gates on
+   macOS: the five local ones plus a zero-page-chunk check and a tracked-secret
+   scan. It took six runs to go green, and **every failure was a real
+   portability bug that this laptop could not have shown**: a hardcoded Xcode
+   path, the xcrun shim needing `xcodebuild`, a shallow clone with no tags, and
+   pnpm living somewhere else on the runner. The sandbox now derives its
+   toolchain allowlist from `PATH` instead of naming directories.
 6. **A verdict changed with machine load — fixed 2026-08-09.** `check.ts`
    allowed 20s and ran every check at once. `pnpm exec tsc --noEmit` takes
    ~1.3s idle and over 20s at a load average of 32, so the same repo gave 5

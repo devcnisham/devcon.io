@@ -12,7 +12,7 @@
 > wins and the rest are stale. **Consolidating them is task 20, and it is still
 > your call.**
 >
-> Listed 2026-08-09.
+> Listed 2026-08-10.
 
 ## Everything, listed
 
@@ -22,7 +22,7 @@
 |---|---|
 | `/` | Dashboard — open/clone, stats, a card per project |
 | `/connectors` | Integrations — coverage and what nothing covers yet |
-| `/settings` | What devcon is doing, read from the modules |
+| `/console` | What devcon is doing, and what this machine can do |
 | `/work` | Redirects to `/work/workspace` |
 | `/work/workspace` | The open project's `SHIP.md`, checked in the sandbox |
 | `/work/canvas` | The open project as draggable cards |
@@ -32,21 +32,22 @@
 | Module | State |
 |---|---|
 | `lib/ship/parse.ts` | Works. **No tests.** |
-| `lib/ship/check.ts` | Works. Sandboxed. No caller right now. 6 tests. |
+| `lib/ship/check.ts` | Works. Sandboxed. Runs the open project's checks. 6 tests. |
 | `lib/ship/sandbox.ts` | Works. macOS only, by design. 20 tests. |
 | `app/work/workspace/page.tsx`, `spec-cards.tsx` | The open project's spec, checked |
 | `app/work/canvas/page.tsx`, `board.tsx` | Draggable cards. 4.4 KB gzip of client JS. |
 | `lib/canvas.ts` | Card positions per project. 13 tests. |
 | `app/page.tsx`, `app/open.tsx`, `app/cards.tsx` | Dashboard — open, clone, stats, project cards |
-| `lib/detect.ts` | Reads a project's stack and gaps from its files. 12 tests. |
+| `lib/detect.ts` | Reads a project's stack and gaps from its files. 14 tests. |
 | `app/connector-cards.tsx` | Integration rows and capability-coverage cards |
 | `app/connectors/page.tsx` | Integrations, read from `package.json` |
-| `app/settings/page.tsx`, `app/settings-cards.tsx` | What devcon is doing, and what this machine can do |
+| `app/console/page.tsx`, `app/console-cards.tsx` | The console — live values and host probes |
+| `.github/workflows/gates.yml` | Seven gates, macOS, green |
 | `lib/diagnostics.ts` | Probes the host — platform, node, sandbox, Finder dialog, git |
 | `lib/workspaces.ts`, `lib/clone.ts`, `lib/pick-folder.ts` | Import, clone, Finder dialog |
-| `test/clone.test.ts` | 8 assertions — URL injection, path validation |
+| `test/clone.test.ts` | 11 assertions — URL injection, path validation, active project |
 | `app/work/views.tsx` | Floating workspace/canvas switch |
-| `test/sandbox.test.ts` | 20 assertions, all attacks against the real sandbox |
+| `test/sandbox.test.ts` | 24 assertions, all attacks against the real sandbox |
 | `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
 | `test/cache.test.ts` | 6 assertions — TTL expiry, and an edit beating the clock |
 | `test/search.test.ts` | 11 assertions — matching, AND terms, regex metacharacters |
@@ -54,7 +55,7 @@
 | `CHANGELOG.md` | Every change, newest first. Append-only. |
 | `lib/ship/cache.ts` | One check run shared by the views. 6 tests. |
 
-### Gates — five, all green
+### Gates — five locally, seven in CI, all green
 
 | Command | What |
 |---|---|
@@ -94,7 +95,7 @@
 | Dashboard stats and project cards | done |
 | Open a project from its card — the work page names it | done |
 | Integrations: capability coverage, what nothing covers yet | done |
-| Settings: host probes, live check numbers, stated rules | done |
+| Console: host probes, live check numbers, stated rules | done |
 | One colour system — zero raw Tailwind colours in `app/` | done |
 | Changelog, built from `git log` | done |
 | End-to-end tests | not built |
@@ -102,9 +103,9 @@
 | MCP server + repo reader | not built |
 | The critique pass — **the actual product** | not built |
 | Cut rules | not built |
-| CI — five gates, zero-chunk check, secret scan, on macOS | done |
+| CI — five gates, zero-chunk check, secret scan, on macOS | **done and green** |
 | Tests for `parse.ts` | not built |
-| Anything at `/work/canvas` | no spec |
+| Zoom, undo, edges or snapping on the canvas | not built |
 
 ### Cut on purpose
 
@@ -134,7 +135,7 @@
 |---|
 | The 14rem workspace rail is a permanent commitment |
 | `SHIP.md` vs the `v2/` docs — now six files |
-| What `/work/canvas` is for |
+| Whether the canvas needs zoom, edges or grouping — drag, pan and select are built |
 | Whether 120s and four-at-a-time are the right numbers — the mechanism is fixed, these two are judgement calls made without you |
 | `v2/product.md`, `v2/project.md` — headings only, awaiting your content |
 

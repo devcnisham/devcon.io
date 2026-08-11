@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /**
- * The chrome around dashboard, connectors and settings.
+ * The chrome around dashboard, connectors and console.
  *
  * `here` is passed in rather than read from the router because a layout cannot
  * see which child is rendering — marking the active link from a layout needs
@@ -17,7 +17,7 @@ import Link from "next/link";
 const NAV = [
   { href: "/", label: "Dashboard", hint: "Projects and import" },
   { href: "/connectors", label: "Connectors", hint: "Services and MCP" },
-  { href: "/settings", label: "Settings", hint: "How devcon behaves" },
+  { href: "/console", label: "Console", hint: "How devcon behaves" },
 ] as const;
 
 export function HomeShell({

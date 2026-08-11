@@ -15,7 +15,7 @@ pnpm dev        # localhost:3000
 |---|---|
 | `/` | Dashboard — open a folder or clone a repo, and a card per project read from its files |
 | `/connectors` | Integrations — what this project covers, and what nothing covers yet |
-| `/settings` | What devcon is doing, read from the modules that do it |
+| `/console` | What devcon is doing and what this machine can do, probed |
 | `/work` | Redirects to the default view |
 | `/work/workspace` | The open project's `SHIP.md`, every condition checked in the sandbox |
 | `/work/canvas` | The open project as cards you can drag, pan and select |

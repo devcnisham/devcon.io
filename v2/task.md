@@ -1,6 +1,6 @@
 # Task
 
-Every task for v2 and where it stands. Updated 2026-08-09.
+Every task for v2 and where it stands. Updated 2026-08-10.
 
 **Progress: 5 of 13 done-when conditions in `SHIP.md`.** The only progress
 number that means anything here — checked by running commands, not by ticking
@@ -40,7 +40,7 @@ decision) · **later**
 |---|---|---|---|
 | 12 | `SHIP.md` format — ships / not shipping / done-when | **done** | 8 cuts and 13 conditions recorded. |
 | 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Read by the dashboard. Still no tests. |
-| 14 | Done-when checker (`lib/ship/check.ts`) | **done, unwired** | Works and is sandboxed. Was visible at `/work/workspace` until that view was cleared; nothing calls it now. Caught its author overclaiming on the first run, and again on the first render. |
+| 14 | Done-when checker (`lib/ship/check.ts`) | **done** | Works, sandboxed, and running the **open project's** checks at `/work/workspace`. Caught its author overclaiming on the first run, and again on the first render. |
 | 15 | Hand-write specs for 2+ other real projects | **next** | The cheapest test of whether the bet holds. No code needed. |
 | 16 | Name one decision each of them changed | **next** | If none, the format is not useful and tooling will not save it. |
 
@@ -58,19 +58,19 @@ decision) · **later**
 | 40 | Workspace rebuilt, against the open project | **done** | The first thing in v2 that runs `lib/ship/` against a repo that is **not this one** — which is why the sandbox exists. Stat cards, condition cards with tick, verdict, command and evidence, drift from the full set so a filter can never hide it, filter restored, cuts and assumptions. A project with no `SHIP.md` gets its detected gaps instead, urgent first. |
 | 38 | Canvas — drag, pan, selection | **done** | Cards built on the server from the open project's files; `app/work/canvas/board.tsx` only moves them. Drag, two-finger pan (wheel), shift-drag marquee, multi-select drag. Positions persist per project under `~/.devcon/canvas/`, keyed by a hash of the path so a project path cannot escape the store. Positions only — a fixed gap disappears next load rather than lingering. 13 tests. Not built: zoom, undo, edges, snapping. |
 | 39 | The zero-JS claim was overstated | **fixed** | Measured against a production build: every route loads 172.5 KB gzip of framework runtime, near-identical to v0.1's 173 KB that the rule condemns. 0 page chunks is real but measures application code only. README and CLAUDE.md now state the number; the comparison to v0.1 is removed. The canvas itself cost 4.4 KB, measured by building with and without it. |
-| 36 | Settings page with cards | **done** | Stat cards, host probes and grouped rows. Every capability is **probed**, not assumed — platform, node, sandbox, Finder dialog, git — because several features are macOS-only and listing them as working because the code exists would be a claim. Check numbers imported from the modules that use them, so the page cannot drift. No profile: there are no accounts. |
+| 36 | Console page with cards | **done** | Renamed from Settings on request; `/settings` redirects rather than 404s. Stat cards, host probes and grouped rows. Every capability is **probed**, not assumed — platform, node, sandbox, Finder dialog, git — because several features are macOS-only and listing them as working because the code exists would be a claim. Check numbers imported from the modules that use them, so the page cannot drift. No profile: there are no accounts. |
 | 37 | biome `recommended` deprecation | **done** | `rules.recommended` → `rules.preset`, deprecated in 2.5.7 and gone next major. Changed by hand, not by `biome migrate`, which rewrites the file and drops the comments recording two defects. Verified the linter still bites: a deliberate `==` was caught. |
 | 35 | Integrations page with cards | **done** | Capability coverage read from `package.json` — what nothing covers yet, in this project, rather than a list of things every project ought to have. Stat cards, letter tiles, MCP badges, Docs beside Connect. |
 | 33 | Dashboard with cards | **done** | Four stat cards and a card per project. `lib/detect.ts` reads stack and gaps from the files — including a `.env` not covered by `.gitignore`, flagged urgent and sorted first. Derived from the repo, not a step catalog. 12 tests. |
 | 32 | Workspace cleared | **done** | Emptied on request. `lib/ship/` untouched and still covered — `checkedSpec`, `tally`, `lies` and `filterSpec` currently have no caller. Waiting, not dead. |
 | 30 | Mobile layout | **done** | The work page was two trapped scroll boxes on a phone. Fixed and measured at 408px. **Never verified below 408px** — the preview pane will not go narrower. |
-| 29 | `/work/canvas` has no specification | **blocked** | An empty route from the sketch that no document defines. An interactive node canvas would cost client JavaScript. **Needs your call.** |
+| 29 | `/work/canvas` has no specification | **done** | Specified on request as a Figma-like surface: drag, two-finger pan, shift-drag select. Built. Cost 4.4 KB gzip of client JS, measured. |
 
 ## Not started
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 21 | Tests — any at all | **started** | 63 assertions across `test/sandbox.test.ts` (20, all attacks against the real sandbox) and `test/check.test.ts` (6 — timeouts, verdicts, bounded concurrency). `pnpm test`, node's runner, no dependency added. Every one mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
+| 21 | Tests — any at all | **started** | 84 assertions across `test/sandbox.test.ts` (20, all attacks against the real sandbox) and `test/check.test.ts` (6 — timeouts, verdicts, bounded concurrency). `pnpm test`, node's runner, no dependency added. Every one mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
 | 22 | CI gates | **written, never run** | `.github/workflows/gates.yml` — the five gates plus a zero-page-chunk check and a tracked-secret scan, on every push and PR. **macOS runner, not a preference:** on Linux `sandbox-exec` is missing, every attack command fails to start, and every "did not leak" assertion passes because nothing ran. `test/sandbox.test.ts` now refuses to run without a sandbox rather than report green. Each step was run locally and each custom step was proved to fail when it should. **The workflow itself has never executed — the first push is its first run.** |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |

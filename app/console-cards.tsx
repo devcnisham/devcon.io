@@ -1,12 +1,12 @@
 import type { Probe } from "@/lib/diagnostics.ts";
 
 /**
- * The settings page's pieces.
+ * The console's pieces.
  *
  * Nothing here is editable, and the page says so rather than drawing a switch
  * that does nothing. Every value is imported from the module that uses it or
  * probed from this machine, so a row cannot drift from the behaviour it
- * describes the way a hand-typed settings screen would.
+ * describes the way a hand-typed screen would.
  */
 
 export function Group({

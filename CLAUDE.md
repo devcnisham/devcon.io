@@ -26,14 +26,14 @@ idea → research → requirements → ui wireframe → ui design → database d
 reported as done that produced nothing is the same defect this whole tool
 exists to catch — a ticked box with no exit code behind it.
 
-As of 2026-08-09, eleven of those twenty-three steps have nothing to run
-against, and pretending otherwise would be theatre:
+As of 2026-08-10, ten of those twenty-three steps have nothing to run against,
+and pretending otherwise would be theatre:
 
 | Step | State |
 |---|---|
 | database design | No database. v2 reads one local markdown file. |
 | api design | No API. Every route is a server component. |
-| CI pipeline | Does not exist — `v2/task.md` 22. |
+| CI pipeline | **Exists and is green** — `.github/workflows/gates.yml`, macOS. |
 | deploy to staging | No staging environment. |
 | QA testing | No environment to test in beyond localhost. |
 | deploy to production | **`v2` is not deployed.** `main` still serves v0.1. |
@@ -45,7 +45,7 @@ staging does not close it.
 
 Steps that are real today and must actually happen: research, requirements,
 ui design, frontend development, integration, **testing**, bug fixes,
-refactoring, code review, git commit, push.
+refactoring, code review, git commit, push, **CI pipeline**.
 
 ### Hierarchy
 
@@ -82,8 +82,8 @@ The owner's nine groups. Same rule as above — **name what you skipped.**
 
 Most of Development, all of Deployment and all of Monitoring have nothing
 behind them: no backend, no database, no API, no auth, no file storage, no
-payments, no notifications, no background jobs, no CI, nothing deployed, no
-logs, no analytics. Do not tick them.
+payments, no notifications, no background jobs, nothing deployed, no logs, no
+analytics. Do not tick them. **CI is real now** and runs on every push.
 
 Three gaps in this list are real, cheap and currently open:
 
@@ -152,6 +152,12 @@ leaked this repo's OIDC token read as correct.
   exists to catch.
 - **State what isn't done.** Do not tick a box you have not run — the checker
   in `lib/ship/` caught its own author doing exactly that on its first run.
+- **Update the docs in the same commit, not after.** `HANDOFF.md`,
+  `v2/task.md`, `v2/overview.md`, `v2/v2_features.md`, `README.md` and
+  `CHANGELOG.md` are part of the change, not a follow-up. A claim goes stale
+  the moment the code moves, and this repo has already shipped a README that
+  called the surfaces empty after the workspace was built. Before committing,
+  grep the docs for what the change just made false.
 - **Verify by running, not reading.** Every real defect this session came from
   looking at the rendered page or the exit code. None came from reading code.
 
