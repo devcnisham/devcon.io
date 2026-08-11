@@ -2,7 +2,11 @@
 
 > Read `CLAUDE.md` first, then this, then `v2/task.md`. Started 2026-08-08 when
 > v0.1 was frozen; rewritten 2026-08-10 at the end of the session that built
-> the five surfaces, the canvas, and CI.
+> the five surfaces, the canvas, and CI. Swept 2026-08-11 — that rewrite left
+> six claims behind that the same session had already made false, including a
+> test count this file contradicted two hundred lines further down. Recorded
+> here rather than quietly fixed, because it is the failure this tool exists to
+> catch, committed by the tool's own handoff.
 
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean.
@@ -123,15 +127,15 @@ The honest options are to fold the derivative three back into `SHIP.md` and
 which is the same argument this tool makes about ticked boxes, turned on its
 own documentation.
 
-### Three decisions blocked on you, not on work
+### Two decisions blocked on you, not on work
 
 Listed in full in `v2/task.md`; repeated here because they gate everything else.
 
-1. ~~The work page has no way back to home.~~ **Fixed** — a `←` link in the floating switch.
-2. **The 14rem workspace rail** is a permanent commitment with nothing in it.
-3. **`SHIP.md` vs the `v2/` docs** — see above.
+1. **The 14rem workspace rail** is a permanent commitment with nothing in it.
+2. **`SHIP.md` vs the `v2/` docs** — see above.
 
-The fourth — the checker running arbitrary shell — is closed. See below.
+Two others are closed: the work page had no way home (a `←` link in the
+floating switch), and the checker ran arbitrary shell (sandboxed — see below).
 
 ### The ordering most likely to be got wrong
 
@@ -140,8 +144,10 @@ manage them (`v2/task.md` 15–16 before 23–25). If a hand-written spec change
 no real decision on a real project, tooling will not rescue it — and that is an
 afternoon to find out now rather than months later.
 
-Tests and CI should land before the next feature. v0.1 proved both that the
-discipline works and that adding it late is how it gets skipped.
+**CI has landed and tests are partial.** Seven gates run on every push and are
+green; `parse.ts` has no tests and nothing drives the app end to end. Those two
+go in before the next feature — v0.1 proved both that the discipline works and
+that adding it late is how it gets skipped.
 
 ---
 
@@ -162,9 +168,9 @@ discipline works and that adding it late is how it gets skipped.
 2. **The checker is sandboxed, with two things left open.** Checks now run under
    seatbelt (`lib/ship/sandbox.ts`): network denied, filesystem confined to the
    repo and toolchain, `.git`/`.env*`/`.vercel` denied, environment replaced
-   rather than inherited. Fourteen attacks were run against it and all fourteen
-   were blocked — including reading this repo's live OIDC token, which the first
-   version of the profile handed straight back.
+   rather than inherited. **Twenty-four attacks run against it, all blocked** —
+   including reading this repo's live OIDC token, which the first version of the
+   profile handed straight back.
    - **A check can still destroy the repo's uncommitted working tree.** Writes
      have to be allowed: `tsc` is `incremental`, so even `--noEmit` writes
      `tsconfig.tsbuildinfo`. History is protected; unstaged work is not. A
@@ -180,10 +186,10 @@ discipline works and that adding it late is how it gets skipped.
      the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **Tests cover the sandbox, the checker and the cache. `parse.ts` has
-   none.** 84 assertions across `test/sandbox.test.ts` (20), `test/check.test.ts`
-   (6) and `test/cache.test.ts` (6), run with `pnpm test` — node's own runner,
-   no dependency added. Each attacks real behaviour rather than reading source,
+4. **Tests cover everything in `lib/` except `parse.ts`.** 84 assertions —
+   `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
+   `cache` 6 · `check` 6 — run with `pnpm test`, node's own runner, no
+   dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five
    red, flipping a timeout verdict to `fail` turns one red, dropping the Xcode
    allow turns one red.
@@ -226,26 +232,44 @@ discipline works and that adding it late is how it gets skipped.
    **What remains open is the number, not the mechanism.** 120s and 4 are
    judgement calls made without you. If a real check on a real project needs
    longer, or the page feels slow, those are the two knobs.
-7. **`/work/canvas` has no specification.** It is an empty route that came from
-   the sketch. `SHIP.md`, `v2/task.md` and this file all mention it only as a
-   route that exists — none says what it is *for*. v0.1 had a canvas of service
-   nodes, but nothing is carried forward, and an interactive node canvas would
-   need client JavaScript, which this repo spends only when something earns it.
-   This is a decision, not a task.
+7. **`/work/canvas` — specified on request, then built.** It was an empty route
+   from the sketch that no document said the *purpose* of. You specified it as a
+   Figma-like surface: drag, two-finger pan, shift-drag marquee select. The
+   cards are built on the server from the open project's files, and
+   `board.tsx` only moves them; positions persist per project under
+   `~/.devcon/canvas/`. **Positions only** — a gap you fix disappears next load
+   rather than lingering because a layout file remembered it.
+   - **This is v2's only `"use client"`, and it cost 4.4 KB gzip**, measured by
+     building with and without it rather than asserted. No dependency: most of
+     React Flow's ~50 KB would have gone unused.
+   - Still open, and still yours: **zoom, undo, edges and snapping** are not
+     built. Drag, pan and select are.
 
 ---
 
 ## Things that cost time, so they do not cost it twice
 
 - **Stock `/usr/bin/git` on macOS is an xcrun shim, not git.** It dlopens
-  `libxcrun` from `/Applications/Xcode.app/Contents/Developer`. The sandbox
-  profile omitted that path, so every git check died with
-  "unable to load libxcrun" — and it looked fine from a terminal, because this
-  shell's PATH finds Homebrew's real git first. The dev server's PATH does not.
-  Found by rendering the page and reading the evidence it printed, not by
-  running the same checks from a shell where they had always worked. The
-  regression test calls `/usr/bin/git` by absolute path for exactly that
-  reason.
+  `libxcrun` from the Xcode developer directory. The sandbox profile omitted
+  that path, so every git check died with "unable to load libxcrun" — and it
+  looked fine from a terminal, because this shell's PATH finds Homebrew's real
+  git first. The dev server's PATH does not. Found by rendering the page and
+  reading the evidence it printed, not by running the same checks from a shell
+  where they had always worked. The regression test calls `/usr/bin/git` by
+  absolute path for exactly that reason.
+- **The fix for that then broke CI, and only CI could have shown it.** Allowing
+  `/Applications/Xcode.app/Contents/Developer` is correct on this laptop and
+  wrong on a GitHub runner, where Xcode installs as `Xcode_26.6.app` — so every
+  git check failed there with the identical message. The profile now takes the
+  developer directory as a parameter, probed once with `xcode-select -p`.
+  **Do not hardcode a toolchain path.**
+- **Never allow a PATH entry's parent directory.** The sandbox derives its
+  toolchain allowlist from `PATH` so nvm, asdf, volta and a CI runner's pnpm all
+  work without being named. Adding each entry's `dirname` looked like a harmless
+  way to reach symlink targets and granted the **filesystem root**, because PATH
+  contains `/bin`. The attack tests caught it on the next run, and
+  `test/sandbox.test.ts` now asserts the invariant directly rather than relying
+  on a bait file happening to exist.
 - **A wildcard deny does not override a specific allow in seatbelt.**
   `(deny file-read* …)` placed after `(allow file-read-data (subpath …))` does
   nothing at all — in either order. The more specific operation wins, and the

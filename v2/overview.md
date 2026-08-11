@@ -33,10 +33,10 @@
 |---|---|
 | `lib/ship/parse.ts` | Works. **No tests.** |
 | `lib/ship/check.ts` | Works. Sandboxed. Runs the open project's checks. 6 tests. |
-| `lib/ship/sandbox.ts` | Works. macOS only, by design. 20 tests. |
+| `lib/ship/sandbox.ts` | Works. macOS only, by design. 24 tests. |
 | `app/work/workspace/page.tsx`, `spec-cards.tsx` | The open project's spec, checked |
 | `app/work/canvas/page.tsx`, `board.tsx` | Draggable cards. 4.4 KB gzip of client JS. |
-| `lib/canvas.ts` | Card positions per project. 13 tests. |
+| `lib/canvas.ts` | Card positions per project. 12 tests. |
 | `app/page.tsx`, `app/open.tsx`, `app/cards.tsx` | Dashboard — open, clone, stats, project cards |
 | `lib/detect.ts` | Reads a project's stack and gaps from its files. 14 tests. |
 | `app/connector-cards.tsx` | Integration rows and capability-coverage cards |
@@ -51,6 +51,8 @@
 | `test/check.test.ts` | 6 assertions — timeouts, verdicts, bounded concurrency |
 | `test/cache.test.ts` | 6 assertions — TTL expiry, and an edit beating the clock |
 | `test/search.test.ts` | 11 assertions — matching, AND terms, regex metacharacters |
+| `test/canvas.test.ts` | 12 assertions — clamping, path hashing, round-trip |
+| `test/detect.test.ts` | 14 assertions — stack, gaps, the uncovered `.env` |
 | `lib/ship/search.ts` | Filters a checked spec. 11 tests. |
 | `CHANGELOG.md` | Every change, newest first. Append-only. |
 | `lib/ship/cache.ts` | One check run shared by the views. 6 tests. |

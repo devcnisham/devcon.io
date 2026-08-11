@@ -1,6 +1,6 @@
 # Task
 
-Every task for v2 and where it stands. Updated 2026-08-10.
+Every task for v2 and where it stands. Updated 2026-08-11.
 
 **Progress: 5 of 13 done-when conditions in `SHIP.md`.** The only progress
 number that means anything here — checked by running commands, not by ticking
@@ -30,7 +30,7 @@ decision) · **later**
 | 6 | Work page, full-bleed | **done** | Three washes over lifted navy + dot grid. Matches the reference. |
 | 7 | Workspace + canvas as views inside work | **done** | `/work` → `/work/workspace`. Real routes, not a client toggle. |
 | 8 | Floating segmented switch | **done** | Lives in each view — a layout cannot see which child renders without a client hook. |
-| 9 | Zero client JS on every route | **done** | 0 page chunks. The concrete answer to v0.1's 173KB. |
+| 9 | Zero client JS on every route | **done** | 0 page chunks — application code only. **Not the answer to v0.1's 173 KB**; see task 39 for the measurement that killed that claim. The canvas is the one exception, at 4.4 KB. |
 | 10 | A way back from the work page | **done** | Found by clicking rather than reading: the work page had exactly two links and both kept you on it, so you could click forever and never leave. A `←` home link now sits in the floating switch — not a restored header, which would cost the full-bleed surface. |
 | 11 | Decide the 14rem workspace rail | **blocked** | A permanent commitment with nothing in it. Cheap now, expensive later. |
 
@@ -53,15 +53,15 @@ decision) · **later**
 | 19 | A check can expire | **done** | Commit-count check went stale in four commits. Now asserts a permanent property of history. |
 | 20 | `SHIP.md` vs `v2/` docs overlap | **blocked, worse** | Six documents describe v2's state — `SHIP.md`, this file, `HANDOFF.md`, `README.md`, `v2/overview.md`, `v2/v2_features.md` — and the last three only restate the first three. Each is marked derivative, which is a convention, not a mechanism. It already failed once inside a single session: `README.md` called the surfaces empty after the workspace shipped, and two files carried a stale progress number. Fold them back, or generate them from the checker. **Needs your call.** |
 | 28 | A verdict changes with machine load | **done** | Two causes, both fixed: the 20s budget became 120s, and `checkAll` stopped running every check at once — it now runs four, because unbounded concurrency manufactured the load that tripped the ceiling. Timeout and concurrency are parameters so `test/check.test.ts` can drive them; a timeout still reports `error`, never `fail`, and now says so in its evidence. Verified: 5/2/6 with zero errors on three consecutive runs at load average 24, which previously produced 4 passes and 2 errors. |
-| 31 | Search the workspace | **built, then removed** | Shipped at `45ae91e`; removed when the workspace was cleared on request. `filterSpec` and its 11 tests are untouched, so restoring it is UI work only. |
+| 31 | Search the workspace | **done, restored** | Shipped at `45ae91e`, removed when the workspace was cleared on request, and back when it was rebuilt — wired at `app/work/workspace/page.tsx:67`. A `GET` form and `searchParams`, server-filtered, no client JavaScript. Matches a condition's text, its command **and its evidence**, so an error string from the output finds the row that produced it. Terms are ANDed. The drift banner is computed from the full set, so a filter can never hide a ticked box whose check disagrees. 11 tests. |
 | 34 | Open a project from its card | **done** | Clicking a card sets it active and goes to the work page, which names it on the switch. Active project is a separate `~/.devcon/active.json`, checked against the disk every read — a remembered folder that has been deleted reports as nothing open. Forgetting a project clears it. Card body and Forget are sibling forms, never nested: nested forms are invalid HTML and the inner one is dropped, which would make Forget open the project. |
 | 40 | Workspace rebuilt, against the open project | **done** | The first thing in v2 that runs `lib/ship/` against a repo that is **not this one** — which is why the sandbox exists. Stat cards, condition cards with tick, verdict, command and evidence, drift from the full set so a filter can never hide it, filter restored, cuts and assumptions. A project with no `SHIP.md` gets its detected gaps instead, urgent first. |
-| 38 | Canvas — drag, pan, selection | **done** | Cards built on the server from the open project's files; `app/work/canvas/board.tsx` only moves them. Drag, two-finger pan (wheel), shift-drag marquee, multi-select drag. Positions persist per project under `~/.devcon/canvas/`, keyed by a hash of the path so a project path cannot escape the store. Positions only — a fixed gap disappears next load rather than lingering. 13 tests. Not built: zoom, undo, edges, snapping. |
+| 38 | Canvas — drag, pan, selection | **done** | Cards built on the server from the open project's files; `app/work/canvas/board.tsx` only moves them. Drag, two-finger pan (wheel), shift-drag marquee, multi-select drag. Positions persist per project under `~/.devcon/canvas/`, keyed by a hash of the path so a project path cannot escape the store. Positions only — a fixed gap disappears next load rather than lingering. 12 tests. Not built: zoom, undo, edges, snapping. |
 | 39 | The zero-JS claim was overstated | **fixed** | Measured against a production build: every route loads 172.5 KB gzip of framework runtime, near-identical to v0.1's 173 KB that the rule condemns. 0 page chunks is real but measures application code only. README and CLAUDE.md now state the number; the comparison to v0.1 is removed. The canvas itself cost 4.4 KB, measured by building with and without it. |
 | 36 | Console page with cards | **done** | Renamed from Settings on request; `/settings` redirects rather than 404s. Stat cards, host probes and grouped rows. Every capability is **probed**, not assumed — platform, node, sandbox, Finder dialog, git — because several features are macOS-only and listing them as working because the code exists would be a claim. Check numbers imported from the modules that use them, so the page cannot drift. No profile: there are no accounts. |
 | 37 | biome `recommended` deprecation | **done** | `rules.recommended` → `rules.preset`, deprecated in 2.5.7 and gone next major. Changed by hand, not by `biome migrate`, which rewrites the file and drops the comments recording two defects. Verified the linter still bites: a deliberate `==` was caught. |
 | 35 | Integrations page with cards | **done** | Capability coverage read from `package.json` — what nothing covers yet, in this project, rather than a list of things every project ought to have. Stat cards, letter tiles, MCP badges, Docs beside Connect. |
-| 33 | Dashboard with cards | **done** | Four stat cards and a card per project. `lib/detect.ts` reads stack and gaps from the files — including a `.env` not covered by `.gitignore`, flagged urgent and sorted first. Derived from the repo, not a step catalog. 12 tests. |
+| 33 | Dashboard with cards | **done** | Four stat cards and a card per project. `lib/detect.ts` reads stack and gaps from the files — including a `.env` not covered by `.gitignore`, flagged urgent and sorted first. Derived from the repo, not a step catalog. 14 tests. |
 | 32 | Workspace cleared | **done** | Emptied on request. `lib/ship/` untouched and still covered — `checkedSpec`, `tally`, `lies` and `filterSpec` currently have no caller. Waiting, not dead. |
 | 30 | Mobile layout | **done** | The work page was two trapped scroll boxes on a phone. Fixed and measured at 408px. **Never verified below 408px** — the preview pane will not go narrower. |
 | 29 | `/work/canvas` has no specification | **done** | Specified on request as a Figma-like surface: drag, two-finger pan, shift-drag select. Built. Cost 4.4 KB gzip of client JS, measured. |
@@ -70,8 +70,8 @@ decision) · **later**
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 21 | Tests — any at all | **started** | 84 assertions across `test/sandbox.test.ts` (20, all attacks against the real sandbox) and `test/check.test.ts` (6 — timeouts, verdicts, bounded concurrency). `pnpm test`, node's runner, no dependency added. Every one mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
-| 22 | CI gates | **written, never run** | `.github/workflows/gates.yml` — the five gates plus a zero-page-chunk check and a tracked-secret scan, on every push and PR. **macOS runner, not a preference:** on Linux `sandbox-exec` is missing, every attack command fails to start, and every "did not leak" assertion passes because nothing ran. `test/sandbox.test.ts` now refuses to run without a sandbox rather than report green. Each step was run locally and each custom step was proved to fail when it should. **The workflow itself has never executed — the first push is its first run.** |
+| 21 | Tests — any at all | **started** | **84 assertions**, counted from the files: `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 · `cache` 6 · `check` 6. `pnpm test`, node's runner, no dependency added. Mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
+| 22 | CI gates | **done, green** | `.github/workflows/gates.yml` — the five gates plus a zero-page-chunk check and a tracked-secret scan, on every push and PR. **macOS runner, not a preference:** on Linux `sandbox-exec` is missing, every attack command fails to start, and every "did not leak" assertion passes because nothing ran. **Six runs to go green, and every failure was a real portability bug this laptop could not have produced** — a hardcoded `/Applications/Xcode.app` (the runner has `Xcode_26.6.app`), the xcrun shim then wanting `xcodebuild` (refused on purpose), a shallow clone with no tags, and pnpm installed somewhere the profile had never heard of. The sandbox now derives its toolchain allowlist from `PATH` rather than naming directories, which fixes the class instead of the instances. That is the entire argument for having CI. |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |
 | 25 | Cut rules | **later** | Written fresh, not ported from v0.1's 21 anti-steps. |
@@ -87,8 +87,11 @@ anything to manage them — if a hand-written `SHIP.md` does not change a real
 decision on a real project, the tooling will not rescue it, and finding that
 out costs an afternoon now versus months later.
 
-21 and 22 should land before the next feature, not after. v0.1 proved the
-discipline works and that adding it late is how it gets skipped.
+**22 has landed and 21 is partial.** CI runs seven gates on every push and is
+green; tests cover everything in `lib/` except `parse.ts`, and nothing drives
+the app end to end. v0.1 proved both that the discipline works and that adding
+it late is how it gets skipped — so the remaining two go in before the next
+feature, not after.
 
 ## The gap none of this closes
 

@@ -17,6 +17,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Unreleased
 
+### 2026-08-11
+
+#### Fixed
+
+- **Ten false claims in the two documents that are supposed to be authoritative.**
+  `HANDOFF.md` holds session state and `v2/task.md` holds task status, and both
+  described a repo that had stopped existing the day before: CI was recorded as
+  "written, never run — the first push is its first run" after six runs and a
+  green badge; the canvas was "an empty route with no specification" after being
+  specified and built; search was "built, then removed" while wired at
+  `app/work/workspace/page.tsx:67`; and task 9 still called 0 page chunks "the
+  concrete answer to v0.1's 173KB", which task 39 in the same file records as
+  measured and withdrawn.
+
+  **Four of them were test counts, and two documents contradicted themselves.**
+  `HANDOFF.md` listed the correct 24·14·12·11·11·6·6 on line 95 and then
+  "84 assertions across sandbox (20), check (6) and cache (6)" on line 189 —
+  a sum of 32 presented as 84. `v2/overview.md` said sandbox had 20 tests on one
+  line and 24 on another. `lib/canvas.ts` was credited with 13 tests and has 12;
+  `lib/detect.ts` with 12 and has 14.
+
+  This is precisely the defect the project exists to catch — v0.1's README
+  claimed 209 tests while the code said 252 — committed by v2's own handoff, in
+  the commit whose message was "every doc is made true again". Found by counting
+  `it(`/`test(` in the files and diffing against every count claimed in the
+  docs, not by rereading them. The counts are now checked that way rather than
+  transcribed, and both files record the sweep instead of quietly absorbing it.
+
 ### 2026-08-10
 
 #### Added
