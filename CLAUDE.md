@@ -233,16 +233,17 @@ leaked this repo's OIDC token read as correct.
   because PATH contains `/bin`. The attack tests caught it immediately, and
   `test/sandbox.test.ts` now asserts the invariant directly rather than relying
   on a bait file happening to exist.
-- **`git` reads files outside the repo, and the sandbox denies them.**
-  `actions/checkout` v6+ persists the token to `$RUNNER_TEMP` and leaves an
-  `includeIf` in `.git/config` pointing at it, so **every** git invocation in
-  the sandbox exits 128 with "unable to access
-  '…/git-credentials-*.config': Operation not permitted". It reads like a
-  broken repo; it is a config include the profile cannot follow. **The fix is
-  `persist-credentials: false`, never a carve-out for that path** — allowing it
-  hands a sandboxed check the `GITHUB_TOKEN`, which is the leak the profile
-  exists to prevent. A local `~/.gitconfig` with an `includeIf` is the same
-  trap on a real machine; see `v2/task.md` 42.
+- **A git config include the sandbox cannot follow is fatal, not ignored.** An
+  include naming an unreadable path makes **every** git invocation exit 128
+  with "unable to access …: Operation not permitted" — not one check, all of
+  them, and it reads like a broken repo. `actions/checkout` v6+ produces
+  exactly this by leaving an `includeIf` pointing at a token file under
+  `$RUNNER_TEMP`; an ordinary `~/.gitconfig` with an `includeIf` does it on a
+  real machine. **Never widen the profile to cover it** — an include may name
+  any path, so there is nothing finite to allow, and CI proved what is on the
+  other end of one. `sandboxEnv()` sets `GIT_CONFIG_NOSYSTEM=1` and
+  `GIT_CONFIG_GLOBAL=/dev/null` instead, and injects `safe.directory` for the
+  repo under check to replace what the global config would have carried.
 - **Do not hardcode the Xcode path — ask `xcode-select -p`.** The fix for the
   xcrun trap above allowed `/Applications/Xcode.app/Contents/Developer`, which
   is correct on this laptop and wrong on a CI runner, where Xcode installs as
@@ -265,6 +266,7 @@ leaked this repo's OIDC token read as correct.
 | `v2/v2_features.md` | The same ground in prose, with how each part was verified | Derivative |
 | `README.md` | Public-facing summary | Derivative |
 | `CHANGELOG.md` | Every change, newest first | Append-only history |
+| `v2/parked.md` | Noticed, not done — an inbox, not a seventh describer | Nothing is promised |
 | `v2/product.md`, `v2/project.md` | Empty — awaiting the owner's content | — |
 
 **Unresolved, and worse than it was.** Six documents describe v2's state and

@@ -11,7 +11,7 @@
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean.
 
-**Gates: lint 0, tsc 0, test 0 (118 tests), build 0, 0 page chunks.**
+**Gates: lint 0, tsc 0, test 0 (124 tests), build 0, 0 page chunks.**
 **CI is green** — `.github/workflows/gates.yml`, seven gates, macOS.
 
 **Progress: 5 of 13 done-when conditions in `SHIP.md`** — measured by running
@@ -92,7 +92,7 @@ Four things decided in this session, all of them the user's calls:
 | `lib/diagnostics.ts` | Host probes for the console |
 | `.github/workflows/gates.yml` | Seven gates on every push. Green. |
 
-**118 tests.** `parse` 34 · `sandbox` 24 · `detect` 14 · `canvas` 12 ·
+**124 tests.** `parse` 34 · `sandbox` 30 · `detect` 14 · `canvas` 12 ·
 `clone` 11 · `search` 11 · `cache` 6 · `check` 6. Counted by running each file,
 not by remembering. Every module in `lib/` now has a suite.
 
@@ -170,9 +170,10 @@ how it gets skipped.
 2. **The checker is sandboxed, with two things left open.** Checks now run under
    seatbelt (`lib/ship/sandbox.ts`): network denied, filesystem confined to the
    repo and toolchain, `.git`/`.env*`/`.vercel` denied, environment replaced
-   rather than inherited. **Twenty-four attacks run against it, all blocked** —
-   including reading this repo's live OIDC token, which the first version of the
-   profile handed straight back.
+   rather than inherited, and **git pointed at the repo's own config and no
+   other** — see the gotcha below. **Thirty assertions run against it, every
+   attack blocked** — including reading this repo's live OIDC token, which the
+   first version of the profile handed straight back.
    - **A check can still destroy the repo's uncommitted working tree.** Writes
      have to be allowed: `tsc` is `incremental`, so even `--noEmit` writes
      `tsconfig.tsbuildinfo`. History is protected; unstaged work is not. A
@@ -188,8 +189,8 @@ how it gets skipped.
      the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **Tests cover every module in `lib/`.** 118 assertions — `parse` 34 ·
-   `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
+4. **Tests cover every module in `lib/`.** 124 assertions — `parse` 34 ·
+   `sandbox` 30 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
    `cache` 6 · `check` 6 — run with `pnpm test`, node's own runner, no
    dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five
@@ -280,11 +281,17 @@ how it gets skipped.
   '…/git-credentials-<uuid>.config': Operation not permitted", because the
   profile denies everything outside the repo. Two tests red on the first run at
   v7, and the message names a path rather than a repo, so it reads like
-  infrastructure rather than a config include. **Fixed with
-  `persist-credentials: false`, not with a carve-out** — allowing that path
-  would hand a sandboxed check the `GITHUB_TOKEN`. Predicted safe by reasoning
-  about `$RUNNER_TEMP` being outside the workspace, which was true and beside
-  the point; CI found the actual consequence in one run.
+  infrastructure rather than a config include. Predicted safe by reasoning about
+  `$RUNNER_TEMP` being outside the workspace, which was true and beside the
+  point; CI found the actual consequence in one run.
+  **CI fixed with `persist-credentials: false`; the product fixed in
+  `sandboxEnv()`** — `GIT_CONFIG_NOSYSTEM=1` and `GIT_CONFIG_GLOBAL=/dev/null`,
+  because an ordinary `~/.gitconfig` with an `includeIf` does the same thing to
+  a real project. **Never a carve-out for the path** — an include may name any
+  path, so there is nothing finite to allow, and allowing that one hands a
+  sandboxed check the `GITHUB_TOKEN`. A git check now depends on the repo alone
+  and means the same thing on two machines. Task 42, closed with six tests that
+  failed first.
 - **The fix for that then broke CI, and only CI could have shown it.** Allowing
   `/Applications/Xcode.app/Contents/Developer` is correct on this laptop and
   wrong on a GitHub runner, where Xcode installs as `Xcode_26.6.app` — so every

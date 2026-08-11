@@ -84,7 +84,7 @@ async function one(
       // A check that floods the page is a check nobody reads.
       maxBuffer: 1024 * 256,
       // Never the parent's — see sandboxEnv.
-      env: sandboxEnv(),
+      env: sandboxEnv(cwd),
     });
     const out = (stdout || stderr).trim();
     return {

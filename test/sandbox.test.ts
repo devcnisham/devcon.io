@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { execFile, execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { promisify } from "node:util";
@@ -53,7 +61,7 @@ async function sh(command: string): Promise<Ran> {
       cwd: REPO,
       timeout: 60_000,
       maxBuffer: 1024 * 256,
-      env: sandboxEnv(),
+      env: sandboxEnv(REPO),
     });
     return { code: 0, out: `${stdout}${stderr}` };
   } catch (e) {
@@ -128,11 +136,16 @@ describe("availability", () => {
   });
 
   test("the environment handed to a check carries no inherited variables", () => {
-    const env = sandboxEnv();
+    const env = sandboxEnv(REPO);
     assert.deepEqual(
       Object.keys(env).sort(),
       [
         "DEVELOPER_DIR",
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_GLOBAL",
+        "GIT_CONFIG_KEY_0",
+        "GIT_CONFIG_NOSYSTEM",
+        "GIT_CONFIG_VALUE_0",
         "HOME",
         "LANG",
         "NODE_ENV",
@@ -142,6 +155,18 @@ describe("availability", () => {
       ],
       "an allowlist — Next loads .env.local into process.env, tokens included",
     );
+  });
+
+  test("git is pointed away from every config outside the repo", () => {
+    const env = sandboxEnv(REPO);
+    // Asserted as values rather than left to the shape test above, because the
+    // shape test passes just as well if one of these is set to the empty
+    // string — and an empty GIT_CONFIG_GLOBAL means git reads ~/.gitconfig.
+    assert.equal(env.GIT_CONFIG_NOSYSTEM, "1");
+    assert.equal(env.GIT_CONFIG_GLOBAL, "/dev/null");
+    assert.equal(env.GIT_CONFIG_COUNT, "1");
+    assert.equal(env.GIT_CONFIG_KEY_0, "safe.directory");
+    assert.equal(env.GIT_CONFIG_VALUE_0, REPO);
   });
 });
 
@@ -323,6 +348,195 @@ describe("the toolchain a real check actually needs", () => {
         `the shim failed for an unexpected reason: ${r.out.slice(0, 220)}`,
       );
     }
+  });
+});
+
+/**
+ * A git config include that points at a denied path.
+ *
+ * Found by CI on 2026-08-11. `actions/checkout` v6 moved the persisted token
+ * out of `.git/config` into a file under `$RUNNER_TEMP` and left an `includeIf`
+ * behind pointing at it — so *every* git invocation inside the sandbox tried to
+ * read a path the profile denies and exited 128 with "unable to access …:
+ * Operation not permitted". Not one check: all of them, and the message names a
+ * path rather than a repo, so it reads like broken infrastructure.
+ *
+ * CI was fixed with `persist-credentials: false`, which is the right fix there
+ * and no fix at all here: an ordinary `~/.gitconfig` with an `includeIf` — the
+ * standard work/personal split — does the same thing to a real project. The
+ * profile cannot be widened to cover it, because an include may name any path
+ * at all, and the CI case proved what is on the other end: a live token.
+ *
+ * So git is told not to read config from outside the repo. These tests own that
+ * contract.
+ */
+describe("git config from outside the repo", () => {
+  let scratch = "";
+  let fakeRepo = "";
+  let fakeHome = "";
+  /** Inside the repo and under the `.env` carve-out, so the profile denies it. */
+  let baitInclude = "";
+
+  const gitOk = (() => {
+    try {
+      execFileSync("git", ["--version"], { stdio: "ignore", timeout: 10_000 });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  before(() => {
+    // realpath, because macOS hands back /var/folders/… while seatbelt matches
+    // the canonical /private/var/folders/…. Comparing the two spellings is how
+    // a deny rule silently stops applying and a bait file stops being bait.
+    scratch = realpathSync(mkdtempSync(join(tmpdir(), "devcon-gitconfig-")));
+    fakeRepo = join(scratch, "repo");
+    fakeHome = join(scratch, "home");
+    mkdirSync(fakeRepo);
+    mkdirSync(fakeHome);
+
+    baitInclude = join(fakeRepo, ".env-git-include");
+    writeFileSync(baitInclude, "[core]\n\tpager = cat\n");
+    writeFileSync(
+      join(fakeHome, ".gitconfig"),
+      `[include]\n\tpath = ${baitInclude}\n`,
+    );
+
+    if (gitOk) {
+      execFileSync("git", ["init", "-q"], { cwd: fakeRepo, timeout: 30_000 });
+    }
+  });
+
+  after(() => {
+    if (scratch) rmSync(scratch, { recursive: true, force: true });
+  });
+
+  /** One command in the scratch repo, with the scratch HOME. */
+  async function inFakeHome(command: string) {
+    const realHome = process.env.HOME;
+    process.env.HOME = fakeHome;
+    try {
+      const { file, args } = sandboxArgv(command, fakeRepo);
+      try {
+        const { stdout, stderr } = await run(file, args, {
+          cwd: fakeRepo,
+          timeout: 60_000,
+          maxBuffer: 1024 * 256,
+          env: sandboxEnv(fakeRepo),
+        });
+        return { code: 0 as number | string, out: `${stdout}${stderr}` };
+      } catch (e) {
+        const err = e as { code?: number | string; stderr?: string };
+        return { code: err.code ?? -1, out: err.stderr ?? "" };
+      }
+    } finally {
+      process.env.HOME = realHome;
+    }
+  }
+
+  test("the bait include really is unreadable — otherwise this proves nothing", async () => {
+    // The rule this file already learned twice: an attack test that runs
+    // against bait the sandbox never denied is a green loop. If this read ever
+    // succeeds, every assertion below is meaningless.
+    assert.ok(existsSync(baitInclude), "the bait was not written");
+    assert.match(
+      readFileSync(baitInclude, "utf8"),
+      /pager/,
+      "the bait is unreadable unsandboxed too, so it is not a fair test",
+    );
+
+    const r = await inFakeHome(`cat ${JSON.stringify(baitInclude)}`);
+    assert.notEqual(r.code, 0, "the sandbox read a path it must deny");
+    assert.doesNotMatch(
+      r.out,
+      /pager/,
+      `the .env carve-out did not apply to ${baitInclude}`,
+    );
+  });
+
+  test("a global config the sandbox cannot follow does not break git", async () => {
+    if (!gitOk) {
+      // No real git on PATH means the xcrun shim, which this profile refuses by
+      // design. Asserting anything here would be asserting about that refusal.
+      assert.ok(true, "no real git on PATH — nothing to verify");
+      return;
+    }
+    const r = await inFakeHome("git rev-parse --git-dir");
+    assert.equal(r.code, 0, r.out.slice(0, 300));
+    assert.doesNotMatch(
+      r.out,
+      /unable to access|Operation not permitted/,
+      r.out.slice(0, 300),
+    );
+  });
+
+  test("…and the check reports pass, not a failed condition", async () => {
+    if (!gitOk) {
+      assert.ok(true, "no real git on PATH — nothing to verify");
+      return;
+    }
+    // The shape CI actually produced: verdict `fail`, so a reader is sent to
+    // fix a condition that was never wrong.
+    //
+    // HOME has to be swapped around `checkAll` itself, not just around the
+    // command. Written the obvious way this test passed against the unfixed
+    // code, because `checkAll` read the real `~/.gitconfig` and never saw the
+    // bait — the same green-loop this file keeps catching.
+    const realHome = process.env.HOME;
+    process.env.HOME = fakeHome;
+    let c: Awaited<ReturnType<typeof checkAll>>[number];
+    try {
+      [c] = await checkAll(
+        [
+          {
+            text: "git works",
+            claimed: false,
+            check: "git rev-parse --git-dir",
+          },
+        ],
+        fakeRepo,
+        { timeoutMs: 60_000 },
+      );
+    } finally {
+      process.env.HOME = realHome;
+    }
+    assert.equal(c.verdict, "pass", c.evidence.slice(0, 300));
+  });
+
+  test("the repo's own config is still read — this narrows git, not blinds it", async () => {
+    if (!gitOk) {
+      assert.ok(true, "no real git on PATH — nothing to verify");
+      return;
+    }
+    // Ignoring `~/.gitconfig` must not turn into ignoring `.git/config`, or a
+    // check could no longer see anything about the repo it is checking.
+    execFileSync("git", ["config", "devcon.probe", "local-config-was-read"], {
+      cwd: fakeRepo,
+      timeout: 30_000,
+    });
+    const r = await inFakeHome("git config --get devcon.probe");
+    assert.equal(r.code, 0, r.out.slice(0, 300));
+    assert.match(r.out, /local-config-was-read/, r.out.slice(0, 300));
+  });
+
+  test("the repo under check is trusted, so ownership never refuses it", async () => {
+    if (!gitOk) {
+      assert.ok(true, "no real git on PATH — nothing to verify");
+      return;
+    }
+    // Dropping the global config drops any `safe.directory` the user set there,
+    // and git then refuses a repo it thinks is owned by someone else with
+    // "detected dubious ownership". The repo under check is injected back in
+    // through the environment. Testing the refusal itself would need a repo
+    // owned by another user, which needs root — so this asserts the wiring
+    // arrives, which is the part that can be got wrong.
+    const r = await inFakeHome("git config --get-all safe.directory");
+    assert.equal(r.code, 0, r.out.slice(0, 300));
+    assert.ok(
+      r.out.includes(fakeRepo),
+      `safe.directory did not reach git: ${r.out.slice(0, 300)}`,
+    );
   });
 });
 

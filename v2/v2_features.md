@@ -65,11 +65,22 @@ checks legitimately need a shell. What changed is what the shell can reach.
 unconfined. A sandbox that silently degrades reports the same green as a real
 one.
 
-*Verified by:* `pnpm test` — 24 assertions, each running a real command through
+**git reads the repo's own config and no other.** An include the profile cannot
+follow is fatal to git, not ignored — so a `~/.gitconfig` with an `includeIf`
+made *every* git check exit 128 with "unable to access …: Operation not
+permitted", which reads as a broken repo. `GIT_CONFIG_NOSYSTEM=1` and
+`GIT_CONFIG_GLOBAL=/dev/null` close it, and `safe.directory` for the repo under
+check is injected back to replace what the global config would have carried.
+The profile was not widened: an include may name any path, and CI proved what
+sits on the other end of one.
+
+*Verified by:* `pnpm test` — 30 assertions, each running a real command through
 the real sandbox. Mutation-verified: reverting one line of the profile turns
-five of them red. The suite **refuses to run** where there is no sandbox rather
-than passing vacuously, and asserts the generated profile never grants `/`,
-`/Users` or a home directory.
+five of them red, and removing `GIT_CONFIG_GLOBAL` turns six. The suite
+**refuses to run** where there is no sandbox rather than passing vacuously, and
+asserts the generated profile never grants `/`, `/Users` or a home directory.
+The git-config tests run against a scratch repo whose bait include is asserted
+unreadable first, because this file has twice passed against bait that was not.
 
 ### The workspace — `/work/workspace`
 

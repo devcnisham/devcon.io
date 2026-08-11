@@ -236,12 +236,37 @@ export function sandboxArgv(
  * the parent environment would hand every check that token even though the
  * profile above denies reading the file it came from.
  */
-export function sandboxEnv(): NodeJS.ProcessEnv {
+export function sandboxEnv(cwd: string): NodeJS.ProcessEnv {
   return {
     PATH: process.env.PATH ?? "/usr/bin:/bin:/usr/sbin:/sbin",
     HOME: process.env.HOME ?? "/",
     TMPDIR: process.env.TMPDIR ?? "/tmp",
     LANG: process.env.LANG ?? "en_US.UTF-8",
+    // **git reads config from three places and two of them are outside the
+    // repo, so a check's verdict depended on the machine's git setup.**
+    //
+    // An include the profile cannot follow is not ignored by git — it is fatal.
+    // `actions/checkout` v6 left an `includeIf` in `.git/config` pointing at a
+    // token file under `$RUNNER_TEMP`, and every git check in CI died with
+    // "unable to access …: Operation not permitted", which reads as a broken
+    // repo rather than a denied path. An ordinary `~/.gitconfig` with an
+    // `includeIf` — the work/personal split — does the same to a real project.
+    //
+    // Widening the profile is not the fix. An include may name any path at all,
+    // so there is nothing finite to allow, and the CI case is the proof of what
+    // sits on the other end of one: a live token. Instead git is told to read
+    // the repo's own config and nothing else, which is also what makes a git
+    // check mean the same thing on two machines.
+    GIT_CONFIG_NOSYSTEM: "1",
+    GIT_CONFIG_GLOBAL: "/dev/null",
+    // Dropping the global config drops any `safe.directory` the user set there,
+    // and git then refuses a repo it believes belongs to someone else. The repo
+    // under check is put back through git's own environment-config channel —
+    // it is the directory the user opened, and confining what runs in it is the
+    // sandbox's job, not git's.
+    GIT_CONFIG_COUNT: "1",
+    GIT_CONFIG_KEY_0: "safe.directory",
+    GIT_CONFIG_VALUE_0: cwd,
     // Not a secret, and required on this project's ProcessEnv. Passed through
     // so a check sees the same mode as the process that ran it.
     NODE_ENV: process.env.NODE_ENV,

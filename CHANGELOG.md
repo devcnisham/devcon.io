@@ -19,6 +19,48 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### 2026-08-11
 
+#### Fixed
+
+- **A git config include outside the repo killed every git check.** Task 42,
+  closed. An include naming a path the sandbox denies is fatal to git rather
+  than ignored, so *one* bad include took out every git condition at once with
+  "unable to access …: Operation not permitted" — a message about a path, which
+  reads as broken infrastructure rather than as a config include.
+
+  `sandboxEnv()` now sets `GIT_CONFIG_NOSYSTEM=1` and
+  `GIT_CONFIG_GLOBAL=/dev/null`, so a git check reads the repo's own config and
+  nothing else — which also makes it mean the same thing on two machines.
+  **The profile was not widened.** An include may name any path, so there is
+  nothing finite to allow, and the CI failure that found this is the proof of
+  what sits on the other end of one: a live token.
+
+  The cost named when the task was opened is covered rather than accepted.
+  Dropping the global config drops any `safe.directory` the user set there, and
+  git then refuses a repo it believes belongs to someone else, so the repo under
+  check is injected back through `GIT_CONFIG_COUNT`/`KEY_0`/`VALUE_0`.
+  `sandboxEnv()` takes the repo path for that reason.
+
+  **The test was written first and failed first** — against a scratch repo, a
+  scratch `HOME`, and a bait include placed under the `.env` carve-out so the
+  profile really denies it. One of the six assertions exists only to prove the
+  bait is unreadable, because this suite has twice passed against bait that was
+  not. Another exists because the obvious version of the check-level test passed
+  against the *unfixed* code: `HOME` has to be swapped around `checkAll` itself,
+  not only around the command, or it never sees the bait at all.
+
+  `test/sandbox.test.ts` 24 → 30, suite 118 → 124. Mutation-verified: removing
+  `GIT_CONFIG_GLOBAL` turns 6 red, disabling the `safe.directory` injection
+  turns 2. **`GIT_CONFIG_NOSYSTEM` has no failing test behind it** — proving it
+  needs an `/etc/gitconfig` with a bad include, and writing that needs root.
+  Recorded in `v2/parked.md` rather than counted as covered.
+
+#### Added
+
+- **`v2/parked.md`** — things noticed while doing something else, written down
+  instead of done. An inbox, not a seventh document about v2's state: it does
+  not restate what is built or what passes, so it does not worsen task 20.
+  Opens with three entries, all from the task 42 work.
+
 #### Changed
 
 - **CI actions taken the rest of the way, on request** — `actions/checkout` v5
