@@ -11,7 +11,7 @@
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean.
 
-**Gates: lint 0, tsc 0, test 0 (84 tests), build 0, 0 page chunks.**
+**Gates: lint 0, tsc 0, test 0 (118 tests), build 0, 0 page chunks.**
 **CI is green** — `.github/workflows/gates.yml`, seven gates, macOS.
 
 **Progress: 5 of 13 done-when conditions in `SHIP.md`** — measured by running
@@ -48,10 +48,10 @@ Read this section first; the rest is history and detail.
 changed. If a hand-written spec changes no real decision, none of the tooling
 matters — and that is an afternoon to find out, not a quarter.
 
-**Cheap and open, if you want code instead:** `parse.ts` still has no tests,
-there are no end-to-end tests, and `SHIP.md`'s own check #7 fails by
-construction (it runs `pnpm test` *inside* the sandbox, where the suite cannot
-create the bait file it attacks with).
+**Cheap and open, if you want code instead:** there are no end-to-end tests, and
+`SHIP.md`'s own check #7 fails by construction (it runs `pnpm test` *inside* the
+sandbox, where the suite cannot create the bait file it attacks with).
+`parse.ts` was the third item here until 2026-08-11 and now has 34 tests.
 
 ---
 
@@ -92,8 +92,9 @@ Four things decided in this session, all of them the user's calls:
 | `lib/diagnostics.ts` | Host probes for the console |
 | `.github/workflows/gates.yml` | Seven gates on every push. Green. |
 
-**84 tests.** `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 ·
-`search` 11 · `cache` 6 · `check` 6. `parse.ts` has none.
+**118 tests.** `parse` 34 · `sandbox` 24 · `detect` 14 · `canvas` 12 ·
+`clone` 11 · `search` 11 · `cache` 6 · `check` 6. Counted by running each file,
+not by remembering. Every module in `lib/` now has a suite.
 
 Everything devcon stores lives under `~/.devcon/` — the project list, which
 project is open, and canvas layouts. **Never inside a tracked repo**, where it
@@ -144,10 +145,11 @@ manage them (`v2/task.md` 15–16 before 23–25). If a hand-written spec change
 no real decision on a real project, tooling will not rescue it — and that is an
 afternoon to find out now rather than months later.
 
-**CI has landed and tests are partial.** Seven gates run on every push and are
-green; `parse.ts` has no tests and nothing drives the app end to end. Those two
-go in before the next feature — v0.1 proved both that the discipline works and
-that adding it late is how it gets skipped.
+**CI has landed and unit tests are complete; end-to-end are not.** Seven gates
+run on every push and are green, and every module in `lib/` has a suite as of
+2026-08-11. **Nothing drives the app as a user.** That goes in before the next
+feature — v0.1 proved both that the discipline works and that adding it late is
+how it gets skipped.
 
 ---
 
@@ -186,13 +188,26 @@ that adding it late is how it gets skipped.
      the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **Tests cover everything in `lib/` except `parse.ts`.** 84 assertions —
+4. **Tests cover every module in `lib/`.** 118 assertions — `parse` 34 ·
    `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
    `cache` 6 · `check` 6 — run with `pnpm test`, node's own runner, no
    dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five
    red, flipping a timeout verdict to `fail` turns one red, dropping the Xcode
-   allow turns one red.
+   allow turns one red, and re-introducing the `\Z` truncation turns sixteen
+   red.
+   - **`parse.ts` got its suite on 2026-08-11**, last module without one. It
+     parses the repo's real `SHIP.md` as well as a fixture, because a fixture
+     alone would have been written by the same hand that wrote the parser.
+     Four mutations were run against it and all four go red: `\Z` truncation
+     16, dropping the wrapped-line fold 8, leaving the check in the prose 3,
+     hardcoding `claimed` 1.
+   - **It found one defect, left asserted rather than fixed.** `bullets()`
+     cannot tell a wrapped line from a new paragraph, so prose written
+     *between* two bullets is appended to the one above it. `SHIP.md` puts its
+     prose before the bullets and never trips this — luck, not design. A
+     second, smaller one: a cut with no `**bold**` name is dropped silently
+     rather than surfacing with an empty reason.
    - **`SHIP.md`'s check #7 — `test -d test && pnpm test` — now fails, and the
      reason is worth knowing.** The checker runs it *inside* the sandbox, so the
      suite is nested one level deeper and cannot create the bait file it attacks
@@ -285,7 +300,9 @@ that adding it late is how it gets skipped.
 - **`\Z` is not a JavaScript regex token.** It matched the literal letter `z`,
   so `parse.ts` truncated every section at its first `z` — "frozen" became
   "fro" and thirteen of fourteen conditions vanished. It read as bad markdown,
-  not a bad parser.
+  not a bad parser. **It now has a regression test**: every section body in
+  `test/parse.test.ts`'s fixture opens with a word containing a `z`, and
+  putting the truncation back turns sixteen tests red.
 - **A percentage height on a flex child does not resolve.** `h-full` collapsed
   and pinned the canvas label to the top. Use `absolute inset-0`. v0.1 recorded
   this same gotcha, which is the only time so far the archive has paid off.

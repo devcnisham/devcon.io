@@ -25,7 +25,13 @@ line under a done-when item naming a shell command that must exit 0. That
 matters: the file stays useful when this tool is not installed, and an agent
 that has never heard of devcon can still read it.
 
-**No tests.** The only module in `lib/ship/` without any.
+*Verified by:* `test/parse.test.ts` — 34 assertions, added 2026-08-11, the last
+module in `lib/` to get a suite. It parses the repo's real `SHIP.md` as well as
+a fixture, because a fixture alone would have been written by the same hand
+that wrote the parser. Mutation-verified four ways, all red: re-introducing the
+`\Z` truncation 16, dropping the wrapped-line fold 8, leaving the check in the
+prose 3, hardcoding `claimed` 1. Every section body in the fixture opens with a
+word containing a `z` for exactly the first of those.
 
 ### The done-when checker — `lib/ship/check.ts`
 
@@ -236,7 +242,16 @@ place. That is the entire argument for having it.
   bait it attacks with. `pnpm test` run directly is green.
 - **`SHIP.md` check #2 can never pass.** `git ls-remote … origin` needs the
   network, which is denied unconditionally.
-- **`parse.ts` has no tests.**
+- **`bullets()` swallows prose written between two bullets.** Found by writing
+  `parse.ts`'s tests on 2026-08-11. Folding a non-bullet line into the bullet
+  above it is how a wrapped reason is recovered, and it cannot tell that line
+  from a new paragraph — so prose between two bullets is appended to the one
+  above as part of its reason. *Verified by:* `test/parse.test.ts`, which
+  asserts the current behaviour rather than wishing for the other one, so a fix
+  turns it red instead of passing quietly. This repo's `SHIP.md` puts its prose
+  before the bullets and never trips it; a cloned repo's need not.
+- **A cut with no `**bold**` name is dropped entirely**, rather than arriving
+  with an empty reason. Same test file, same reason for leaving it.
 - **`SHIP.md` check #2 stays failing by decision.** `git ls-remote … origin`
   needs the network; the sandbox denies it. The box stays ticked because the
   fact is true, and the check reports the disagreement rather than hiding it.

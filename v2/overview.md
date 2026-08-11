@@ -31,7 +31,7 @@
 
 | Module | State |
 |---|---|
-| `lib/ship/parse.ts` | Works. **No tests.** |
+| `lib/ship/parse.ts` | Reads `SHIP.md`. 34 tests. |
 | `lib/ship/check.ts` | Works. Sandboxed. Runs the open project's checks. 6 tests. |
 | `lib/ship/sandbox.ts` | Works. macOS only, by design. 24 tests. |
 | `app/work/workspace/page.tsx`, `spec-cards.tsx` | The open project's spec, checked |
@@ -53,6 +53,7 @@
 | `test/search.test.ts` | 11 assertions — matching, AND terms, regex metacharacters |
 | `test/canvas.test.ts` | 12 assertions — clamping, path hashing, round-trip |
 | `test/detect.test.ts` | 14 assertions — stack, gaps, the uncovered `.env` |
+| `test/parse.test.ts` | 34 assertions — the `\Z` regression, folding, checks, the real `SHIP.md` |
 | `lib/ship/search.ts` | Filters a checked spec. 11 tests. |
 | `CHANGELOG.md` | Every change, newest first. Append-only. |
 | `lib/ship/cache.ts` | One check run shared by the views. 6 tests. |
@@ -106,7 +107,6 @@
 | The critique pass — **the actual product** | not built |
 | Cut rules | not built |
 | CI — five gates, zero-chunk check, secret scan, on macOS | **done and green** |
-| Tests for `parse.ts` | not built |
 | Zoom, undo, edges or snapping on the canvas | not built |
 
 ### Cut on purpose
@@ -128,7 +128,9 @@
 | A check can destroy the repo's uncommitted working tree — writes cannot be denied | open |
 | `SHIP.md` check #7 fails by construction — nests the sandbox | open |
 | `SHIP.md` check #2 can never pass — needs the network | by decision |
-| `parse.ts` has no tests | open |
+| ~~`parse.ts` has no tests~~ | **fixed 2026-08-11**, 34 tests, task 13 |
+| `bullets()` swallows prose written between two bullets | open, asserted, task 41 |
+| A cut with no `**bold**` name is dropped silently | open, asserted, task 41 |
 | Six overlapping documents, three of them derivative | open, task 20 |
 
 ### Decisions waiting on you

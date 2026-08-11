@@ -19,6 +19,51 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### 2026-08-11
 
+#### Added
+
+- **`test/parse.test.ts` — 34 assertions.** `parse.ts` was the last module in
+  `lib/` without a suite, and the one that had shipped the worst defect in the
+  repo: `(?=^##\s|\Z)`, where `\Z` is Perl rather than JavaScript and compiled
+  to "the literal letter `z`". Every section truncated at its first one —
+  "frozen" became "fro" and took thirteen of fourteen done-when conditions with
+  it, and it read as bad markdown rather than a bad parser.
+
+  Covered: section boundaries (`##` ends one, `###` does not, a heading that
+  merely starts the same way is a different section, headings match whatever
+  their case), wrapped-line folding for reasons, conditions and assumptions,
+  em/en/hyphen separators on cuts, `[x]`/`[X]`/`[ ]`, a check being lifted out
+  of the prose with its shell kept verbatim — quotes and `$(…)` and all — and
+  the empty cases that must not throw.
+
+  **The fixture opens every section body with a word containing a `z`**, and a
+  second block parses this repo's real `SHIP.md`, because a fixture alone would
+  have been written by the same hand that wrote the parser. The real-file
+  assertions are properties rather than counts, so adding a condition to
+  `SHIP.md` does not turn the parser red.
+
+  Mutation-verified four ways, all red: re-introducing the `\Z` truncation 16,
+  dropping the wrapped-line fold 8, leaving the check in the prose 3,
+  hardcoding `claimed` to `true` 1.
+
+  Test count 84 → 118: `parse` 34 · `sandbox` 24 · `detect` 14 · `canvas` 12 ·
+  `clone` 11 · `search` 11 · `cache` 6 · `check` 6, counted by running each
+  file.
+
+#### Found, not fixed
+
+- **`bullets()` swallows prose written between two bullets.** It folds any
+  non-bullet line into the bullet above it — which is how a wrapped reason is
+  recovered, and it cannot tell that line from a new paragraph. So a paragraph
+  between two cuts is appended to the first one's reason. This repo's `SHIP.md`
+  puts its prose before the bullets and never trips it; that is luck, not
+  design, and a cloned repo's `SHIP.md` owes it nothing. **Asserted in
+  `test/parse.test.ts` rather than fixed**, so the limit is visible and a fix
+  turns the test red instead of passing quietly. Task 41.
+- **A `Not shipping` bullet with no `**bold**` name is dropped entirely**,
+  rather than surfacing with an empty reason — a malformed cut vanishes and
+  nothing tells the author. Same test file, same reason for leaving it. Neither
+  is worth fixing before task 15 says the format is worth having at all.
+
 #### Fixed
 
 - **Ten false claims in the two documents that are supposed to be authoritative.**

@@ -39,7 +39,7 @@ decision) · **later**
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 12 | `SHIP.md` format — ships / not shipping / done-when | **done** | 8 cuts and 13 conditions recorded. |
-| 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Read by the dashboard. Still no tests. |
+| 13 | Parser (`lib/ship/parse.ts`) | **done** | Works. Read by the dashboard. **34 tests as of 2026-08-11**, including a regression test for the `\Z` truncation that once ate thirteen of fourteen conditions. Two defects it surfaced are asserted rather than fixed — see task 41. |
 | 14 | Done-when checker (`lib/ship/check.ts`) | **done** | Works, sandboxed, and running the **open project's** checks at `/work/workspace`. Caught its author overclaiming on the first run, and again on the first render. |
 | 15 | Hand-write specs for 2+ other real projects | **next** | The cheapest test of whether the bet holds. No code needed. |
 | 16 | Name one decision each of them changed | **next** | If none, the format is not useful and tooling will not save it. |
@@ -65,12 +65,13 @@ decision) · **later**
 | 32 | Workspace cleared | **done** | Emptied on request. `lib/ship/` untouched and still covered — `checkedSpec`, `tally`, `lies` and `filterSpec` currently have no caller. Waiting, not dead. |
 | 30 | Mobile layout | **done** | The work page was two trapped scroll boxes on a phone. Fixed and measured at 408px. **Never verified below 408px** — the preview pane will not go narrower. |
 | 29 | `/work/canvas` has no specification | **done** | Specified on request as a Figma-like surface: drag, two-finger pan, shift-drag select. Built. Cost 4.4 KB gzip of client JS, measured. |
+| 41 | `bullets()` swallows prose written between two bullets | **open, asserted** | Found by writing task 13's tests, not by reading. `bullets()` folds any non-bullet line into the bullet above it, because that is how a wrapped line is recovered — so a paragraph *between* two bullets is appended to the one above as if it were part of its reason. This repo's `SHIP.md` puts its prose before the bullets and never trips it, which is luck rather than design; a cloned repo's need not. Asserted in `test/parse.test.ts` rather than fixed, so the limit is visible and a fix turns the test red instead of passing silently. Smaller sibling, same test file: a `Not shipping` bullet with no `**bold**` name is dropped entirely rather than surfacing with an empty reason, so a malformed cut vanishes and nothing tells the author. **Neither is worth fixing before task 15 says the format is worth having.** |
 
 ## Not started
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 21 | Tests — any at all | **started** | **84 assertions**, counted from the files: `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 · `cache` 6 · `check` 6. `pnpm test`, node's runner, no dependency added. Mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red. **`parse.ts` still has none.** |
+| 21 | Tests — any at all | **started** | **118 assertions**, counted by running each file: `parse` 34 · `sandbox` 24 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 · `cache` 6 · `check` 6. `pnpm test`, node's runner, no dependency added. Mutation-verified: reverting the profile's carve-out turns 5 red, flipping a timeout to `fail` turns 1 red, dropping the Xcode allow turns 1 red, re-introducing the `\Z` truncation turns 16 red. **Every module in `lib/` now has a suite.** Still **started**, not **done** — nothing drives the app as a user. |
 | 22 | CI gates | **done, green** | `.github/workflows/gates.yml` — the five gates plus a zero-page-chunk check and a tracked-secret scan, on every push and PR. **macOS runner, not a preference:** on Linux `sandbox-exec` is missing, every attack command fails to start, and every "did not leak" assertion passes because nothing ran. **Six runs to go green, and every failure was a real portability bug this laptop could not have produced** — a hardcoded `/Applications/Xcode.app` (the runner has `Xcode_26.6.app`), the xcrun shim then wanting `xcodebuild` (refused on purpose), a shallow clone with no tags, and pnpm installed somewhere the profile had never heard of. The sandbox now derives its toolchain allowlist from `PATH` rather than naming directories, which fixes the class instead of the instances. That is the entire argument for having CI. |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |
@@ -87,10 +88,10 @@ anything to manage them — if a hand-written `SHIP.md` does not change a real
 decision on a real project, the tooling will not rescue it, and finding that
 out costs an afternoon now versus months later.
 
-**22 has landed and 21 is partial.** CI runs seven gates on every push and is
-green; tests cover everything in `lib/` except `parse.ts`, and nothing drives
-the app end to end. v0.1 proved both that the discipline works and that adding
-it late is how it gets skipped — so the remaining two go in before the next
+**22 has landed and 21 is still partial.** CI runs seven gates on every push and
+is green, and as of 2026-08-11 every module in `lib/` has a suite — but nothing
+drives the app end to end. v0.1 proved both that the discipline works and that
+adding it late is how it gets skipped — so that one goes in before the next
 feature, not after.
 
 ## The gap none of this closes

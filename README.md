@@ -51,9 +51,10 @@ plumbing for it, and it is deliberately sequenced behind hand-writing a
 `SHIP.md` for two real projects: if a hand-written spec changes no real
 decision, tooling will not rescue it.
 
-Also missing: an MCP server, cut rules, end-to-end tests, and tests for
-`parse.ts`. Connecting a service is not wired either — no OAuth, no token
-exchange. Integration panels tell you what a service needs; you set it up.
+Also missing: an MCP server, cut rules, and end-to-end tests — unit tests now
+cover every module in `lib/`, but nothing drives the app as a user. Connecting a
+service is not wired either — no OAuth, no token exchange. Integration panels
+tell you what a service needs; you set it up.
 
 Checks run confined — macOS seatbelt, no network, no filesystem outside the
 project and its toolchain, no `.git`, `.env*` or `.vercel`, and a replaced

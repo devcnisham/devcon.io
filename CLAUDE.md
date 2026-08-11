@@ -115,7 +115,9 @@ line is the bundler, not the gate. Read the exit code — in v0.1 that mistake
 hid 7 type errors.
 
 Tests cover `lib/ship/`, the workspace store, the detector and the canvas
-layout. **`parse.ts` has none** — still an open task.
+layout. **Every module in `lib/` has a suite** as of 2026-08-11, when
+`parse.ts` — the last one without — got 34. **Nothing drives the app as a
+user**; that is the open one.
 
 CI runs the five gates plus two more on every push:
 `.github/workflows/gates.yml`. **It runs on macOS and that is not a
