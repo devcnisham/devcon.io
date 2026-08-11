@@ -19,6 +19,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### 2026-08-11
 
+#### Changed
+
+- **CI actions bumped to v5** — `actions/checkout`, `actions/setup-node` and
+  `pnpm/action-setup`. Not a version-chasing bump: v4 of all three declares
+  `using: node20`, which GitHub has deprecated. The runner force-runs them on
+  node24 today and annotates every run saying so; at some point it stops. The
+  previous run was green *with* that annotation, which is the interesting part
+  — a warning that costs nothing today and the whole pipeline later.
+
+  **Read from each `action.yml` at the tag rather than from a changelog.** v4
+  is `node20` and v5 is `node24` for all three, which is the fact that decides
+  this. Newer majors exist — `checkout` and `setup-node` are on v7,
+  `pnpm/action-setup` on v6 — and were deliberately not taken: v5 is the
+  smallest change that clears the deprecation, and three simultaneous major
+  bumps on a pipeline with no staging is how a green CI stops being evidence.
+
+  One breaking change came with it, and it is live here: **`setup-node` v5
+  caches automatically when `package.json` has a `packageManager` field**, and
+  this one does (`pnpm@10.25.0`). `cache: pnpm` is left explicit rather than
+  deleted in favour of the new default — a cache that turns itself on is a
+  cache that can turn itself off in a release note nobody read.
+
+  Verified the only way a CI change can be: pushed and watched. This repo has
+  already recorded twice that a workflow's correctness is not observable from
+  this laptop.
+
 #### Added
 
 - **`test/parse.test.ts` — 34 assertions.** `parse.ts` was the last module in

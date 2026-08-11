@@ -25,7 +25,11 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      # v5 on all three, and the reason is the runtime rather than features:
+      # v4 declares `using: node20`, which GitHub deprecated — the runner
+      # force-runs it on node24 today and will stop. Read from each action.yml
+      # at the tag, not from the changelog.
+      - uses: actions/checkout@v5
         with:
           # Full history and tags. `SHIP.md` asserts permanent properties of
           # this repo's history — that `v0.1-archive` exists, and that the root
@@ -34,11 +38,15 @@ jobs:
           # about the repo.
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 10.25.0
 
-      - uses: actions/setup-node@v4
+      # setup-node v5 auto-caches when `package.json` has a `packageManager`
+      # field, which this one does. `cache: pnpm` stays explicit rather than
+      # relying on that — a cache that turns itself on is a cache that can turn
+      # itself off in a release note nobody read.
+      - uses: actions/setup-node@v5
         with:
           # Native TypeScript type-stripping, so `node --test` runs the `.ts`
           # files directly and the suite needs no build step or test runner.
