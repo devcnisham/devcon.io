@@ -233,6 +233,16 @@ leaked this repo's OIDC token read as correct.
   because PATH contains `/bin`. The attack tests caught it immediately, and
   `test/sandbox.test.ts` now asserts the invariant directly rather than relying
   on a bait file happening to exist.
+- **`git` reads files outside the repo, and the sandbox denies them.**
+  `actions/checkout` v6+ persists the token to `$RUNNER_TEMP` and leaves an
+  `includeIf` in `.git/config` pointing at it, so **every** git invocation in
+  the sandbox exits 128 with "unable to access
+  '…/git-credentials-*.config': Operation not permitted". It reads like a
+  broken repo; it is a config include the profile cannot follow. **The fix is
+  `persist-credentials: false`, never a carve-out for that path** — allowing it
+  hands a sandboxed check the `GITHUB_TOKEN`, which is the leak the profile
+  exists to prevent. A local `~/.gitconfig` with an `includeIf` is the same
+  trap on a real machine; see `v2/task.md` 42.
 - **Do not hardcode the Xcode path — ask `xcode-select -p`.** The fix for the
   xcrun trap above allowed `/Applications/Xcode.app/Contents/Developer`, which
   is correct on this laptop and wrong on a CI runner, where Xcode installs as

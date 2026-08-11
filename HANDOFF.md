@@ -272,6 +272,19 @@ how it gets skipped.
   reading the evidence it printed, not by running the same checks from a shell
   where they had always worked. The regression test calls `/usr/bin/git` by
   absolute path for exactly that reason.
+- **A git config include can point outside the repo, and then no git check
+  runs.** `actions/checkout` v6+ moved the persisted token from `.git/config`
+  to a file under `$RUNNER_TEMP` and left an `includeIf` behind pointing at it.
+  The token became unreachable from a sandboxed check — the good half — and
+  *every* git invocation started exiting 128 with "unable to access
+  '…/git-credentials-<uuid>.config': Operation not permitted", because the
+  profile denies everything outside the repo. Two tests red on the first run at
+  v7, and the message names a path rather than a repo, so it reads like
+  infrastructure rather than a config include. **Fixed with
+  `persist-credentials: false`, not with a carve-out** — allowing that path
+  would hand a sandboxed check the `GITHUB_TOKEN`. Predicted safe by reasoning
+  about `$RUNNER_TEMP` being outside the workspace, which was true and beside
+  the point; CI found the actual consequence in one run.
 - **The fix for that then broke CI, and only CI could have shown it.** Allowing
   `/Applications/Xcode.app/Contents/Developer` is correct on this laptop and
   wrong on a GitHub runner, where Xcode installs as `Xcode_26.6.app` — so every

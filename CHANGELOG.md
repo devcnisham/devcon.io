@@ -39,13 +39,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     stayed green while doing it. The reasoning was a guess about release notes;
     it happened to be right, and the line stays with the evidence attached.
   - **`checkout` v6 moved persisted credentials out of `.git/config`** and into
-    a file under `$RUNNER_TEMP`. Checked against `lib/ship/sandbox.ts` rather
-    than assumed: `$RUNNER_TEMP` sits outside `$GITHUB_WORKSPACE`, so a check
-    confined to the repo subpath cannot reach the token by construction and no
-    carve-out is needed. The suite's `.git` attacks are writes asserted with
-    `existsSync`, not reads of a token that used to live there, so none of them
-    silently starts passing for the wrong reason — the failure recorded on
-    2026-08-09, where `~/.ssh` did not exist and the attack proved nothing.
+    a file under `$RUNNER_TEMP` — **and this one went red before it went
+    green.** The prediction written here first was that `$RUNNER_TEMP` sits
+    outside `$GITHUB_WORKSPACE`, so a check confined to the repo cannot reach
+    the token and no carve-out is needed. True, and beside the point: v6 also
+    leaves an `includeIf` in `.git/config` pointing at that file, so *every*
+    git invocation inside the sandbox tried to read a denied path and exited
+    128 — "unable to access '…/git-credentials-<uuid>.config': Operation not
+    permitted". Two tests red on the first run at v7: `git resolves and runs`
+    and `the checks that should pass, do`.
+
+    Fixed with **`persist-credentials: false`**, not with a carve-out. Allowing
+    that path would hand a sandboxed check the `GITHUB_TOKEN`, which is the
+    leak the profile exists to prevent — the same trade the OIDC token taught.
+    Nothing in this workflow runs an authenticated git command after checkout.
+
+    The reasoning was done by reading and the consequence was found by running,
+    one run apart. **A local `~/.gitconfig` with an `includeIf` — the ordinary
+    work/personal split — is the same trap against a real project, and no test
+    covers it.** Task 42.
 
   Not applicable but read anyway: `checkout` v7 blocks fork checkouts for
   `pull_request_target` and `workflow_run`, and this workflow uses neither.

@@ -28,16 +28,25 @@ jobs:
       # Latest major on all three. Every one of these declares `using: node24`;
       # v4 declared `node20`, which GitHub deprecated. Read out of each
       # action.yml at the tag rather than out of a changelog.
-      #
-      # checkout v6 moved the persisted credentials out of `.git/config` and
-      # into a file under `$RUNNER_TEMP`. That is outside `$GITHUB_WORKSPACE`,
-      # so `lib/ship/sandbox.ts` — which confines a check to the repo subpath —
-      # already cannot reach it, and it does not need a new carve-out. The
-      # profile's `.git` denials are unaffected; the suite's `.git` attacks are
-      # writes asserted with `existsSync`, not reads of a token that used to
-      # live there.
       - uses: actions/checkout@v7
         with:
+          # **Not cosmetic, and CI is the only place that proves it.** checkout
+          # v6 moved the persisted token out of `.git/config` into a file under
+          # `$RUNNER_TEMP` — and left an `includeIf` in `.git/config` pointing
+          # at it. The token is now unreachable from a sandboxed check, which
+          # is the good half. The other half: *every* git invocation tries to
+          # read that path, `lib/ship/sandbox.ts` denies everything outside the
+          # repo, and git exits 128 with
+          # "unable to access '…/git-credentials-<uuid>.config'". It reads like
+          # a broken repo. Two tests went red on the first run at v7.
+          #
+          # The fix is to not persist the token, not to allow the path —
+          # allowing it would hand a sandboxed check the `GITHUB_TOKEN`, which
+          # is the leak this profile exists to prevent. Nothing here runs an
+          # authenticated git command after checkout: `fetch-depth: 0` has
+          # already fetched, and the secret scan below only reads `git
+          # ls-files` locally.
+          persist-credentials: false
           # Full history and tags. `SHIP.md` asserts permanent properties of
           # this repo's history — that `v0.1-archive` exists, and that the root
           # commit touched exactly two files — and a shallow clone has neither,
