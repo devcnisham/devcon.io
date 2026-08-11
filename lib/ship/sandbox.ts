@@ -60,10 +60,18 @@ function pathDirRules(): string {
     const trimmed = dir.trim();
     if (!trimmed || !SAFE_PATH_ENTRY.test(trimmed)) continue;
     // The directory itself, never its parent. Adding `dirname` looked like a
-    // harmless way to reach symlink targets and granted the whole home
-    // directory the moment PATH contained `~/bin` — the attack tests caught it
-    // on the first run.
+    // harmless way to reach symlink targets and granted the filesystem root
+    // the moment PATH contained `/bin` — the attack tests caught it on the
+    // first run.
     seen.add(trimmed);
+
+    // A `node_modules/.bin` is a farm of symlinks whose targets sit elsewhere
+    // under the same `node_modules` — pnpm's own binary resolves into a
+    // `.pnpm/` store beside it. Allowing the enclosing `node_modules` reaches
+    // the real files, and unlike a bare `dirname` it cannot widen to `/` or a
+    // home directory: the path has to end in `node_modules` to match at all.
+    const farm = /^(.*\/node_modules)\/\.bin$/.exec(trimmed);
+    if (farm) seen.add(farm[1]);
   }
   return [...seen].map((d) => `    (subpath ${JSON.stringify(d)})`).join("\n");
 }

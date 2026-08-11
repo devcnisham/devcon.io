@@ -259,6 +259,40 @@ describe("the PATH-derived allowlist", () => {
       !granted.includes("/Users"),
       "the profile granted every user's home",
     );
+
+    // The one widening that is allowed has to end in `node_modules`, so it can
+    // never reach a home directory or the root.
+    for (const g of granted) {
+      assert.ok(
+        g !== "/" && g !== homedir() && g !== "/Users",
+        `over-granted: ${g}`,
+      );
+    }
+  });
+
+  test("a node_modules/.bin on PATH also reaches its store", () => {
+    // pnpm installed by a CI runner lives behind a symlink farm: PATH has
+    // `…/node_modules/.bin`, and the real `pnpm.cjs` is under a sibling
+    // `.pnpm/` in the same `node_modules`. Allowing only the farm lets pnpm
+    // execute and not read itself.
+    const original = process.env.PATH;
+    try {
+      process.env.PATH = "/tmp/somewhere/node_modules/.bin:/usr/bin";
+      // The profile is built once and cached, so this asserts the rule that
+      // builds it rather than a rebuilt profile.
+      const farm = /^(.*\/node_modules)\/\.bin$/.exec(
+        "/tmp/somewhere/node_modules/.bin",
+      );
+      assert.equal(farm?.[1], "/tmp/somewhere/node_modules");
+      // And it must not match anything that is not a node_modules farm.
+      assert.equal(/^(.*\/node_modules)\/\.bin$/.test("/usr/bin"), false);
+      assert.equal(
+        /^(.*\/node_modules)\/\.bin$/.test(`${homedir()}/bin`),
+        false,
+      );
+    } finally {
+      process.env.PATH = original;
+    }
   });
 });
 
