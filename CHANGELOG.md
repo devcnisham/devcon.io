@@ -17,6 +17,74 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Unreleased
 
+### 2026-08-12
+
+#### Added
+
+- **Authentication — feature 001, phase 0 of `v2/feature-phase.md`.** `/signup`,
+  `/login`, sign out, and `/` as a landing page when signed out. The first item
+  of the 329-item plan to be built rather than written down.
+
+  **Local, and built to be replaced.** Accounts live in `~/.devcon/users.json`
+  and nothing is sent anywhere; the plan puts a real backend at phase 6, and the
+  owner's instruction was to build local now and connect it later. The pages
+  call `createUser` and `authenticate`, never JSON, so the swap is one file.
+  Supabase was not used today for a reason worth recording: its MCP is not
+  authorised in this session, so nothing written against it could have been run,
+  and unverifiable auth is exactly the ticked box this repo exists to catch.
+
+  - **scrypt from `node:crypto`** — no dependency and no native build, which
+    matters for a tool whose whole install is `pnpm install`. N, r and p are
+    written into every hash, so the cost can be raised later without making
+    every existing password unverifiable.
+  - **A signed httpOnly cookie**, with the key generated on first use at
+    `~/.devcon/session.key`, mode 0600. **Never in the repo and never in an
+    environment variable** — there is no `.env` for it to leak into.
+    `users.json` is 0600 too; a file of password hashes at the default 0644 is
+    readable by every account on the machine.
+  - **An unknown email still costs a scrypt hash.** Returning early would make
+    "no such user" measurably faster than "wrong password", which is how an
+    account list gets enumerated. The form says the same sentence for both.
+  - **Zero client JavaScript**, like every other route. Real forms posting to
+    server actions; the error comes back as `?error=<code>` so the page can
+    re-fill the email without a component holding state. The password is
+    dropped and retyped — it never goes in a URL. Build still emits 0 page
+    chunks.
+
+  **This reverses `SHIP.md`'s "Accounts, backend, sync" cut, and only the
+  accounts half.** The entry is kept and annotated rather than deleted, the same
+  way the web app reversal is — a cut that quietly disappears is a decision
+  nobody can audit. Backend and sync remain genuinely cut.
+
+  27 tests, and the app was driven rather than assumed: signup created the
+  account and landed on the dashboard, sign out returned the landing page, a
+  wrong password showed the error with the email preserved, and the right one
+  signed in. **`document.cookie` was empty in the browser** — which is what
+  proves httpOnly, where asserting the option in a config object only proves the
+  option was set. At 375px both pages fit with no horizontal overflow and no
+  trapped scroll box, measured against `scrollHeight`/`clientHeight` rather than
+  eyeballed, because that is the failure the work page already shipped once.
+  The throwaway account used for all of this was deleted afterwards.
+
+  Three holes, stated on the page or in the code rather than discovered later:
+  **signing out does not revoke** a token copied beforehand, there is no
+  password reset or email confirmation because devcon cannot send mail, and the
+  cookie is not `secure` because devcon serves http on localhost — turning it on
+  now would silently break every session on the only host it has. Tasks 44–46.
+
+- **A landing page at `/` for signed-out visitors**, on request. One route
+  rather than moving the dashboard to `/dashboard`: every existing link and
+  redirect in this repo already points at `/`, and moving it to add a front door
+  would break all of them to solve nothing.
+
+  It carries no testimonials, no counter and no claim about outcomes, and it
+  says in its own last paragraph that **nobody has finished a project because of
+  devcon yet** and that checks run only on macOS. Both are true, both are in
+  `SHIP.md`, and leaving them out would have made the landing page the first
+  unchecked claim this tool ships.
+
+  Suite 126 → 153.
+
 ### 2026-08-11
 
 #### Changed

@@ -11,7 +11,7 @@
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean.
 
-**Gates: lint 0, tsc 0, test 0 (126 tests), build 0, 0 page chunks.**
+**Gates: lint 0, tsc 0, test 0 (153 tests), build 0, 0 page chunks.**
 **CI is green** — `.github/workflows/gates.yml`, seven gates, macOS.
 
 **Progress: 5 of 13 done-when conditions in `SHIP.md`** — measured by running
@@ -38,8 +38,10 @@ Read this section first; the rest is history and detail.
    click it → the work page checks *that project's* `SHIP.md` in the sandbox,
    or shows its gaps if it has none → the canvas shows the same facts as cards
    you can drag.
-2. **`SHIP.md` still cuts a web app**, and one is being built anyway. The entry
-   is kept rather than deleted so the reversal stays visible.
+2. **`SHIP.md` still cuts a web app and accounts**, and both are being built
+   anyway. Each entry is kept rather than deleted so the reversal stays visible.
+   Accounts landed 2026-08-12 as feature 001 — local only, `~/.devcon`, nothing
+   sent anywhere. Backend and sync are still genuinely cut.
 3. **Nobody has finished a project because of devcon.** That has not changed
    and no feature here changes it.
 
@@ -80,7 +82,9 @@ Four things decided in this session, all of them the user's calls:
 
 | Path | What |
 |---|---|
-| `app/page.tsx`, `open.tsx`, `cards.tsx` | Dashboard — Finder dialog, clone, stats, a card per project |
+| `app/page.tsx`, `open.tsx`, `cards.tsx` | Dashboard — Finder dialog, clone, stats, a card per project. **Landing page when signed out.** |
+| `app/login/`, `app/signup/`, `auth-actions.ts` | Sign in, sign up, sign out — feature 001 |
+| `lib/auth/` | password · session · users · validate |
 | `app/connectors/` | Integrations — coverage, what nothing covers yet, MCP badges |
 | `app/console/` | What devcon is doing and what this machine can do, probed |
 | `app/work/workspace/` | The open project's `SHIP.md`, checked in the sandbox |
@@ -92,7 +96,7 @@ Four things decided in this session, all of them the user's calls:
 | `lib/diagnostics.ts` | Host probes for the console |
 | `.github/workflows/gates.yml` | Seven gates on every push. Green. |
 
-**126 tests.** `parse` 34 · `sandbox` 32 · `detect` 14 · `canvas` 12 ·
+**153 tests.** `parse` 34 · `sandbox` 32 · `auth` 27 · `detect` 14 · `canvas` 12 ·
 `clone` 11 · `search` 11 · `cache` 6 · `check` 6. Counted by running each file,
 not by remembering. Every module in `lib/` now has a suite.
 
@@ -189,8 +193,8 @@ how it gets skipped.
      the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **Tests cover every module in `lib/`.** 126 assertions — `parse` 34 ·
-   `sandbox` 32 · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
+4. **Tests cover every module in `lib/`.** 153 assertions — `parse` 34 · `sandbox` 32 · `auth` 27 ·
+   · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
    `cache` 6 · `check` 6 — run with `pnpm test`, node's own runner, no
    dependency added. Each attacks real behaviour rather than reading source,
    and they are mutation-verified: reverting the profile's carve-out turns five

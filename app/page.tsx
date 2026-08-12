@@ -4,7 +4,9 @@ import { detectProject, gaps } from "@/lib/detect.ts";
 import { oneParam } from "@/lib/ship/search.ts";
 import { type ImportError, listWorkspaces } from "@/lib/workspaces.ts";
 import { NoProjects, ProjectCard, type ProjectRow, Stat } from "./cards";
+import { currentUser } from "./current-user";
 import { HomeShell } from "./home-shell";
+import { Landing } from "./landing";
 import { OpenOrCreate } from "./open";
 
 /**
@@ -15,6 +17,12 @@ import { OpenOrCreate } from "./open";
  * list that still offers a folder deleted last week, or claims a stack it has
  * not looked at, is a list of claims — and this is not the product that gets
  * to ship those.
+ *
+ * **Signed out, `/` is the landing page instead.** One route rather than
+ * moving the dashboard to `/dashboard`: every existing link, bookmark and
+ * redirect in this repo already points at `/`, and moving it to add a front
+ * door would break all of them to solve nothing. Which page you get is the
+ * only thing that changes.
  */
 export const dynamic = "force-dynamic";
 
@@ -30,6 +38,8 @@ export default async function Dashboard({
     pick?: string;
   }>;
 }) {
+  if (!(await currentUser())) return <Landing />;
+
   const params = await searchParams;
   const workspaces = await listWorkspaces();
 

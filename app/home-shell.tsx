@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { signOut } from "./auth-actions";
+import { currentUser } from "./current-user";
 
 /**
  * The chrome around dashboard, connectors and console.
@@ -20,7 +22,7 @@ const NAV = [
   { href: "/console", label: "Console", hint: "How devcon behaves" },
 ] as const;
 
-export function HomeShell({
+export async function HomeShell({
   here,
   title,
   intro,
@@ -31,9 +33,11 @@ export function HomeShell({
   intro?: string;
   children: React.ReactNode;
 }) {
+  const user = await currentUser();
+
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
-      <aside className="shrink-0 border-[var(--color-line)] border-b px-5 py-4 lg:w-56 lg:border-r lg:border-b-0 lg:py-6">
+      <aside className="shrink-0 border-[var(--color-line)] border-b px-5 py-4 lg:flex lg:w-56 lg:flex-col lg:border-r lg:border-b-0 lg:py-6">
         <Link
           href="/"
           className="rounded font-mono text-[var(--color-text)] text-sm tracking-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
@@ -63,6 +67,37 @@ export function HomeShell({
             );
           })}
         </nav>
+
+        {/* The account, at the foot of the rail on a wide screen and inline on
+            a narrow one. Signed out says so plainly rather than hiding: an
+            auth surface you cannot see from the app is one nobody uses. */}
+        <div className="mt-4 lg:mt-auto">
+          {user ? (
+            <div>
+              <p
+                className="truncate text-[11.5px] text-[var(--color-muted)]"
+                title={user.email}
+              >
+                {user.email}
+              </p>
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="mt-1 rounded text-[12px] text-[var(--color-muted)] underline underline-offset-4 transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                >
+                  Sign out
+                </button>
+              </form>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded text-[12px] text-[var(--color-muted)] underline underline-offset-4 transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
       </aside>
 
       <main className="min-w-0 flex-1 px-6 py-8 sm:px-8 lg:px-10 lg:py-12">

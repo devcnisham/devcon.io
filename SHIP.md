@@ -19,7 +19,11 @@ of them moved the only number that counted.
   advance. It is not: verifying `comp-happy-path` through a second agent
   produced *nothing to do*, because the previous step had eaten its scope.
 - **Accounts, backend, sync** — nobody is sharing anything yet. `SHIP.md` is in
-  your repo, so git is the sync.
+  your repo, so git is the sync. **Accounts reversed on request, 2026-08-12**,
+  as phase 0 feature 001 of `v2/feature-phase.md`. The entry is kept rather than
+  deleted so the reversal is visible, the same way the web app above is. Backend
+  and sync are *not* reversed: accounts live in `~/.devcon/users.json` on this
+  machine and nothing is sent anywhere.
 - **Telemetry** — there is nothing to measure until one person ships one thing.
 - **A second agent to run the work** — you already have one. This tool talks to
   the one you are in.

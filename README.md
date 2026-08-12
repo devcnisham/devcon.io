@@ -13,7 +13,8 @@ pnpm dev        # localhost:3000
 
 | Route | What |
 |---|---|
-| `/` | Dashboard — open a folder or clone a repo, and a card per project read from its files |
+| `/` | Landing when signed out. Dashboard when signed in — open a folder or clone a repo, and a card per project read from its files |
+| `/signup`, `/login` | Create an account or sign in. Local only: accounts live in `~/.devcon`, hashed with scrypt, and nothing is sent anywhere |
 | `/connectors` | Integrations — what this project covers, and what nothing covers yet |
 | `/console` | What devcon is doing and what this machine can do, probed |
 | `/work` | Redirects to the default view |
@@ -51,10 +52,15 @@ plumbing for it, and it is deliberately sequenced behind hand-writing a
 `SHIP.md` for two real projects: if a hand-written spec changes no real
 decision, tooling will not rescue it.
 
-Also missing: an MCP server, cut rules, and end-to-end tests — unit tests now
-cover every module in `lib/`, but nothing drives the app as a user. Connecting a
+Also missing: an MCP server, cut rules, and end-to-end tests. Unit tests cover
+every module in `lib/`, but nothing drives the app as a user. Connecting a
 service is not wired either — no OAuth, no token exchange. Integration panels
 tell you what a service needs; you set it up.
+
+The accounts added on 2026-08-12 have **no password reset and no email
+confirmation**, because devcon has no way to send mail, and signing out clears
+the cookie without revoking a token copied beforehand. All three are stated
+here rather than discovered later.
 
 Checks run confined — macOS seatbelt, no network, no filesystem outside the
 project and its toolchain, no `.git`, `.env*` or `.vercel`, and a replaced

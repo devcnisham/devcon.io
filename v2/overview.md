@@ -20,7 +20,8 @@
 
 | Route | State |
 |---|---|
-| `/` | Dashboard — open/clone, stats, a card per project |
+| `/` | Landing when signed out; dashboard when signed in |
+| `/login`, `/signup` | Sign in and create an account |
 | `/connectors` | Integrations — coverage and what nothing covers yet |
 | `/console` | What devcon is doing, and what this machine can do |
 | `/work` | Redirects to `/work/workspace` |
@@ -32,6 +33,8 @@
 | Module | State |
 |---|---|
 | `lib/ship/parse.ts` | Reads `SHIP.md`. 34 tests. |
+| `lib/auth/` | password · session · users · validate. 27 tests. |
+| `app/landing.tsx`, `app/auth-shell.tsx` | Landing page and the auth forms |
 | `lib/ship/check.ts` | Works. Sandboxed. Runs the open project's checks. 6 tests. |
 | `lib/ship/sandbox.ts` | Works. macOS only, by design. 32 tests. |
 | `app/work/workspace/page.tsx`, `spec-cards.tsx` | The open project's spec, checked |
@@ -101,6 +104,9 @@
 | Console: host probes, live check numbers, stated rules | done |
 | One colour system — zero raw Tailwind colours in `app/` | done |
 | Changelog, built from `git log` | done |
+| Authentication — sign up, sign in, sign out, sessions | done, **local only** |
+| Landing page | done |
+| Password reset, email confirmation | not built — devcon cannot send mail |
 | End-to-end tests | not built |
 | Consent gate before running a stranger's checks | not built |
 | MCP server + repo reader | not built |
@@ -114,7 +120,7 @@
 | Cut | Why |
 |---|---|
 | A step catalog | 63 steps assumed the plan is knowable in advance. It is not. |
-| Accounts, backend, sync | `SHIP.md` is in your repo. Git is the sync. |
+| Accounts, backend, sync | `SHIP.md` is in your repo. Git is the sync. **Accounts reversed on request 2026-08-12** — local only. Backend and sync still cut. |
 | Telemetry | Nothing to measure until one person ships one thing. |
 | A second agent to run the work | You already have one. |
 | Anything copied from v0.1 | The archive is a record, not a parts bin. |

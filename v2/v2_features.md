@@ -33,6 +33,41 @@ that wrote the parser. Mutation-verified four ways, all red: re-introducing the
 prose 3, hardcoding `claimed` 1. Every section body in the fixture opens with a
 word containing a `z` for exactly the first of those.
 
+### Authentication — `lib/auth/`, `/login`, `/signup`
+
+Feature 001 of `v2/feature-phase.md`, phase 0. Sign up, sign in, sign out, and
+`/` as a landing page when signed out.
+
+**Local, and meant to be replaced.** Accounts live in `~/.devcon/users.json`
+and nothing is sent anywhere; the plan puts a real backend at phase 6. Pages
+call `createUser` and `authenticate`, never JSON, so swapping the store is one
+file rather than every form.
+
+| | |
+|---|---|
+| Hashing | scrypt from `node:crypto`. No dependency, no native build. |
+| Cost | N/r/p written into every hash, so it can be raised without invalidating existing passwords |
+| Session | Signed token in an httpOnly cookie. Key at `~/.devcon/session.key`, 0600 |
+| Store | `~/.devcon/users.json`, 0600 |
+| Client JavaScript | None. Real forms posting to server actions |
+
+**This reverses `SHIP.md`'s "Accounts, backend, sync" cut** — accounts only.
+The entry is kept and annotated rather than deleted, like the web app.
+
+*Verified by:* `test/auth.test.ts` — 27 assertions — and by driving the running
+app. Signup created the account and landed on the dashboard, sign out returned
+the landing page, a wrong password showed the error with the email preserved
+and the password cleared, and the right one signed in. **`document.cookie` was
+empty in the browser**, which is what proves the cookie is httpOnly; asserting
+the option in a config object only proves the option was set. At 375px both
+pages fit with no horizontal overflow and no trapped scroll box — measured, not
+looked at, because that is the failure the work page already shipped once.
+
+Known and stated rather than implied: **signing out does not revoke** a token
+copied beforehand, there is no password reset and no email confirmation because
+devcon cannot send mail, and the cookie is not `secure` because devcon serves
+http on localhost. Tasks 44–46.
+
 ### The done-when checker — `lib/ship/check.ts`
 
 Runs each condition's command and returns a verdict with its evidence.
