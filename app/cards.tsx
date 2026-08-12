@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Detected, Gap } from "@/lib/detect.ts";
 import { stackLine } from "@/lib/detect.ts";
+import type { Project } from "@/lib/projects.ts";
 import { ageLabel } from "@/lib/ship/cache.ts";
-import type { Workspace } from "@/lib/workspaces.ts";
-import { forgetWorkspace, openWorkspace } from "./actions.ts";
+import { forgetProject, openProject } from "./actions.ts";
 
 /**
  * The dashboard's pieces.
@@ -14,7 +14,7 @@ import { forgetWorkspace, openWorkspace } from "./actions.ts";
  * did not find one.
  */
 
-export interface ProjectRow extends Workspace, Detected {
+export interface ProjectRow extends Project, Detected {
   exists: boolean;
   gaps: Gap[];
 }
@@ -118,7 +118,7 @@ export function ProjectCard({ row }: { row: ProjectRow }) {
 
   return (
     <li className="flex flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-raised)]/40 transition-colors hover:border-[var(--color-muted)]/40">
-      <form action={openWorkspace} className="flex min-h-0 flex-1 flex-col">
+      <form action={openProject} className="flex min-h-0 flex-1 flex-col">
         <input type="hidden" name="path" value={row.path} />
         {/* The whole card is the control. A link would be tidier, but opening a
             project writes which one is active, and a GET that mutates is wrong
@@ -199,7 +199,7 @@ export function ProjectCard({ row }: { row: ProjectRow }) {
 
       {/* A sibling, not a child — nested forms are invalid HTML and the inner
           one is dropped, which would make Forget silently open the project. */}
-      <form action={forgetWorkspace} className="px-4 pb-3">
+      <form action={forgetProject} className="px-4 pb-3">
         <input type="hidden" name="path" value={row.path} />
         <button
           type="submit"

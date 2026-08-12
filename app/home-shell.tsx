@@ -2,6 +2,7 @@ import Link from "next/link";
 import { displayName } from "@/lib/auth/users.ts";
 import { signOut } from "./auth-actions";
 import { currentUser } from "./current-user";
+import { currentWorkspace } from "./current-workspace";
 
 /**
  * The chrome around dashboard, connectors and console.
@@ -21,6 +22,7 @@ const NAV = [
   { href: "/", label: "Dashboard", hint: "Projects and import" },
   { href: "/connectors", label: "Connectors", hint: "Services and MCP" },
   { href: "/console", label: "Console", hint: "How devcon behaves" },
+  { href: "/settings", label: "Settings", hint: "Workspace and account" },
 ] as const;
 
 export async function HomeShell({
@@ -35,6 +37,7 @@ export async function HomeShell({
   children: React.ReactNode;
 }) {
   const user = await currentUser();
+  const workspace = user ? await currentWorkspace() : null;
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
@@ -45,6 +48,14 @@ export async function HomeShell({
         >
           devcon
         </Link>
+        {workspace && (
+          <p
+            className="mt-0.5 truncate text-[11px] text-[var(--color-muted)]"
+            title={workspace.name}
+          >
+            {workspace.name}
+          </p>
+        )}
 
         <nav aria-label="Sections" className="mt-4 flex gap-1 lg:mt-8 lg:block">
           {NAV.map((item) => {

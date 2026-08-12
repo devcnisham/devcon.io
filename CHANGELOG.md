@@ -21,6 +21,52 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **Workspaces — feature 003, phase 0 — and the settings page to manage them.**
+  A workspace owns projects and belongs to an account. Everyone gets one called
+  Personal on first use, so there is no "create your first workspace" step
+  between signing up and using the thing; several are allowed because
+  separating work from side projects is the first thing anyone asks for, and
+  retrofitting a one-to-many later means migrating everyone.
+
+  **This is not sharing.** No invites, no roles, no permissions, and no server
+  to share through — that is phase 26, and the page says so rather than leaving
+  it to be discovered.
+
+  `/settings` had been a redirect to `/console` since Settings was renamed.
+  Feature 003 gives it something to be: the console is what devcon *is doing*,
+  settings is what *you have set*.
+
+- **`lib/workspaces.ts` became `lib/projects.ts`, and its type `Project`.** The
+  module used "workspace" to mean "a folder you opened", while every surface in
+  `app/` already called those **projects** — `ProjectCard`, `detectProject`, the
+  "projects" stat. Only the storage module disagreed, so the name was taken back
+  rather than a second word invented for feature 003. Ten files, mechanical,
+  and tsc caught the rest.
+
+#### Fixed
+
+- **The migration is the part that could have lost data, so it is the part with
+  the most tests.** `workspaces.json` was already taken on the one machine that
+  has ever run devcon, and it held a real project list.
+
+  The legacy contents are **moved** to `projects.json`, never overwritten, and
+  the original is retired as `workspaces.json.legacy` rather than deleted — if
+  any of this was wrong the original is still on disk. It refuses to run at all
+  when `projects.json` already exists: a migration that deletes the thing it was
+  meant to preserve is worse than one that does not run.
+
+  Rows written before feature 003 have no `workspaceId`. Rather than filtering
+  them out — a project list that empties itself the day a new concept ships —
+  they are **adopted** by the first workspace that asks, once and idempotently.
+
+  Four of the eleven new tests are this, and it was then verified against the
+  real store rather than only the temp one: `devcon-io` came through with its
+  workspace stamped and the legacy file intact beside it.
+
+  Suite 163 → 174.
+
+#### Added
+
 - **User profile — feature 002, phase 0.** `/profile`: your email and when the
   account was created, an optional display name, and a password change. Two
   forms, two server actions, no client JavaScript, 0 page chunks still.

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, test } from "node:test";
 import { repoName, validateUrl } from "../lib/clone.ts";
-import { expandHome, validatePath } from "../lib/workspaces.ts";
+import { expandHome, validatePath } from "../lib/projects.ts";
 
 /**
  * The two places a typed string reaches the system.
@@ -116,17 +116,17 @@ describe("expandHome", () => {
 
 describe("the active project", () => {
   test("round-trips, and is null before anything is opened", async () => {
-    const { getActive, setActive, addWorkspace } = await import(
-      "../lib/workspaces.ts"
+    const { getActive, setActive, addProject } = await import(
+      "../lib/projects.ts"
     );
     const home = tmp();
     const active = join(home, "active.json");
-    const store = join(home, "workspaces.json");
+    const store = join(home, "projects.json");
     const proj = tmp();
 
     assert.equal(await getActive(active, store), null);
 
-    await addWorkspace(proj, store);
+    await addProject(proj, undefined, store);
     await setActive(proj, active);
     assert.equal((await getActive(active, store))?.path, proj);
   });
@@ -134,15 +134,15 @@ describe("the active project", () => {
   test("a folder that has since been deleted is not reported as open", async () => {
     // The work page naming a project that is not there is the same class of
     // claim this tool exists to catch.
-    const { getActive, setActive, addWorkspace } = await import(
-      "../lib/workspaces.ts"
+    const { getActive, setActive, addProject } = await import(
+      "../lib/projects.ts"
     );
     const home = tmp();
     const active = join(home, "active.json");
-    const store = join(home, "workspaces.json");
+    const store = join(home, "projects.json");
     const proj = tmp();
 
-    await addWorkspace(proj, store);
+    await addProject(proj, undefined, store);
     await setActive(proj, active);
     rmSync(proj, { recursive: true, force: true });
 
@@ -150,15 +150,15 @@ describe("the active project", () => {
   });
 
   test("forgetting the open project clears it", async () => {
-    const { clearActiveIf, getActive, setActive, addWorkspace } = await import(
-      "../lib/workspaces.ts"
+    const { clearActiveIf, getActive, setActive, addProject } = await import(
+      "../lib/projects.ts"
     );
     const home = tmp();
     const active = join(home, "active.json");
-    const store = join(home, "workspaces.json");
+    const store = join(home, "projects.json");
     const proj = tmp();
 
-    await addWorkspace(proj, store);
+    await addProject(proj, undefined, store);
     await setActive(proj, active);
     await clearActiveIf(proj, active);
 

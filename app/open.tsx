@@ -1,11 +1,7 @@
 import { CLONE_MESSAGE, CLONE_ROOT, type CloneError } from "@/lib/clone.ts";
 import { pickerAvailable } from "@/lib/pick-folder.ts";
-import { IMPORT_MESSAGE, type ImportError } from "@/lib/workspaces.ts";
-import {
-  cloneWorkspace,
-  importWorkspace,
-  openFolderDialog,
-} from "./actions.ts";
+import { IMPORT_MESSAGE, type ImportError } from "@/lib/projects.ts";
+import { cloneProject, importProject, openFolderDialog } from "./actions.ts";
 
 /**
  * "Open or create" — the ways in.
@@ -110,7 +106,7 @@ export function OpenOrCreate({
             )}
 
             <form
-              action={importWorkspace}
+              action={importProject}
               className={
                 native ? "mt-3 border-[var(--color-line)] border-t pt-3" : ""
               }
@@ -150,7 +146,7 @@ export function OpenOrCreate({
             <span>Clone repo</span>
           </summary>
 
-          <form action={cloneWorkspace} className={PANEL}>
+          <form action={cloneProject} className={PANEL}>
             <label
               htmlFor="url"
               className="block text-[12px] text-[var(--color-muted)]"

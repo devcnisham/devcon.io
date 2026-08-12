@@ -6,12 +6,13 @@ import { saveLayout } from "@/lib/canvas.ts";
 import { cloneRepo } from "@/lib/clone.ts";
 import { pickFolder } from "@/lib/pick-folder.ts";
 import {
-  addWorkspace,
+  addProject,
   clearActiveIf,
-  removeWorkspace,
+  removeProject,
   setActive,
   validatePath,
-} from "@/lib/workspaces.ts";
+} from "@/lib/projects.ts";
+import { currentWorkspace } from "./current-workspace";
 
 /**
  * The writes the dashboard makes.
@@ -41,33 +42,33 @@ export async function openFolderDialog() {
   const valid = await validatePath(picked.path);
   if (!valid.ok) return back({ error: valid.error, path: picked.path });
 
-  await addWorkspace(valid.path);
+  await addProject(valid.path, (await currentWorkspace())?.id);
   return back({ added: valid.path });
 }
 
 /** The typed-path fallback. Also the only route on anything that is not a Mac. */
-export async function importWorkspace(formData: FormData) {
+export async function importProject(formData: FormData) {
   const raw = String(formData.get("path") ?? "");
   const valid = await validatePath(raw);
 
   if (!valid.ok) return back({ error: valid.error, path: raw.trim() });
 
-  await addWorkspace(valid.path);
+  await addProject(valid.path, (await currentWorkspace())?.id);
   return back({ added: valid.path });
 }
 
-export async function cloneWorkspace(formData: FormData) {
+export async function cloneProject(formData: FormData) {
   const url = String(formData.get("url") ?? "");
   const result = await cloneRepo(url);
 
   if (!result.ok) return back({ clone: result.error, url: url.trim() });
 
-  await addWorkspace(result.path);
+  await addProject(result.path, (await currentWorkspace())?.id);
   return back({ added: result.path });
 }
 
 /** Clicking a project card: make it the open one, then go to the work page. */
-export async function openWorkspace(formData: FormData) {
+export async function openProject(formData: FormData) {
   const raw = String(formData.get("path") ?? "");
   const valid = await validatePath(raw);
 
@@ -75,15 +76,15 @@ export async function openWorkspace(formData: FormData) {
   // opening a work page for something that is not there.
   if (!valid.ok) return back({ error: valid.error, path: raw });
 
-  await addWorkspace(valid.path);
+  await addProject(valid.path, (await currentWorkspace())?.id);
   await setActive(valid.path);
   redirect("/work");
 }
 
-export async function forgetWorkspace(formData: FormData) {
+export async function forgetProject(formData: FormData) {
   const path = String(formData.get("path") ?? "");
   if (path) {
-    await removeWorkspace(path);
+    await removeProject(path);
     // Otherwise the work page would keep naming a project the list forgot.
     await clearActiveIf(path);
   }

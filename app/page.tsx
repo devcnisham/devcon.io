@@ -1,10 +1,11 @@
 import { stat } from "node:fs/promises";
 import type { CloneError } from "@/lib/clone.ts";
 import { detectProject, gaps } from "@/lib/detect.ts";
+import { type ImportError, listProjects } from "@/lib/projects.ts";
 import { oneParam } from "@/lib/ship/search.ts";
-import { type ImportError, listWorkspaces } from "@/lib/workspaces.ts";
 import { NoProjects, ProjectCard, type ProjectRow, Stat } from "./cards";
 import { currentUser } from "./current-user";
+import { currentWorkspace } from "./current-workspace";
 import { HomeShell } from "./home-shell";
 import { Landing } from "./landing";
 import { OpenOrCreate } from "./open";
@@ -40,8 +41,11 @@ export default async function Dashboard({
 }) {
   if (!(await currentUser())) return <Landing />;
 
+  // Scoped to the workspace you are in — the whole point of feature 003.
+  const workspace = await currentWorkspace();
+
   const params = await searchParams;
-  const workspaces = await listWorkspaces();
+  const workspaces = await listProjects(workspace?.id);
 
   const rows: ProjectRow[] = await Promise.all(
     workspaces.map(async (w) => {

@@ -1,8 +1,8 @@
 import { detectProject, gaps } from "@/lib/detect.ts";
+import { getActive } from "@/lib/projects.ts";
 import { ageLabel, checkedSpec } from "@/lib/ship/cache.ts";
 import { lies, tally } from "@/lib/ship/check.ts";
 import { filterSpec, oneParam } from "@/lib/ship/search.ts";
-import { getActive } from "@/lib/workspaces.ts";
 import { ViewTabs } from "../views";
 import {
   ConditionCard,
@@ -25,7 +25,7 @@ import {
  */
 export const dynamic = "force-dynamic";
 
-export default async function Workspace({
+export default async function Project({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string | string[] }>;

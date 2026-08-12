@@ -1,10 +1,10 @@
 import { CLONE_ROOT } from "@/lib/clone.ts";
 import { CONNECTORS } from "@/lib/connectors.ts";
 import { hostDiagnostics } from "@/lib/diagnostics.ts";
+import { ACTIVE, listProjects, STORE } from "@/lib/projects.ts";
 import { TTL_MS } from "@/lib/ship/cache.ts";
 import { DEFAULTS } from "@/lib/ship/check.ts";
 import { sandboxUnavailable } from "@/lib/ship/sandbox.ts";
-import { ACTIVE, listWorkspaces, STORE } from "@/lib/workspaces.ts";
 import { Stat } from "../cards";
 import { Group, ProbeRow, Row, Rule } from "../console-cards";
 import { HomeShell } from "../home-shell";
@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
 export default async function Settings() {
   const [probes, projects] = await Promise.all([
     hostDiagnostics(),
-    listWorkspaces(),
+    listProjects(),
   ]);
 
   const blocked = sandboxUnavailable();

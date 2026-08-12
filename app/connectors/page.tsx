@@ -5,8 +5,8 @@ import {
   detectConnectors,
   filterConnectors,
 } from "@/lib/connectors.ts";
+import { listProjects } from "@/lib/projects.ts";
 import { oneParam } from "@/lib/ship/search.ts";
-import { listWorkspaces } from "@/lib/workspaces.ts";
 import { Stat } from "../cards";
 import {
   ConnectorRow,
@@ -34,7 +34,7 @@ export default async function Connectors({
   const query = oneParam((await searchParams).q);
 
   // The most recently opened project, falling back to this repo.
-  const [recent] = await listWorkspaces();
+  const [recent] = await listProjects();
   const target = recent?.path ?? process.cwd();
 
   const all = await detectConnectors(target);

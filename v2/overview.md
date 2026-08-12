@@ -23,6 +23,7 @@
 | `/` | Landing when signed out; dashboard when signed in |
 | `/login`, `/signup` | Sign in and create an account |
 | `/profile` | Your account — name and password |
+| `/settings` | Workspace — rename, switch, create. Was a redirect to `/console`. |
 | `/connectors` | Integrations — coverage and what nothing covers yet |
 | `/console` | What devcon is doing, and what this machine can do |
 | `/work` | Redirects to `/work/workspace` |
@@ -35,6 +36,8 @@
 |---|---|
 | `lib/ship/parse.ts` | Reads `SHIP.md`. 34 tests. |
 | `lib/auth/` | password · session · users · validate. 37 tests. |
+| `lib/workspace.ts` | Workspaces, and the legacy-store migration. 11 tests. |
+| `lib/projects.ts` | The project list, scoped to a workspace. Renamed from `lib/workspaces.ts`. |
 | `app/landing.tsx`, `app/auth-shell.tsx` | Landing page and the auth forms |
 | `lib/ship/check.ts` | Works. Sandboxed. Runs the open project's checks. 6 tests. |
 | `lib/ship/sandbox.ts` | Works. macOS only, by design. 32 tests. |
@@ -107,6 +110,9 @@
 | Changelog, built from `git log` | done |
 | Authentication — sign up, sign in, sign out, sessions | done, **local only** |
 | User profile — display name, change password | done |
+| Workspace — owns projects, one per account by default, several allowed | done |
+| Settings page — rename, switch, create a workspace | done |
+| Sharing a workspace with another person | not built — phase 26, and there is no server |
 | Changing a password ends every other session | done, verified against a running server |
 | Changing your email | not built — devcon cannot send a confirmation |
 | Landing page | done |

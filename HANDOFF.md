@@ -11,7 +11,7 @@
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean.
 
-**Gates: lint 0, tsc 0, test 0 (163 tests), build 0, 0 page chunks.**
+**Gates: lint 0, tsc 0, test 0 (174 tests), build 0, 0 page chunks.**
 **CI is green** — `.github/workflows/gates.yml`, seven gates, macOS.
 
 **Progress: 5 of 13 done-when conditions in `SHIP.md`** — measured by running
@@ -85,6 +85,8 @@ Four things decided in this session, all of them the user's calls:
 | `app/page.tsx`, `open.tsx`, `cards.tsx` | Dashboard — Finder dialog, clone, stats, a card per project. **Landing page when signed out.** |
 | `app/login/`, `app/signup/`, `auth-actions.ts` | Sign in, sign up, sign out — feature 001 |
 | `app/profile/` | Your account — name, password change — feature 002 |
+| `app/settings/`, `lib/workspace.ts` | Workspaces — rename, switch, create — feature 003 |
+| `lib/projects.ts` | The project list, scoped to a workspace. Was `lib/workspaces.ts`. |
 | `lib/auth/` | password · session · users · validate |
 | `app/connectors/` | Integrations — coverage, what nothing covers yet, MCP badges |
 | `app/console/` | What devcon is doing and what this machine can do, probed |
@@ -97,7 +99,7 @@ Four things decided in this session, all of them the user's calls:
 | `lib/diagnostics.ts` | Host probes for the console |
 | `.github/workflows/gates.yml` | Seven gates on every push. Green. |
 
-**163 tests.** `auth` 37 · `parse` 34 · `sandbox` 32 · `detect` 14 · `canvas` 12 ·
+**174 tests.** `auth` 37 · `parse` 34 · `sandbox` 32 · `workspace` 11 · `detect` 14 · `canvas` 12 ·
 `clone` 11 · `search` 11 · `cache` 6 · `check` 6. Counted by running each file,
 not by remembering. Every module in `lib/` now has a suite.
 
@@ -194,7 +196,7 @@ how it gets skipped.
      the commit-count check when it expired.
 3. **The workspace rail is a 14rem commitment** with nothing in it. Cheap to
    change now, expensive once things live in it.
-4. **Tests cover every module in `lib/`.** 163 assertions — `auth` 37 · `parse` 34 · `sandbox` 32 ·
+4. **Tests cover every module in `lib/`.** 174 assertions — `auth` 37 · `parse` 34 · `sandbox` 32 · `workspace` 11 ·
    · `detect` 14 · `canvas` 12 · `clone` 11 · `search` 11 ·
    `cache` 6 · `check` 6 — run with `pnpm test`, node's own runner, no
    dependency added. Each attacks real behaviour rather than reading source,

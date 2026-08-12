@@ -1,6 +1,7 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { basename, isAbsolute, join, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import { migrateLegacyStore } from "./workspace.ts";
 
 /**
  * The projects you have opened.
@@ -14,16 +15,31 @@ import { basename, isAbsolute, join, resolve } from "node:path";
  * anywhere; this is a list of places, not a cache of code.
  */
 
-export interface Workspace {
+export interface Project {
   /** Absolute, resolved. The identity of the row. */
   path: string;
+  /**
+   * The workspace it belongs to.
+   *
+   * Optional because every row written before feature 003 has none. Those are
+   * adopted once by `adoptOrphanProjects` rather than being filtered out —
+   * silently hiding someone's project list behind a new concept would be the
+   * worst possible introduction to it.
+   */
+  workspaceId?: string;
   /** Folder name, for display. */
   name: string;
   addedAt: number;
   lastOpenedAt: number;
 }
 
-export const STORE = join(homedir(), ".devcon", "workspaces.json");
+/**
+ * Renamed from `workspaces.json` by feature 003, which needed that filename for
+ * the thing that actually is a workspace. `migrateLegacyStore` moves the old
+ * file's contents here on first read and retires it as `.legacy` rather than
+ * deleting it.
+ */
+export const STORE = join(homedir(), ".devcon", "projects.json");
 
 /**
  * Which project the work page is showing.
@@ -81,13 +97,14 @@ export async function validatePath(
   }
 }
 
-async function readStore(file: string): Promise<Workspace[]> {
+async function readStore(file: string): Promise<Project[]> {
+  await migrateLegacyStore(join(dirname(file), "workspaces.json"), file);
   try {
     const parsed = JSON.parse(await readFile(file, "utf8"));
     // A hand-edited or half-written store must not take the page down with it.
     return Array.isArray(parsed)
       ? parsed.filter(
-          (w): w is Workspace =>
+          (w): w is Project =>
             typeof w?.path === "string" && typeof w?.name === "string",
         )
       : [];
@@ -96,15 +113,48 @@ async function readStore(file: string): Promise<Workspace[]> {
   }
 }
 
-async function writeStore(file: string, list: Workspace[]): Promise<void> {
+async function writeStore(file: string, list: Project[]): Promise<void> {
   await mkdir(join(file, ".."), { recursive: true });
   await writeFile(file, `${JSON.stringify(list, null, 2)}\n`, "utf8");
 }
 
-/** Most recently opened first. */
-export async function listWorkspaces(file = STORE): Promise<Workspace[]> {
+/**
+ * Most recently opened first, optionally only those in one workspace.
+ *
+ * Called with no workspace it returns everything, which is what the surfaces
+ * that are about *this machine* rather than about a workspace still want.
+ */
+export async function listProjects(
+  workspaceId?: string,
+  file = STORE,
+): Promise<Project[]> {
   const list = await readStore(file);
-  return [...list].sort((a, b) => b.lastOpenedAt - a.lastOpenedAt);
+  const mine = workspaceId
+    ? list.filter((p) => p.workspaceId === workspaceId)
+    : list;
+  return [...mine].sort((a, b) => b.lastOpenedAt - a.lastOpenedAt);
+}
+
+/**
+ * Give every unowned project to a workspace. Runs once and then does nothing.
+ *
+ * Rows written before feature 003 have no `workspaceId`. Rather than leaving
+ * them invisible — a list that empties itself the day a new concept ships —
+ * they are handed to the first workspace that asks.
+ */
+export async function adoptOrphanProjects(
+  workspaceId: string,
+  file = STORE,
+): Promise<number> {
+  const list = await readStore(file);
+  const orphans = list.filter((p) => !p.workspaceId);
+  if (orphans.length === 0) return 0;
+
+  await writeStore(
+    file,
+    list.map((p) => (p.workspaceId ? p : { ...p, workspaceId })),
+  );
+  return orphans.length;
 }
 
 /**
@@ -113,26 +163,34 @@ export async function listWorkspaces(file = STORE): Promise<Workspace[]> {
  * Re-importing is not an error and must not create a second row — the path is
  * the identity.
  */
-export async function addWorkspace(
+export async function addProject(
   path: string,
+  workspaceId?: string,
   file = STORE,
   now = Date.now(),
-): Promise<Workspace> {
+): Promise<Project> {
   const list = await readStore(file);
   const existing = list.find((w) => w.path === path);
 
-  const ws: Workspace = existing
-    ? { ...existing, lastOpenedAt: now }
-    : { path, name: basename(path) || path, addedAt: now, lastOpenedAt: now };
+  const ws: Project = existing
+    ? {
+        ...existing,
+        lastOpenedAt: now,
+        workspaceId: existing.workspaceId ?? workspaceId,
+      }
+    : {
+        path,
+        name: basename(path) || path,
+        workspaceId,
+        addedAt: now,
+        lastOpenedAt: now,
+      };
 
   await writeStore(file, [ws, ...list.filter((w) => w.path !== path)]);
   return ws;
 }
 
-export async function removeWorkspace(
-  path: string,
-  file = STORE,
-): Promise<void> {
+export async function removeProject(path: string, file = STORE): Promise<void> {
   const list = await readStore(file);
   await writeStore(
     file,
@@ -141,8 +199,8 @@ export async function removeWorkspace(
 }
 
 /** Whether a workspace still exists on disk, and whether it has a spec yet. */
-export async function describeWorkspace(
-  w: Workspace,
+export async function describeProject(
+  w: Project,
 ): Promise<{ exists: boolean; hasSpec: boolean }> {
   const exists = await stat(w.path).then(
     (s) => s.isDirectory(),
@@ -172,7 +230,7 @@ export async function setActive(path: string, file = ACTIVE): Promise<void> {
 export async function getActive(
   file = ACTIVE,
   store = STORE,
-): Promise<Workspace | null> {
+): Promise<Project | null> {
   let path: string;
   try {
     path = JSON.parse(await readFile(file, "utf8"))?.path;
@@ -187,7 +245,7 @@ export async function getActive(
   );
   if (!stillThere) return null;
 
-  const list = await listWorkspaces(store);
+  const list = await listProjects(undefined, store);
   return list.find((w) => w.path === path) ?? null;
 }
 
