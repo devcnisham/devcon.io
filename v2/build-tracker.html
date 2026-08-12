@@ -154,6 +154,10 @@
     .addrow { padding-left:18px; }
     .noterow { padding-left:50px; }
   }
+  /* biome-ignore lint/complexity/noImportantStyles: the point of this rule is to beat every
+     other transition on the page, including any set later or more specifically. Without
+     !important it silently stops overriding anything and the reduced-motion promise becomes
+     decorative — biome's --unsafe fix removed it once already. */
   @media (prefers-reduced-motion:reduce){ * { transition:none !important; } }
 </style>
 </head>
@@ -181,11 +185,11 @@
   <div class="toolbar">
     <input type="search" id="q" placeholder="Search all features…" aria-label="Search features">
     <div class="seg" id="tiers"></div>
-    <button class="btn" id="hide" aria-pressed="false">Hide done</button>
-    <button class="btn" id="expand">Expand all</button>
-    <button class="btn" id="export">Export</button>
-    <button class="btn" id="import">Import</button>
-    <button class="btn warn" id="reset">Reset</button>
+    <button type="button" class="btn" id="hide" aria-pressed="false">Hide done</button>
+    <button type="button" class="btn" id="expand">Expand all</button>
+    <button type="button" class="btn" id="export">Export</button>
+    <button type="button" class="btn" id="import">Import</button>
+    <button type="button" class="btn warn" id="reset">Reset</button>
     <input type="file" id="file" accept="application/json" hidden>
   </div>
 
@@ -399,7 +403,7 @@
         if (a.phase !== p.n) return;
         var gi = 0;
         if (a.group != null) {
-          for (var j=0;j<groups.length;j++) if (groups[j].l === a.group) { gi = j; break; }
+          for (let j=0;j<groups.length;j++) if (groups[j].l === a.group) { gi = j; break; }
         } else {
           gi = groups.length - 1;
         }
@@ -420,7 +424,7 @@
     catch(e){ mark("This browser blocks local storage — use Export to keep progress"); return; }
     if (!raw) return;
     try {
-      var v = JSON.parse(raw);
+      const v = JSON.parse(raw);
       state.status  = v.status  || {};
       state.notes   = v.notes   || {};
       state.labels  = v.labels  || {};
@@ -437,7 +441,7 @@
     saveTimer = setTimeout(()=> {
       try {
         window.localStorage.setItem(KEY, JSON.stringify(state));
-        mark("Saved " + new Date().toLocaleTimeString());
+        mark(`Saved ${new Date().toLocaleTimeString()}`);
       } catch(e){
         mark("Not saved — storage is full or blocked. Export to keep this.");
       }
@@ -456,12 +460,12 @@
       .reduce((a,p)=> a.concat(p.all), []);
     var mvpDone = mvpItems.filter((x)=> stat(x.n)===2).length;
 
-    $("#s-all").textContent = pct(done,total)+"%";
-    $("#s-all-n").textContent = done+" of "+total+" done";
-    $("#s-all-b").style.width = pct(done,total)+"%";
-    $("#s-mvp").textContent = pct(mvpDone,mvpItems.length)+"%";
-    $("#s-mvp-n").textContent = mvpDone+" of "+mvpItems.length+" done";
-    $("#s-mvp-b").style.width = pct(mvpDone,mvpItems.length)+"%";
+    $("#s-all").textContent = `${pct(done,total)}%`;
+    $("#s-all-n").textContent = `${done} of ${total} done`;
+    $("#s-all-b").style.width = `${pct(done,total)}%`;
+    $("#s-mvp").textContent = `${pct(mvpDone,mvpItems.length)}%`;
+    $("#s-mvp-n").textContent = `${mvpDone} of ${mvpItems.length} done`;
+    $("#s-mvp-b").style.width = `${pct(mvpDone,mvpItems.length)}%`;
     $("#s-doing").textContent = doing;
     $("#s-doing-n").textContent = doing ? "features in flight" : "nothing started yet";
 
@@ -470,7 +474,7 @@
     if (!next) { $("#s-next").textContent = "Everything is done. Ship it."; return; }
     var ph = phases().filter((p)=> p.all.some((x)=> x.n===next.n))[0];
     var nm = labelOf(next) || "(unnamed — gap in source)";
-    $("#s-next").textContent = next.n+". "+nm+" · Phase "+(ph ? ph.n : "?");
+    $("#s-next").textContent = `${next.n}. ${nm} · Phase ${ph ? ph.n : "?"}`;
   }
 
   function renderFlow(){
@@ -482,10 +486,10 @@
       var items = keys.reduce((a,k)=> a.concat(byPhase[k] || []), []);
       var done = items.filter((x)=> stat(x.n)===2).length;
       var q = pct(done, items.length);
-      var node = el("div","node"+(q===100 ? " done" : (done>0 ? " active" : "")));
-      node.appendChild(el("div","dot", q===100 ? "✓" : q+"%"));
+      var node = el("div",`node${q===100 ? " done" : (done>0 ? " active" : "")}`);
+      node.appendChild(el("div","dot", q===100 ? "✓" : `${q}%`));
       node.appendChild(el("div","nm",name));
-      node.appendChild(el("div","cnt",done+"/"+items.length));
+      node.appendChild(el("div","cnt",`${done}/${items.length}`));
       f.appendChild(node);
       if (i < FLOW.length-1) f.appendChild(el("div","arrow","→"));
     });
@@ -496,15 +500,15 @@
     phases().forEach((p)=> {
       var done = p.all.filter((x)=> stat(x.n)===2).length;
       var q = pct(done, p.all.length);
-      var c = el("button","chip"+(q===100 && p.all.length ? " done" : (done>0 ? " active" : "")));
+      var c = el("button",`chip${q===100 && p.all.length ? " done" : (done>0 ? " active" : "")}`);
       c.type = "button";
-      c.appendChild(el("span",null,"P"+p.n));
-      c.appendChild(el("span","pct",q+"%"));
-      c.title = "Phase "+p.n+" — "+p.t;
+      c.appendChild(el("span",null,`P${p.n}`));
+      c.appendChild(el("span","pct",`${q}%`));
+      c.title = `Phase ${p.n} — ${p.t}`;
       c.onclick = ()=> {
         ui.open[p.n] = true;
         renderList();
-        var t = document.getElementById("ph"+p.n);
+        var t = document.getElementById(`ph${p.n}`);
         if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
       };
       r.appendChild(c);
@@ -516,7 +520,7 @@
     if (ui.tier !== "all" && p.tier !== ui.tier) return false;
     if (ui.hideDone && stat(item.n) === 2) return false;
     if (ui.q){
-      var q = ui.q.toLowerCase();
+      const q = ui.q.toLowerCase();
       return (labelOf(item)||"").toLowerCase().indexOf(q) > -1
           || p.t.toLowerCase().indexOf(q) > -1
           || String(item.n) === q;
@@ -552,7 +556,7 @@
   function deletePhase(key){
     var owned = state.added.filter((a)=> a.phase === key);
     var msg = owned.length
-      ? "Delete this phase and its "+owned.length+" feature"+(owned.length===1?"":"s")+"?"
+      ? `Delete this phase and its ${owned.length} feature${owned.length===1?"":"s"}?`
       : "Delete this phase?";
     if (!window.confirm(msg)) return;
     owned.forEach((a)=> { delete state.status[a.n]; delete state.notes[a.n]; delete state.labels[a.n]; });
@@ -576,24 +580,24 @@
       var done = p.all.filter((x)=> stat(x.n)===2).length;
       var q = pct(done, p.all.length);
       var open = ui.q ? true : !!ui.open[p.n];
-      var box = el("div","card phase"+(open ? " open" : ""));
-      box.id = "ph"+p.n;
+      var box = el("div",`card phase${open ? " open" : ""}`);
+      box.id = `ph${p.n}`;
 
       var head = el("div","phead");
       head.tabIndex = 0;
       head.setAttribute("role","button");
       head.setAttribute("aria-expanded", String(open));
       head.appendChild(el("div","caret","▶"));
-      head.appendChild(el("div","pnum","PHASE "+p.n));
+      head.appendChild(el("div","pnum",`PHASE ${p.n}`));
       var t = el("div","ptitle");
       t.appendChild(document.createTextNode(p.t));
       if (p.s) t.appendChild(el("span",null,p.s));
       head.appendChild(t);
-      head.appendChild(el("div","tag "+p.tier, TIER_NAME[p.tier] || p.tier));
+      head.appendChild(el("div",`tag ${p.tier}`, TIER_NAME[p.tier] || p.tier));
       var pr = el("div","pprog");
-      pr.appendChild(el("div","n", done+"/"+p.all.length+" · "+q+"%"));
-      var bar = el("div","bar"+(q===100 && p.all.length ? " g" : ""));
-      var fill = el("i"); fill.style.width = q+"%"; bar.appendChild(fill);
+      pr.appendChild(el("div","n", `${done}/${p.all.length} · ${q}%`));
+      var bar = el("div",`bar${q===100 && p.all.length ? " g" : ""}`);
+      var fill = el("i"); fill.style.width = `${q}%`; bar.appendChild(fill);
       pr.appendChild(bar);
       head.appendChild(pr);
       function toggle(){ ui.open[p.n] = !open; renderList(); }
@@ -611,19 +615,19 @@
           var s = stat(item.n);
           var name = labelOf(item);
           var isGap = !name;
-          var row = el("div","item"+(s===2 ? " done" : (s===1 ? " doing" : "")));
+          var row = el("div",`item${s===2 ? " done" : (s===1 ? " doing" : "")}`);
 
           var cb = el("button","box", s===2 ? "✓" : (s===1 ? "●" : ""));
           cb.type = "button";
-          cb.setAttribute("aria-label", item.n+". "+(name||"unnamed")+" — "+["to do","in progress","done"][s]);
+          cb.setAttribute("aria-label", `${item.n}. ${name||"unnamed"} — ${["to do","in progress","done"][s]}`);
           cb.onclick = ()=> { state.status[item.n] = (s+1)%3; save(); renderAll(); };
           row.appendChild(cb);
 
           row.appendChild(el("div","inum", String(item.n)));
 
-          var lab = el("div","ilab"+(isGap ? " gap" : ""));
+          var lab = el("div",`ilab${isGap ? " gap" : ""}`);
           if (ui.edit === item.n){
-            var inp = document.createElement("input");
+            const inp = document.createElement("input");
             inp.type = "text";
             inp.value = name;
             inp.placeholder = "Name this feature";
@@ -642,18 +646,18 @@
           }
           row.appendChild(lab);
 
-          var nb = el("button","rowbtn"+(state.notes[item.n] ? " has" : ""), "✎");
+          var nb = el("button",`rowbtn${state.notes[item.n] ? " has" : ""}`, "✎");
           nb.type = "button"; nb.title = "Note";
-          nb.setAttribute("aria-label","Note for "+(name||"item "+item.n));
+          nb.setAttribute("aria-label",`Note for ${name||`item ${item.n}`}`);
           nb.onclick = ()=> { ui.note[item.n] = !ui.note[item.n]; renderList(); };
           row.appendChild(nb);
 
           if (item.added){
-            var db = el("button","rowbtn del","✕");
+            const db = el("button","rowbtn del","✕");
             db.type = "button"; db.title = "Delete this added feature";
-            db.setAttribute("aria-label","Delete "+(name||"item "+item.n));
+            db.setAttribute("aria-label",`Delete ${name||`item ${item.n}`}`);
             db.onclick = ()=> {
-              if (window.confirm("Delete “"+name+"”?")) deleteItem(item.n);
+              if (window.confirm(`Delete “${name}”?`)) deleteItem(item.n);
             };
             row.appendChild(db);
           }
@@ -661,8 +665,8 @@
           body.appendChild(row);
 
           if (ui.note[item.n] || state.notes[item.n]){
-            var nr = el("div","noterow");
-            var ta = el("textarea");
+            const nr = el("div","noterow");
+            const ta = el("textarea");
             ta.placeholder = "Blocker, link, or decision…";
             ta.value = state.notes[item.n] || "";
             ta.oninput = ()=> {
@@ -680,8 +684,8 @@
       var addWrap = el("div","addrow");
       var ai = document.createElement("input");
       ai.type = "text";
-      ai.placeholder = "Add a feature to Phase "+p.n+"…";
-      ai.setAttribute("aria-label","New feature for phase "+p.n);
+      ai.placeholder = `Add a feature to Phase ${p.n}…`;
+      ai.setAttribute("aria-label",`New feature for phase ${p.n}`);
       ai.value = ui.draft[p.n] || "";
       ai.oninput = ()=> { ui.draft[p.n] = ai.value; };
       var gsel = null;
@@ -713,7 +717,7 @@
       if (gsel) addWrap.appendChild(gsel);
       addWrap.appendChild(ab);
       if (!p.builtin){
-        var pdel = el("button","btn warn","Delete phase");
+        const pdel = el("button","btn warn","Delete phase");
         pdel.type = "button";
         pdel.onclick = ()=> { deletePhase(p.n); };
         addWrap.appendChild(pdel);
@@ -721,8 +725,8 @@
       body.appendChild(addWrap);
 
       if (p.r){
-        var res = el("div","result");
-        res.innerHTML = "<b>Result:</b> " + p.r;
+        const res = el("div","result");
+        res.innerHTML = `<b>Result:</b> ${p.r}`;
         body.appendChild(res);
       }
 
@@ -746,13 +750,13 @@
   var seg = $("#tiers");
   TIERS.forEach((entry)=> {
     var k = entry[0];
-    var b = el("button","btn"+(k==="all" ? " on" : ""), entry[1]);
+    var b = el("button",`btn${k==="all" ? " on" : ""}`, entry[1]);
     b.type = "button";
     b.dataset.k = k;
     b.onclick = ()=> {
       ui.tier = k;
       var all = seg.querySelectorAll(".btn");
-      for (var i=0; i<all.length; i++) all[i].classList.toggle("on", all[i].dataset.k === k);
+      for (let i=0; i<all.length; i++) all[i].classList.toggle("on", all[i].dataset.k === k);
       renderList();
     };
     seg.appendChild(b);
@@ -786,7 +790,7 @@
     var blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "devcon-progress-"+new Date().toISOString().slice(0,10)+".json";
+    a.download = `devcon-progress-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
     mark("Exported");
@@ -800,7 +804,7 @@
     var fr = new FileReader();
     fr.onload = ()=> {
       try {
-        var v = JSON.parse(fr.result);
+        const v = JSON.parse(fr.result);
         if (!v || typeof v !== "object" || !v.status) throw new Error("not progress json");
         state.status = v.status || {};
         state.notes  = v.notes  || {};
@@ -809,7 +813,7 @@
         state.phases = v.phases || [];
         state.nextId = v.nextId || (BUILTIN_MAX + 1);
         save(); renderAll(); mark("Imported");
-      } catch(err){
+      } catch(_err){
         mark("That file isn’t valid progress JSON — nothing was changed");
       }
     };
@@ -827,13 +831,13 @@
   $("#np-add").onclick = ()=> {
     var title = $("#np-title").value.trim();
     if (!title){ $("#np-title").focus(); return; }
-    var key = "C" + (state.phases.length + 1);
+    var key = `C${state.phases.length + 1}`;
     while (phases().some((p)=> p.n === key)) key += "′";
     state.phases.push({ n:key, t:title, s:$("#np-sub").value.trim(), tier:$("#np-tier").value });
     $("#np-title").value = ""; $("#np-sub").value = "";
     ui.open[key] = true;
     save(); renderAll();
-    var t = document.getElementById("ph"+key);
+    var t = document.getElementById(`ph${key}`);
     if (t) t.scrollIntoView({behavior:"smooth", block:"center"});
     mark("Phase added");
   };
