@@ -20,7 +20,9 @@ import {
  * would be the worst version of the mistake this rule exists to prevent.
  *
  * **This is the local backend, and it is meant to be replaced.** The plan puts
- * a real one at Phase 6 — `v2/feature-phase.md` item 81. Everything above this
+ * a real one at Phase 6 — item 81 of the 329-feature plan, which lived at
+ * `v2/feature-phase.md` until it was deleted on 2026-08-12 and is still in
+ * history at `git show d84925e:v2/feature-phase.md`. Everything above this
  * file talks to `createUser` and `authenticate` rather than to JSON, so
  * swapping the store is this file, not the pages.
  */

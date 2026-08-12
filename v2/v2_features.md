@@ -35,7 +35,7 @@ word containing a `z` for exactly the first of those.
 
 ### Authentication — `lib/auth/`, `/login`, `/signup`
 
-Feature 001 of `v2/feature-phase.md`, phase 0. Sign up, sign in, sign out, and
+Feature 001 of the 329-feature plan (deleted 2026-08-12; `git show d84925e:v2/feature-phase.md`), phase 0. Sign up, sign in, sign out, and
 `/` as a landing page when signed out.
 
 **Local, and meant to be replaced.** Accounts live in `~/.devcon/users.json`
