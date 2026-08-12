@@ -7,13 +7,19 @@ import {
   createToken,
   SESSION_COOKIE,
 } from "@/lib/auth/session.ts";
-import { authenticate, createUser } from "@/lib/auth/users.ts";
+import {
+  authenticate,
+  changePassword,
+  createUser,
+  updateProfile,
+} from "@/lib/auth/users.ts";
 import {
   type AuthError,
   normalizeEmail,
   validateEmail,
   validatePassword,
 } from "@/lib/auth/validate.ts";
+import { currentUser } from "./current-user";
 
 /**
  * Sign up, sign in, sign out.
@@ -86,14 +92,48 @@ export async function signIn(formData: FormData) {
   redirect("/");
 }
 
+/** Set or clear the display name. Feature 002. */
+export async function saveName(formData: FormData) {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+
+  const result = await updateProfile(
+    user.id,
+    String(formData.get("name") ?? ""),
+  );
+  if (!result.ok) return backTo("/profile", { error: result.error });
+  return backTo("/profile", { saved: "name" });
+}
+
+export async function changeMyPassword(formData: FormData) {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+
+  const result = await changePassword(
+    user.id,
+    String(formData.get("current") ?? ""),
+    String(formData.get("next") ?? ""),
+  );
+  if (!result.ok) return backTo("/profile", { error: result.error });
+
+  // `changePassword` revoked every token issued before now, including the one
+  // in this browser. Reissuing here is what keeps the session that made the
+  // change signed in while the others end — without it, changing your password
+  // would sign you out of the page you are standing on.
+  await startSession(user.id);
+  return backTo("/profile", { saved: "password" });
+}
+
 /**
  * Clears the cookie.
  *
  * **This does not revoke the token.** A copy taken before signing out stays
- * valid until it expires, because there is no server-side session store to
- * revoke it in — see `lib/auth/session.ts`. Stated rather than implied: "signed
- * out" that quietly means "the browser forgot" is the kind of claim this repo
- * exists to catch.
+ * valid until it expires. The machinery to revoke it now exists — feature 002
+ * added `sessionsValidFrom`, which is what makes a password change end other
+ * sessions — but signing out deliberately does not use it: bumping the cutoff
+ * here would sign you out of every other device every time you signed out of
+ * one, which is not what the button says. Per-session revocation needs a
+ * session table this version does not have.
  */
 export async function signOut() {
   (await cookies()).delete(SESSION_COOKIE);

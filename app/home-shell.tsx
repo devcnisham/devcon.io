@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { displayName } from "@/lib/auth/users.ts";
 import { signOut } from "./auth-actions";
 import { currentUser } from "./current-user";
 
@@ -74,12 +75,18 @@ export async function HomeShell({
         <div className="mt-4 lg:mt-auto">
           {user ? (
             <div>
-              <p
-                className="truncate text-[11.5px] text-[var(--color-muted)]"
+              <Link
+                href="/profile"
+                aria-current={here === "/profile" ? "page" : undefined}
                 title={user.email}
+                className={`block truncate rounded text-[11.5px] transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 ${
+                  here === "/profile"
+                    ? "text-[var(--color-text)]"
+                    : "text-[var(--color-muted)]"
+                }`}
               >
-                {user.email}
-              </p>
+                {displayName(user)}
+              </Link>
               <form action={signOut}>
                 <button
                   type="submit"

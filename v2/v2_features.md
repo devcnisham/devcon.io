@@ -68,6 +68,44 @@ copied beforehand, there is no password reset and no email confirmation because
 devcon cannot send mail, and the cookie is not `secure` because devcon serves
 http on localhost. Tasks 44–46.
 
+### Your account — `/profile`
+
+Feature 002. Your email and when the account was created, an optional display
+name, and a password change. Two forms, two server actions, no client
+JavaScript.
+
+**The display name has no rules about what it may contain**, beyond characters
+that would not display. Name validation is how software tells people their own
+name is wrong — `Seán Ó Briain`, `Иван Петров`, `山田太郎`, `Anne-Marie O'Neill`
+and single-word names are all tested as accepted. What is refused is C0 and C1
+controls and the bidi overrides, the last because they make the stored name and
+the rendered name disagree about who someone is.
+
+**Changing a password ends every other session.** The token carries `issuedAt`,
+the account row carries `sessionsValidFrom`, and anything older is refused. The
+session that made the change is reissued so it survives; the others do not.
+Without this, changing a password would leave every existing token working —
+including one held by whoever the change was meant to lock out, which is the
+reason people change passwords.
+
+The email is shown and **not** editable: changing it changes the identity of the
+row and needs a confirmation sent to the new address, which devcon cannot send.
+
+*Verified by:* `test/auth.test.ts` — 37 assertions — and by driving the running
+app. Saving `"  Nisham   Ahmed  "` stored `Nisham Ahmed` and the rail switched
+from the email to the name; a wrong current password was refused without
+changing anything; the right one rotated the hash and kept the session signed
+in. **Revocation was proved against the server rather than asserted:** two
+validly signed, unexpired tokens were minted with the real key, one either side
+of the cutoff — the earlier one got `307` to `/login` and the later one `200`.
+Mutation-verified three ways: an always-true `sessionIsCurrent` turns 2 red, not
+writing the cutoff turns 1, dropping the current-password check turns 2.
+
+`sessionIsCurrent` lives in `lib/auth/session.ts` rather than inline in
+`currentUser` for a specific reason: `currentUser` imports `next/headers` and so
+cannot be reached by `pnpm test`, which means the check would have been
+deletable with the whole suite still green.
+
 ### The done-when checker — `lib/ship/check.ts`
 
 Runs each condition's command and returns a verdict with its evidence.

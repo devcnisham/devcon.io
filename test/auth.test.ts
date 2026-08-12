@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import {
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
@@ -10,14 +16,23 @@ import {
   readToken,
   resetSessionKey,
   SESSION_TTL_MS,
+  sessionIsCurrent,
 } from "../lib/auth/session.ts";
-import { authenticate, createUser, findByEmail } from "../lib/auth/users.ts";
+import {
+  authenticate,
+  changePassword,
+  createUser,
+  displayName,
+  findByEmail,
+  updateProfile,
+} from "../lib/auth/users.ts";
 import {
   AUTH_MESSAGE,
   type AuthError,
   MIN_PASSWORD,
   normalizeEmail,
   validateEmail,
+  validateName,
   validatePassword,
 } from "../lib/auth/validate.ts";
 
@@ -260,11 +275,214 @@ describe("the account store", () => {
   });
 });
 
+describe("the profile — feature 002", () => {
+  const profileFile = () => join(dir, "profile-users.json");
+  let id = "";
+
+  before(async () => {
+    const r = await createUser("profile@example.com", PASSWORD, profileFile());
+    if (r.ok) id = r.user.id;
+  });
+
+  test("a name is optional, and absent rather than empty when cleared", async () => {
+    const set = await updateProfile(id, "  Nisham   Ahmed ", profileFile());
+    assert.equal(set.ok, true);
+    if (!set.ok) return;
+    // Whitespace collapsed, so a name cannot be stored two ways that look the
+    // same in a list.
+    assert.equal(set.user.name, "Nisham Ahmed");
+
+    const cleared = await updateProfile(id, "   ", profileFile());
+    assert.equal(cleared.ok, true);
+    if (!cleared.ok) return;
+    // Absent, not "". A caller should never have to treat empty as a third case.
+    assert.equal(cleared.user.name, undefined);
+    assert.ok(
+      !Object.hasOwn(
+        JSON.parse(readFileSync(profileFile(), "utf8"))[0],
+        "name",
+      ),
+      "an empty name was written to disk",
+    );
+  });
+
+  test("what to show is the name if there is one, else the email", async () => {
+    assert.equal(
+      displayName({ id, email: "profile@example.com", createdAt: 0 }),
+      "profile@example.com",
+    );
+    assert.equal(
+      displayName({
+        id,
+        email: "profile@example.com",
+        createdAt: 0,
+        name: "Nisham",
+      }),
+      "Nisham",
+    );
+  });
+
+  test("real names are accepted, and only the undisplayable are not", () => {
+    // Every one of these is rejected by some real signup form, and every one
+    // is a real name.
+    const real = [
+      "Nisham",
+      "Ada Lovelace",
+      "Seán Ó Briain",
+      "Иван Петров",
+      "山田太郎",
+      "Anne-Marie O'Neill",
+      "Prince",
+      "李",
+    ];
+    assert.ok(real.length > 0);
+    for (const n of real) {
+      assert.equal(validateName(n), null, `rejected a real name: ${n}`);
+    }
+
+    assert.equal(validateName(""), null, "empty means no name, not an error");
+    assert.equal(validateName("a".repeat(81)), "name-long");
+    assert.equal(validateName("Nis ham"), "name-control");
+    assert.equal(validateName("Nisham"), "name-control");
+    // A bidi override makes the stored name and the rendered name disagree.
+    assert.equal(validateName("Nisham‮"), "name-control");
+    assert.equal(validateName("Nisham⁦x⁩"), "name-control");
+    // A newline breaks every list the name appears in — and `normalizeName`
+    // collapses it to a space first, so this is checked after normalising.
+    assert.equal(validateName("Nisham\nAhmed"), null);
+  });
+
+  test("a password change needs the current one", async () => {
+    const wrong = await changePassword(
+      id,
+      "not-my-password",
+      "a-brand-new-password",
+      profileFile(),
+    );
+    assert.equal(wrong.ok, false);
+    if (wrong.ok) return;
+    assert.equal(wrong.error, "password-wrong");
+
+    // …and the old password still works, so nothing was half-applied.
+    assert.ok(
+      await authenticate("profile@example.com", PASSWORD, profileFile()),
+    );
+  });
+
+  test("the new password must pass the same rules and differ from the old", async () => {
+    const short = await changePassword(id, PASSWORD, "short", profileFile());
+    assert.equal(short.ok, false);
+    if (!short.ok) assert.equal(short.error, "password-short");
+
+    const same = await changePassword(id, PASSWORD, PASSWORD, profileFile());
+    assert.equal(same.ok, false);
+    if (!same.ok) assert.equal(same.error, "password-same");
+  });
+
+  test("changing it rotates the hash and retires the old password", async () => {
+    const NEXT = "an-entirely-different-passphrase";
+    const before = JSON.parse(readFileSync(profileFile(), "utf8"))[0]
+      .passwordHash;
+
+    const ok = await changePassword(id, PASSWORD, NEXT, profileFile());
+    assert.equal(ok.ok, true, ok.ok ? "" : ok.error);
+
+    const after = JSON.parse(readFileSync(profileFile(), "utf8"))[0];
+    assert.notEqual(after.passwordHash, before);
+    assert.ok(!readFileSync(profileFile(), "utf8").includes(NEXT));
+
+    assert.ok(await authenticate("profile@example.com", NEXT, profileFile()));
+    assert.equal(
+      await authenticate("profile@example.com", PASSWORD, profileFile()),
+      null,
+      "the old password still works",
+    );
+  });
+
+  test("…and revokes every session issued before it", async () => {
+    // The point of the whole `sessionsValidFrom` field. Without it a password
+    // change leaves every existing token working, including the one belonging
+    // to whoever the change was meant to lock out.
+    const row = JSON.parse(readFileSync(profileFile(), "utf8"))[0];
+    assert.ok(
+      typeof row.sessionsValidFrom === "number",
+      "no cutoff was written, so nothing was revoked",
+    );
+
+    resetSessionKey();
+    const older = await createToken(
+      id,
+      keyFile(),
+      row.sessionsValidFrom - 1000,
+    );
+    const newer = await createToken(
+      id,
+      keyFile(),
+      row.sessionsValidFrom + 1000,
+    );
+
+    // `readToken` alone still accepts both — it proves the signature and the
+    // expiry and deliberately does not read the store. The cutoff is enforced
+    // where the account is already being read, which is `currentUser`.
+    const a = await readToken(older, keyFile());
+    const b = await readToken(newer, keyFile());
+    assert.ok(a && b, "a validly signed token stopped being readable");
+
+    // The token issued before the change is refused; the one after survives.
+    assert.equal(sessionIsCurrent(a, row.sessionsValidFrom), false);
+    assert.equal(sessionIsCurrent(b, row.sessionsValidFrom), true);
+  });
+
+  test("an account that has revoked nothing keeps every session", () => {
+    // `undefined` is what every row written by feature 001 has. Treating it as
+    // "now" instead of "never" would sign out every existing account the moment
+    // this shipped.
+    const s = { userId: "u", issuedAt: 0 };
+    assert.equal(sessionIsCurrent(s, undefined), true);
+    assert.equal(sessionIsCurrent(s, 1), false);
+    // A token issued at exactly the cutoff is kept — the reissued one lands
+    // there, and rejecting it would sign out the session doing the changing.
+    assert.equal(sessionIsCurrent({ userId: "u", issuedAt: 5 }, 5), true);
+  });
+
+  test("editing an account that has since been deleted says so", async () => {
+    const gone = await updateProfile("no-such-id", "X", profileFile());
+    assert.equal(gone.ok, false);
+    if (!gone.ok) assert.equal(gone.error, "no-account");
+  });
+
+  test("a row written before profiles existed still loads", async () => {
+    // No `name`, no `updatedAt`, no `sessionsValidFrom` — exactly what
+    // feature 001 wrote. It must keep working rather than need a migration.
+    const legacy = join(dir, "legacy-users.json");
+    const hash = await hashPassword(PASSWORD);
+    writeFileSync(
+      legacy,
+      JSON.stringify([
+        {
+          id: "legacy-1",
+          email: "legacy@example.com",
+          passwordHash: hash,
+          createdAt: 1,
+        },
+      ]),
+    );
+
+    const u = await authenticate("legacy@example.com", PASSWORD, legacy);
+    assert.ok(u, "a pre-profile row stopped authenticating");
+    assert.equal(u.name, undefined);
+
+    // And a token older than any cutoff is fine, because there is no cutoff.
+    const row = JSON.parse(readFileSync(legacy, "utf8"))[0];
+    assert.equal(row.sessionsValidFrom, undefined);
+  });
+});
+
 describe("sessions", () => {
   test("a token round-trips to the user it was made for", async () => {
     resetSessionKey();
     const token = await createToken("user-1", keyFile());
-    assert.equal(await readToken(token, keyFile()), "user-1");
+    assert.equal((await readToken(token, keyFile()))?.userId, "user-1");
   });
 
   test("the signing key is written to disk, not to the repo, and is 0600", () => {
@@ -315,7 +533,10 @@ describe("sessions", () => {
     const token = await createToken("user-1", keyFile(), past);
     assert.equal(await readToken(token, keyFile()), null);
     // …and was valid when it was made, so this is expiry and not a bad signature.
-    assert.equal(await readToken(token, keyFile(), past + 1000), "user-1");
+    assert.equal(
+      (await readToken(token, keyFile(), past + 1000))?.userId,
+      "user-1",
+    );
   });
 
   test("a token signed with another key does not verify", async () => {
@@ -328,7 +549,7 @@ describe("sessions", () => {
 
     // The original key still works, so the token itself was fine.
     resetSessionKey();
-    assert.equal(await readToken(token, keyFile()), "user-1");
+    assert.equal((await readToken(token, keyFile()))?.userId, "user-1");
   });
 
   test("the cookie cannot be read by JavaScript and does not cross sites", () => {

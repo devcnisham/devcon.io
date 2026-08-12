@@ -3,7 +3,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { hashPassword, verifyPassword } from "./password.ts";
-import { type AuthError, normalizeEmail } from "./validate.ts";
+import {
+  type AuthError,
+  normalizeEmail,
+  normalizeName,
+  validateName,
+  validatePassword,
+} from "./validate.ts";
 
 /**
  * The accounts.
@@ -26,6 +32,19 @@ export interface User {
   /** `scrypt$…`. Never a password. */
   passwordHash: string;
   createdAt: number;
+  /** Optional. Absent on every row written before profiles existed. */
+  name?: string;
+  updatedAt?: number;
+  /**
+   * Tokens issued before this instant are refused.
+   *
+   * The whole revocation mechanism, and the reason changing a password ends
+   * the sessions on other machines instead of only affecting the next login.
+   * Absent means "nothing has been revoked", which is what every row written
+   * before this field existed means — so old rows keep working rather than
+   * needing a migration.
+   */
+  sessionsValidFrom?: number;
 }
 
 /** What a page may see. There is no route on which the hash is useful. */
@@ -33,12 +52,25 @@ export interface PublicUser {
   id: string;
   email: string;
   createdAt: number;
+  name?: string;
+  updatedAt?: number;
 }
 
 export const USERS = join(homedir(), ".devcon", "users.json");
 
 export function publicUser(u: User): PublicUser {
-  return { id: u.id, email: u.email, createdAt: u.createdAt };
+  return {
+    id: u.id,
+    email: u.email,
+    createdAt: u.createdAt,
+    name: u.name,
+    updatedAt: u.updatedAt,
+  };
+}
+
+/** What to show for someone: their name if they gave one, else their email. */
+export function displayName(u: PublicUser): string {
+  return u.name?.trim() || u.email;
 }
 
 function isUser(u: unknown): u is User {
@@ -115,6 +147,100 @@ export async function createUser(
   };
   await writeUsers(file, [...list, user]);
   return { ok: true, user: publicUser(user) };
+}
+
+/** One place that reads, changes and writes a single row. */
+async function mutate(
+  id: string,
+  file: string,
+  change: (u: User) => User,
+): Promise<{ ok: true; user: PublicUser } | { ok: false; error: AuthError }> {
+  const list = await readUsers(file);
+  const i = list.findIndex((u) => u.id === id);
+  // Signed in against an account that has since been deleted from the file by
+  // hand. Reported rather than crashing, and the caller signs them out.
+  if (i === -1) return { ok: false, error: "no-account" };
+
+  const next = change(list[i]);
+  await writeUsers(
+    file,
+    list.map((u, j) => (j === i ? next : u)),
+  );
+  return { ok: true, user: publicUser(next) };
+}
+
+/**
+ * Set or clear the display name.
+ *
+ * The email is deliberately **not** editable here. Changing it is changing the
+ * identity of the row and, on a hosted backend, needs a confirmation to the new
+ * address before it takes effect — devcon cannot send mail, so offering the
+ * field would mean either an unverified change or a button that does nothing.
+ * `v2/task.md` 47.
+ */
+export async function updateProfile(
+  id: string,
+  name: string,
+  file = USERS,
+  now = Date.now(),
+): Promise<{ ok: true; user: PublicUser } | { ok: false; error: AuthError }> {
+  const invalid = validateName(name);
+  if (invalid) return { ok: false, error: invalid };
+
+  const clean = normalizeName(name);
+  return mutate(id, file, (u) => {
+    const next: User = { ...u, updatedAt: now };
+    // Cleared rather than stored empty, so `name` is either a name or absent
+    // and no caller has to treat "" as a third case.
+    if (clean) next.name = clean;
+    else delete next.name;
+    return next;
+  });
+}
+
+/**
+ * Change a password, and end every session issued before now.
+ *
+ * The current password is required even though the caller is already signed in.
+ * A session left open on a shared machine is the ordinary case this defends
+ * against, and it costs one field.
+ *
+ * **`sessionsValidFrom` is what makes this real.** Without it, changing a
+ * password would leave every existing token working — including one copied by
+ * whoever the change was meant to lock out, which is the reason people change
+ * passwords. The caller is expected to issue itself a fresh token straight
+ * after, so the session doing the changing survives and the others do not.
+ */
+export async function changePassword(
+  id: string,
+  current: string,
+  next: string,
+  file = USERS,
+  now = Date.now(),
+): Promise<{ ok: true; user: PublicUser } | { ok: false; error: AuthError }> {
+  const invalid = validatePassword(next);
+  if (invalid) return { ok: false, error: invalid };
+
+  const user = await findById(id, file);
+  if (!user) return { ok: false, error: "no-account" };
+
+  if (!(await verifyPassword(current, user.passwordHash))) {
+    return { ok: false, error: "password-wrong" };
+  }
+  // Checked against the stored hash rather than by comparing the two strings,
+  // so it is right even if the current field was typed with a different case
+  // or the hash was made with older parameters.
+  if (await verifyPassword(next, user.passwordHash)) {
+    return { ok: false, error: "password-same" };
+  }
+
+  const passwordHash = await hashPassword(next);
+  return mutate(id, file, (u) => ({
+    ...u,
+    passwordHash,
+    updatedAt: now,
+    sessionsValidFrom: now,
+  }));
 }
 
 /**

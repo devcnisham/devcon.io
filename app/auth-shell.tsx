@@ -76,14 +76,17 @@ export function Field({
   defaultValue,
   hint,
   invalid,
+  required = true,
 }: {
   label: string;
   name: string;
-  type: "email" | "password";
+  type: "email" | "password" | "text";
   autoComplete: string;
   defaultValue?: string;
   hint?: string;
   invalid?: boolean;
+  /** A display name is optional, so the browser must not block on it. */
+  required?: boolean;
 }) {
   return (
     <label className="mb-4 block">
@@ -95,7 +98,7 @@ export function Field({
         type={type}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
-        required
+        required={required}
         aria-invalid={invalid || undefined}
         aria-describedby={invalid ? "auth-error" : undefined}
         className="w-full rounded-lg border border-[var(--color-line)] bg-[var(--color-raised)] px-3 py-2.5 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-muted)]/50 focus:border-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/25"

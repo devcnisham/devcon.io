@@ -16,11 +16,18 @@ import { dirname, join } from "node:path";
  * would be the same failure with the same consequence. Nothing reads it from an
  * environment variable either, so there is no `.env` for it to leak into.
  *
- * What this deliberately does not do: revoke. Signing out clears the cookie,
- * and a token copied before that would stay valid until it expires. A real
- * revocation list needs the server-side store this version does not have —
- * stated rather than implied, because "signed out" that does not revoke is
- * exactly the kind of claim this repo exists to catch.
+ * The token carries **when it was issued** as well as when it expires, and that
+ * is the whole revocation mechanism: a user row can say "nothing issued before
+ * this instant counts", which is what makes changing a password actually end
+ * the other sessions instead of only changing what the next login checks
+ * against. `currentUser` enforces it, because it already re-reads the account.
+ *
+ * What this still does not do: revoke a single session. Signing out clears the
+ * cookie, and a token copied before that stays valid until it expires or until
+ * something bumps the account's cutoff. Per-session revocation needs a session
+ * table this version does not have — stated rather than implied, because
+ * "signed out" that does not revoke is the kind of claim this repo exists to
+ * catch.
  */
 
 export const SESSION_COOKIE = "devcon_session";
@@ -89,13 +96,18 @@ export async function createToken(
   file = KEY_FILE,
   now = Date.now(),
 ): Promise<string> {
-  const expiresAt = now + SESSION_TTL_MS;
-  const payload = `${userId}.${expiresAt}`;
+  const payload = `${userId}.${now}.${now + SESSION_TTL_MS}`;
   return `${payload}.${sign(payload, await sessionKey(file))}`;
 }
 
+/** What a valid token says. `issuedAt` is what a cutoff is compared against. */
+export interface Session {
+  userId: string;
+  issuedAt: number;
+}
+
 /**
- * The user id in a token, or null.
+ * The session in a token, or null.
  *
  * Null for every failure — malformed, wrong signature, expired, altered. A
  * caller cannot accidentally treat "expired" as "valid but old", and there is
@@ -105,19 +117,25 @@ export async function readToken(
   token: string | undefined | null,
   file = KEY_FILE,
   now = Date.now(),
-): Promise<string | null> {
+): Promise<Session | null> {
   if (!token) return null;
 
-  // The id is a UUID and contains no dots, so exactly three parts.
+  // The id is a UUID and contains no dots, so exactly four parts.
   const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  const [userId, expiresRaw, signature] = parts;
-  if (!userId || !expiresRaw || !signature) return null;
+  if (parts.length !== 4) return null;
+  const [userId, issuedRaw, expiresRaw, signature] = parts;
+  if (!userId || !issuedRaw || !expiresRaw || !signature) return null;
 
+  const issuedAt = Number(issuedRaw);
   const expiresAt = Number(expiresRaw);
-  if (!Number.isSafeInteger(expiresAt)) return null;
+  if (!Number.isSafeInteger(issuedAt) || !Number.isSafeInteger(expiresAt)) {
+    return null;
+  }
 
-  const expected = sign(`${userId}.${expiresRaw}`, await sessionKey(file));
+  const expected = sign(
+    `${userId}.${issuedRaw}.${expiresRaw}`,
+    await sessionKey(file),
+  );
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
   // Length-check first: timingSafeEqual throws on a mismatch, and a throw here
@@ -129,7 +147,27 @@ export async function readToken(
   // and cannot be told apart from a forged one by timing.
   if (expiresAt <= now) return null;
 
-  return userId;
+  return { userId, issuedAt };
+}
+
+/**
+ * Whether a token survives the account's revocation cutoff.
+ *
+ * A function rather than two lines inside `currentUser`, because `currentUser`
+ * imports `next/headers` and so cannot be reached by `pnpm test` — the check
+ * would have been deletable with the whole suite still green, which is the
+ * failure this repo keeps recording. Here it is testable and mutation-verified.
+ *
+ * `undefined` means nothing has been revoked, which is what every row written
+ * before feature 002 means. Defaulting to 0 rather than to "now" matters: the
+ * other way round would sign out every existing account the moment this
+ * shipped.
+ */
+export function sessionIsCurrent(
+  session: Session,
+  sessionsValidFrom: number | undefined,
+): boolean {
+  return session.issuedAt >= (sessionsValidFrom ?? 0);
 }
 
 /** The options every session cookie is set with, in one place. */

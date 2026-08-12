@@ -1,5 +1,9 @@
 import { cookies } from "next/headers";
-import { readToken, SESSION_COOKIE } from "@/lib/auth/session.ts";
+import {
+  readToken,
+  SESSION_COOKIE,
+  sessionIsCurrent,
+} from "@/lib/auth/session.ts";
 import { findById, type PublicUser, publicUser } from "@/lib/auth/users.ts";
 
 /**
@@ -18,9 +22,20 @@ import { findById, type PublicUser, publicUser } from "@/lib/auth/users.ts";
  */
 export async function currentUser(): Promise<PublicUser | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  const id = await readToken(token);
-  if (!id) return null;
+  const session = await readToken(token);
+  if (!session) return null;
 
-  const user = await findById(id);
-  return user ? publicUser(user) : null;
+  const user = await findById(session.userId);
+  if (!user) return null;
+
+  // **The revocation check, and the only place it happens.** `readToken` proves
+  // the token was signed here and has not expired; it cannot know the account
+  // has since revoked everything issued before a given instant, because it
+  // deliberately does not read the store. This function does, so this is where
+  // the two facts meet. Without it `sessionsValidFrom` would be written, read
+  // by nothing and change no behaviour — worse than not having it, because the
+  // changelog would claim a password change ends other sessions.
+  if (!sessionIsCurrent(session, user.sessionsValidFrom)) return null;
+
+  return publicUser(user);
 }

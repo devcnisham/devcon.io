@@ -21,6 +21,55 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 #### Added
 
+- **User profile — feature 002, phase 0.** `/profile`: your email and when the
+  account was created, an optional display name, and a password change. Two
+  forms, two server actions, no client JavaScript, 0 page chunks still.
+
+  - **The display name has no character rules beyond the undisplayable.** Name
+    validation is how software tells people their own name is wrong — the
+    accepted cases are tested by name: `Seán Ó Briain`, `Иван Петров`,
+    `山田太郎`, `Anne-Marie O'Neill`, and mononyms. What is refused is C0/C1
+    controls and the bidi overrides, the second because they make the stored
+    name and the rendered name disagree about who someone is. The rejection
+    tests were checked to contain real control characters rather than plain
+    text that happened to pass.
+  - **Changing a password ends every other session, and this was proved rather
+    than claimed.** The token now carries `issuedAt`, the account row carries
+    `sessionsValidFrom`, and anything older is refused. Two validly signed,
+    unexpired tokens were minted with the real signing key, one either side of
+    the cutoff, and handed to the running server: the earlier one got `307` to
+    `/login`, the later one `200`. The session making the change is reissued so
+    it survives — without that, changing your password would sign you out of the
+    page you were standing on.
+  - **The current password is required** even though the caller is signed in. A
+    session left open on a shared machine is the ordinary case that defends
+    against, and it costs one field.
+  - **The email is shown and not editable.** Changing it changes the identity of
+    the row and needs a confirmation sent to the new address, which devcon
+    cannot send. An unverified change or a field that lies were the two
+    alternatives; neither shipped. Task 48.
+
+  `sessionIsCurrent` sits in `lib/auth/session.ts` rather than inline in
+  `currentUser`, because `currentUser` imports `next/headers` and cannot be
+  reached by `pnpm test` — inline, the revocation check would have been
+  deletable with the whole suite still green, which is this repo's oldest
+  recurring failure.
+
+  27 → 37 tests, suite 153 → 163. Mutation-verified: an always-true
+  `sessionIsCurrent` turns 2 red, not writing the cutoff turns 1, dropping the
+  current-password check turns 2.
+
+#### Changed
+
+- **The session token format gained an `issuedAt`** — `id.expires.sig` became
+  `id.issued.expires.sig` — because revocation has to know when a token was
+  minted. **Anyone signed in before this had to sign in once more.** A
+  compatibility shim for three-part tokens was considered and dropped: it would
+  have been permanent complexity to spare a single re-login, on a tool with one
+  account that was one day old. Task 49.
+
+#### Added
+
 - **Authentication — feature 001, phase 0 of `v2/feature-phase.md`.** `/signup`,
   `/login`, sign out, and `/` as a landing page when signed out. The first item
   of the 329-item plan to be built rather than written down.
