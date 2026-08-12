@@ -51,7 +51,7 @@
 | `app/console/page.tsx`, `app/console-cards.tsx` | The console — live values and host probes |
 | `.github/workflows/gates.yml` | Seven gates, macOS, green |
 | `lib/diagnostics.ts` | Probes the host — platform, node, sandbox, Finder dialog, git |
-| `lib/workspaces.ts`, `lib/clone.ts`, `lib/pick-folder.ts` | Import, clone, Finder dialog |
+| `lib/clone.ts`, `lib/pick-folder.ts` | Clone by URL, real Finder dialog |
 | `test/clone.test.ts` | 11 assertions — URL injection, path validation, active project |
 | `app/work/views.tsx` | Floating workspace/canvas switch |
 | `test/sandbox.test.ts` | 32 assertions — attacks, plus git config from outside the repo |

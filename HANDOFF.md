@@ -7,6 +7,10 @@
 > test count this file contradicted two hundred lines further down. Recorded
 > here rather than quietly fixed, because it is the failure this tool exists to
 > catch, committed by the tool's own handoff.
+>
+> **Updated 2026-08-12**, at the end of the session that built phase 0 features
+> 001–003 — accounts, profile, workspaces — on request, feature by feature.
+> That session also changed the shape of the product: devcon now has users.
 
 **Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
 working tree clean.
@@ -31,29 +35,52 @@ pnpm dev        # localhost:3000
 
 Read this section first; the rest is history and detail.
 
-**Three things are true and worth knowing before touching anything:**
+**The owner is building the 329-feature plan in order, one feature per
+instruction.** Phase 0 items 001–003 are done. **004 — project creation — is
+next**, and 004/005 will largely *replace* the folder-import dashboard, which
+was the prototype of a project list from before workspaces existed. Expect to
+delete some of it rather than add beside it.
+
+| Phase 0 | State |
+|---|---|
+| 001 Authentication | done — `/signup`, `/login`, sign out, landing page |
+| 002 User profile | done — `/profile`, display name, password change |
+| 003 Workspace | done — `/settings`, owns projects, rename/switch/create |
+| 004 Project creation | **next** |
+| 005 Project list · 006 Project settings · 007 Basic dashboard | not started |
+
+**The plan itself was deleted from the tree on 2026-08-12**, along with the
+tracker built from it. It is still in history and every live reference cites it
+that way: `git show d84925e:v2/feature-phase.md`.
+
+**Five things are true and worth knowing before touching anything:**
 
 1. **The app works end to end for one story.** Open a folder (real Finder
    dialog) or clone a repo → it appears as a card with its stack and its gaps →
    click it → the work page checks *that project's* `SHIP.md` in the sandbox,
    or shows its gaps if it has none → the canvas shows the same facts as cards
    you can drag.
-2. **`SHIP.md` still cuts a web app and accounts**, and both are being built
+2. **devcon has accounts now, and everything is per-account.** A workspace owns
+   projects; projects are scoped to the active workspace. All local, under
+   `~/.devcon`, nothing sent anywhere.
+3. **`SHIP.md` still cuts a web app and accounts**, and both are being built
    anyway. Each entry is kept rather than deleted so the reversal stays visible.
-   Accounts landed 2026-08-12 as feature 001 — local only, `~/.devcon`, nothing
-   sent anywhere. Backend and sync are still genuinely cut.
-3. **Nobody has finished a project because of devcon.** That has not changed
-   and no feature here changes it.
+   Only the *accounts* half is reversed — backend and sync are genuinely cut.
+4. **The store layout changed and there was a migration.** See below; it ran on
+   the real machine and the original is still on disk.
+5. **Nobody has finished a project because of devcon.** Three features and an
+   account system have not touched that, and none of 004–007 will either.
 
-**The next real move is not code.** `v2/task.md` 15 and 16: hand-write a
-`SHIP.md` for two projects that are not this one, and name one decision each
-changed. If a hand-written spec changes no real decision, none of the tooling
-matters — and that is an afternoon to find out, not a quarter.
+**The move that would actually test the bet is still not code.** `v2/task.md`
+15 and 16: hand-write a `SHIP.md` for two projects that are not this one, and
+name one decision each changed. Phase 0 is building the platform around a
+format nobody has yet used on a second project. That is the owner's call and it
+has been made twice — but it should be made knowingly, not by drift.
 
-**Cheap and open, if you want code instead:** there are no end-to-end tests, and
-`SHIP.md`'s own check #7 fails by construction (it runs `pnpm test` *inside* the
-sandbox, where the suite cannot create the bait file it attacks with).
-`parse.ts` was the third item here until 2026-08-11 and now has 34 tests.
+**Cheap and open, if you want code instead:** there are still no end-to-end
+tests — the one item on the owner's own daily checklist with nothing behind it —
+and `SHIP.md`'s check #7 fails by construction, running `pnpm test` *inside* the
+sandbox where the suite cannot create the bait file it attacks with.
 
 ---
 
@@ -64,7 +91,7 @@ sandbox, where the suite cannot create the bait file it attacks with).
 A shipping critic that runs inside your coding agent, keeps one `SHIP.md` in
 your repo, reads what you actually built, and tells you what to cut.
 
-Four things decided in this session, all of them the user's calls:
+Four things decided in the 2026-08-08 session, all of them the owner's calls:
 
 1. Same problem as v0.1 — getting a thing shipped — but a new answer to it.
 2. It lives in the agent, watches the repo, critiques rather than prescribes,
@@ -94,7 +121,7 @@ Four things decided in this session, all of them the user's calls:
 | `app/work/canvas/` | The same project as draggable cards |
 | `lib/ship/` | parse · check · sandbox · cache · search |
 | `lib/detect.ts` | A project's stack and gaps, read from its files |
-| `lib/workspaces.ts`, `clone.ts`, `pick-folder.ts` | Import, clone, real Finder dialog |
+| `lib/clone.ts`, `pick-folder.ts` | Clone by URL, real Finder dialog |
 | `lib/canvas.ts` | Card positions, per project |
 | `lib/diagnostics.ts` | Host probes for the console |
 | `.github/workflows/gates.yml` | Seven gates on every push. Green. |
@@ -103,15 +130,35 @@ Four things decided in this session, all of them the user's calls:
 `clone` 11 · `search` 11 · `cache` 6 · `check` 6. Counted by running each file,
 not by remembering. Every module in `lib/` now has a suite.
 
-Everything devcon stores lives under `~/.devcon/` — the project list, which
-project is open, and canvas layouts. **Never inside a tracked repo**, where it
-would land in someone's diff and their submission.
+Everything devcon stores lives under `~/.devcon/`. **Never inside a tracked
+repo**, where it would land in someone's diff and their submission.
+
+| File | What | Mode |
+|---|---|---|
+| `users.json` | Accounts. scrypt hashes, never a password | 0600 |
+| `session.key` | The token signing key, made on first use | 0600 |
+| `workspaces.json` | Workspaces, owned by an account | |
+| `active-workspace.json` | Which workspace each account is in | |
+| `projects.json` | The project list, each row stamped with its workspace | |
+| `active.json` | Which project the work page is showing | |
+| `canvas/` | Card positions, per project | |
+| `workspaces.json.legacy` | The pre-feature-003 project list, retired not deleted | |
+
+**That last row is a migration that already ran on this machine.**
+`workspaces.json` used to hold *folders*; feature 003 needed the name for the
+thing that actually is a workspace, so the contents were moved to
+`projects.json` and the original renamed rather than removed. Projects written
+before 003 have no `workspaceId` and are adopted by the first workspace that
+asks. Four tests cover it, and it was checked against the real store: nothing
+was lost. **Delete `workspaces.json.legacy` only when you are sure**, and note
+that `lib/workspaces.ts` is now `lib/projects.ts` with its type renamed to
+`Project` — the UI had called them projects all along.
 
 ### Waiting on you
 
 `v2/product.md` and `v2/project.md` exist with only a heading each. You said you
 would specify what goes in them; nothing was invented. `v2/task.md` is written —
-29 tasks with real status.
+52 tasks with real status.
 
 **Decide how these relate to `SHIP.md`**, which already holds what ships, what
 is cut, and the done-when conditions. Either it folds into `v2/` or it stays as
@@ -135,6 +182,27 @@ The honest options are to fold the derivative three back into `SHIP.md` and
 which is the same argument this tool makes about ticked boxes, turned on its
 own documentation.
 
+### What features 001–003 left open, deliberately
+
+Every one of these is stated on the page or in the code rather than left to be
+discovered. None is a bug; all are things devcon cannot do yet and says so.
+
+| Open | Why | Task |
+|---|---|---|
+| No password reset | devcon cannot send mail. A reset link that never arrives is worse than no button | 45 |
+| No email confirmation | Same. Signup trusts the address typed | 46 |
+| Cannot change your email | It is the identity of the row and needs a confirmation to the new address | 48 |
+| Cookie is not `secure` | devcon serves http on localhost, and a secure cookie is never sent over http. **Must flip with the first https deploy** | 44 |
+| Signing out does not revoke | It clears the cookie. A copy taken beforehand lives until it expires — *changing your password does* revoke, which is the case that matters | — |
+| Workspaces are not shareable | No invites, roles or permissions, and no server. Phase 26 | — |
+
+Two more worth carrying forward: **the token format changed** on 2026-08-12
+(`id.expires.sig` → `id.issued.expires.sig`) so anyone signed in before it had
+to sign in once more, and **`sessionIsCurrent` lives in `lib/auth/session.ts`
+rather than inline in `currentUser`** because `currentUser` imports
+`next/headers` and `pnpm test` cannot reach it — inline, the revocation check
+would have been deletable with the whole suite still green.
+
 ### Two decisions blocked on you, not on work
 
 Listed in full in `v2/task.md`; repeated here because they gate everything else.
@@ -153,10 +221,13 @@ no real decision on a real project, tooling will not rescue it — and that is a
 afternoon to find out now rather than months later.
 
 **CI has landed and unit tests are complete; end-to-end are not.** Seven gates
-run on every push and are green, and every module in `lib/` has a suite as of
-2026-08-11. **Nothing drives the app as a user.** That goes in before the next
-feature — v0.1 proved both that the discipline works and that adding it late is
-how it gets skipped.
+run on every push and are green, and every module in `lib/` has a suite.
+**Nothing drives the app as a user.** That was supposed to go in before the next
+feature and did not — three features shipped past it on 2026-08-12, each
+verified by driving the running app by hand instead. Hand-driving found real
+defects every time and is not a substitute: none of it runs in CI, so none of it
+protects the next change. v0.1 proved both that the discipline works and that
+adding it late is how it gets skipped.
 
 ---
 
