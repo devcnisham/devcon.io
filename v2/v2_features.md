@@ -7,8 +7,8 @@
 >
 > Six documents now describe v2's state and **three of them — this one,
 > `v2/overview.md` and `README.md` — only restate the other three.** `CLAUDE.md`
-> flags exactly this as how v0.1 started rotting: its README claimed 209 tests
-> while the code said 252. If this file and `SHIP.md` ever disagree, `SHIP.md`
+> flags exactly this as how the last version started rotting: its README claimed
+> 209 tests while the code said 252. If this file and `SHIP.md` disagree, `SHIP.md`
 > is right and this one is stale.
 >
 > Written 2026-08-09, updated 2026-08-10. Every "verified by" line below names a command that was
@@ -276,7 +276,6 @@ From `SHIP.md`'s cut list — the reasons matter more than the list:
 - **Accounts, backend, sync.** `SHIP.md` is in your repo, so git is the sync.
 - **Telemetry.** Nothing to measure until one person ships one thing.
 - **A second agent to run the work.** You already have one.
-- **Anything copied from v0.1.** The archive is a record, not a parts bin.
 
 "A web app" is also on that list and is being built anyway — deliberately, on
 request. The entry is kept rather than deleted so the reversal stays visible.
@@ -346,7 +345,7 @@ place. That is the entire argument for having it.
 
 ## The gap none of this closes
 
-Nobody has finished a project because of devcon — v0.1 or v2. There is still no
+Nobody has finished a project because of devcon. There is still no
 number for *"of N who started, M shipped."* Every feature above is plumbing
 until that number exists, and **be suspicious of any plan that answers it with
 more features.**

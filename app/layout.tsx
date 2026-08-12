@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 /**
- * Real metadata from the first commit. v0.1 shipped "Create Next App" as its
- * title for its entire life, including in production.
+ * Real metadata from the first commit. The last version shipped "Create Next
+ * App" as its title for its entire life, including in production.
  */
 export const metadata: Metadata = {
   title: "devcon — ship plan",

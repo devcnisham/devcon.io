@@ -7,13 +7,13 @@
 .env*
 !.env.example
 
-# Left over from v0.1 and deliberately not tracked here. The old tree lives on
-# the `archive/v0.1` branch and the `v0.1-archive` tag; these are just the
-# build outputs and personal notes that happen to still sit in this directory.
+# Build outputs, and the two launch-week note directories that sit in this
+# working copy without belonging to the repo. `nisham/` and `sumayya/` are
+# dated personal plans — they exist in no commit on any branch, so treat them
+# as unrecoverable rather than as leftovers to sweep up.
 node_modules/
 .next/
 .vercel/
-static_analysis_codeql_1/
 nisham/
 sumayya/
 

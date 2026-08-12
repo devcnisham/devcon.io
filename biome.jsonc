@@ -3,7 +3,7 @@
 
   // Excludes are listed here rather than inherited from .gitignore. Biome's
   // `vcs.useIgnoreFile` is deprecated in 2.5.7, and dropping it silently pulled
-  // the leftover CodeQL database from v0.1 into the lint run — a thousand
+  // a leftover CodeQL database into the lint run — a thousand
   // generated JSON files reported as this project's errors.
   "files": {
     "includes": [
@@ -25,7 +25,7 @@
   "javascript": { "formatter": { "quoteStyle": "double" } },
 
   // Tailwind v4 puts `@theme` and friends in the stylesheet. Without this biome
-  // cannot parse globals.css at all — in v0.1 that looked like ~80 unfixable
+  // cannot parse globals.css at all, which once looked like ~80 unfixable
   // lint errors for weeks.
   "css": { "parser": { "tailwindDirectives": true } },
 

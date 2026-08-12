@@ -336,17 +336,28 @@ describe("the repo's own SHIP.md", () => {
     assert.equal(real.name, "Ship — devcon v2");
     assert.match(real.shipping, /^A shipping critic/);
     assert.equal(real.deadline, null);
-    assert.ok(real.cuts.length >= 6, `${real.cuts.length} cuts`);
-    assert.ok(real.conditions.length >= 13, `${real.conditions.length} conds`);
+    assert.ok(real.cuts.length >= 5, `${real.cuts.length} cuts`);
+    assert.ok(real.conditions.length >= 11, `${real.conditions.length} conds`);
     assert.ok(real.assumptions.length >= 3);
   });
 
-  test("the condition that broke first survives whole", () => {
-    // "v0.1 is frozen and reachable, not deleted" — the `z` that ate the file.
-    const frozen = real.conditions.find((c) => /frozen/.test(c.text));
-    assert.ok(frozen, "the frozen condition is gone");
-    assert.match(frozen.text, /not deleted$/);
-    assert.equal(frozen.check, "git rev-parse --verify --quiet v0.1-archive");
+  test("a wrapped condition survives whole, fold and all", () => {
+    // The `\Z` bug truncated conditions mid-word and read as bad markdown, so
+    // this asserts the tail of a real wrapped line rather than its head — a
+    // truncated parse still matches the head.
+    const two = real.conditions.find((c) => /At least two more/.test(c.text));
+    assert.ok(two, "the two-more-specs condition is gone");
+    assert.equal(
+      two.text,
+      "At least two more `SHIP.md` files exist, hand-written, for real projects that are not this one",
+    );
+    assert.equal(two.check, undefined);
+
+    // And one whose `check:` has to come off the line below it intact.
+    const empty = real.conditions.find((c) => /empty tree/.test(c.text));
+    assert.ok(empty, "the empty-tree condition is gone");
+    assert.match(empty.text, /no inherited history$/);
+    assert.match(empty.check ?? "", /--max-parents=0 HEAD.*-eq 2$/);
   });
 
   test("nothing parsed is blank", () => {

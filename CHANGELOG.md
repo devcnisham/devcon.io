@@ -2,10 +2,17 @@
 
 Every change to `v2`, newest first. Built from `git log`, not from memory.
 
-**Nothing here has been released.** `v2` is not deployed and has no version
-number; `main` still serves v0.1 at <https://devcon-hazel.vercel.app>. There is
-no `1.0.0` section below because there has been no release, and adding one
-would be the kind of unearned tick this project exists to catch.
+**Nothing here has been released.** `v2` has no version number and has never
+been deployed. Every v0.1 ref was deleted on 2026-08-12, yet
+<https://devcon-hazel.vercel.app> still returns 200 and still serves v0.1 —
+deleting a branch does not un-deploy what is already running. There is no
+`1.0.0` section below because there has been no release, and adding one would
+be the kind of unearned tick this project exists to catch.
+
+**Entries below 2026-08-12 still name v0.1 and its archive.** They are left as
+written. This file records what changed and when; editing an old entry to match
+today's tree would make the history agree with the present by falsifying it,
+which is the opposite of what an append-only log is for.
 
 This file is append-only history. It is the one document that does *not*
 restate the current state — for that, `SHIP.md` decides and `v2/overview.md`
@@ -18,6 +25,60 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## Unreleased
 
 ### 2026-08-12
+
+#### Removed
+
+- **The v0.1 archive, on request — the tag `v0.1-archive` and the branches
+  `archive/v0.1`, `next` and `main`, plus every reference to them.** Deleted
+  locally and, for all but `main`, on the remote. **This reverses a rule the
+  project had held since its first commit** — "frozen, not deleted", "the
+  archive is a record, not a parts bin" — and the reversal is recorded rather
+  than quietly applied, the same way `SHIP.md` keeps its reversed cut entries.
+
+  **`main` needed a second pass.** GitHub will not delete a repository's
+  default branch, so the delete was rejected until the default was moved to
+  `v2` — `origin/HEAD` now points there. Done on request after the first pass
+  reported it as blocked rather than quietly skipping it.
+
+  **Deleting the branch did not take the site down.**
+  <https://devcon-hazel.vercel.app> returned 200 immediately afterwards, and
+  still does: Vercel serves the last production deployment it built, and the
+  branch was only the source of the next one. Checked by requesting the URL —
+  the git exit code said the branch was gone and would have been taken as
+  proof the site was too. Taking v0.1 offline is a Vercel dashboard action.
+
+  **`claude/commit-push-status-c5d015` went in a third pass**, on request. It
+  was the last ref holding `f038349`, so v0.1's 54 commits are now unreachable.
+  **`v2` is the only branch in the repository, local and remote, and there are
+  no tags.** The commit is still an object in this clone until git collects it;
+  it is no longer fetchable from the remote.
+
+  **`SHIP.md` lost two done-when conditions with it**, both of which asserted
+  the archive still existed: *"v0.1 is frozen and reachable"* and *"The freeze
+  exists on the remote"*. Progress goes from 5 of 13 to 4 of 11 — the second of
+  those was the one condition that was ticked while its check failed, so the
+  known ticked-but-failing disagreement is gone with it.
+
+- **A git worktree at `.claude/worktrees/commit-push-status-c5d015`, checked out
+  at `f038349` — the v0.1 tree.** It carried v0.1's own `biome.jsonc`, which
+  biome rejected as a nested root configuration, so **`pnpm lint` was red before
+  any of this and the gate had stopped meaning anything.** Found by running the
+  gates, not by reading them. The worktree was clean and level with its remote;
+  the branch itself still exists.
+
+- **`static_analysis_codeql_1/` — the leftover CodeQL database.** Untracked, and
+  the thing the `biome.jsonc` exclude comment was written about.
+
+#### Changed
+
+- **Three tests that asserted on the deleted `SHIP.md` conditions.** The `\Z`
+  regression guard in `test/parse.test.ts` had used *"v0.1 is frozen and
+  reachable"* as its real-file specimen, because "frozen" carries the `z` that
+  once ate the file. It now asserts on a wrapped condition's **tail** — a
+  truncated parse still matches a head — and on a `check:` folded off the line
+  below. `test/sandbox.test.ts` keeps a **git** check in its must-pass set for
+  the same reason the old one was there: git is the toolchain the profile
+  breaks most easily. 174 tests, still green.
 
 #### Added
 
@@ -568,11 +629,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## v0.1 — frozen, not deleted
+## v0.1 — deleted 2026-08-12
 
-Tagged `v0.1-archive` at `f038349`, kept on `archive/v0.1`, still deployed.
-Nothing is carried forward; the archive is a record, not a parts bin.
+Was tagged `v0.1-archive` at `f038349` and kept on `archive/v0.1`, alongside
+`main` which deployed it. All three refs, the `next` branch, and a worktree
+still holding that tree were deleted on request. **This reverses the project's
+own "frozen, not deleted" rule**, recorded here rather than dropped quietly.
 
-It proved prompts work when an agent runs them — 2 of 63 cleared a two-agent
-bar, checked by running the result. It did not prove the thing that matters:
-**nobody has finished a project because of devcon**, v0.1 or v2.
+What it proved is kept because the fact outlives the tree: prompts work when an
+agent runs them — 2 of 63 cleared a two-agent bar, checked by running the
+result. It did not prove the thing that matters: **nobody has finished a
+project because of devcon.**

@@ -28,8 +28,8 @@ board, and it costs **4.4 KB gzip**, measured by building with and without it.
 
 **The framework baseline is not zero, and the number is uncomfortable.** Every
 route loads 8 scripts totalling **172.5 KB gzip** of Next.js and React runtime,
-whether or not the page has any client code. v0.1's landing page — the thing
-this rule exists to condemn — was 173 KB. Measured against a production build,
+whether or not the page has any client code — near-identical to the 173 KB
+landing page this rule exists to condemn. Measured against a production build,
 not estimated. "Zero client JavaScript" means zero *application* JavaScript;
 it has never meant an empty network tab, and this README said otherwise until
 2026-08-10.
@@ -70,15 +70,8 @@ environment. Off macOS they refuse to run rather than running unconfined. A
 check can still change the project's own uncommitted files; writes cannot be
 denied.
 
-## v0.1
+## The gap none of this closes
 
-Frozen at the tag `v0.1-archive`, kept on `archive/v0.1`, still deployed at
-<https://devcon-hazel.vercel.app>. Nothing was deleted and nothing is carried
-forward — the archive is a record, not a parts bin.
-
-It proved that prompts work when an agent runs them: 2 of 63 cleared a
-two-agent bar, verified by running the result rather than reading the diff.
-
-It did not prove the thing that matters. **Nobody has finished a project
-because of devcon**, v0.1 or v2, and there is still no number for *"of N who
-started, M shipped."* Every claim above is an assertion until that exists.
+**Nobody has finished a project because of devcon**, and there is still no
+number for *"of N who started, M shipped."* Every claim above is an assertion
+until that exists.

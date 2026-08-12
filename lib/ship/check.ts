@@ -11,7 +11,7 @@ const run = promisify(execFile);
  * Runs the done-when checks.
  *
  * This is the whole difference between a spec and a wish. A ticked box is a
- * claim; an exit code is evidence. v0.1 recorded a prompt as passing because a
+ * claim; an exit code is evidence. A prompt was once recorded as passing because a
  * `curl` returned 200 from a *different* server that happened to hold the port
  * — so a check that cannot show its working is not a check.
  */

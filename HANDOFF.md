@@ -1,7 +1,7 @@
 # devcon v2 — handoff
 
 > Read `CLAUDE.md` first, then this, then `v2/task.md`. Started 2026-08-08 when
-> v0.1 was frozen; rewritten 2026-08-10 at the end of the session that built
+> the previous version was frozen; rewritten 2026-08-10 at the end of the session that built
 > the five surfaces, the canvas, and CI. Swept 2026-08-11 — that rewrite left
 > six claims behind that the same session had already made false, including a
 > test count this file contradicted two hundred lines further down. Recorded
@@ -12,17 +12,18 @@
 > 001–003 — accounts, profile, workspaces — on request, feature by feature.
 > That session also changed the shape of the product: devcon now has users.
 
-**Branch: `v2`** (orphan — no v0.1 history). Everything committed and pushed;
-working tree clean.
+**Branch: `v2`** (orphan — no inherited history, and since 2026-08-12 the only
+branch in the repository, local and remote. No tags either).
 
 **Gates: lint 0, tsc 0, test 0 (174 tests), build 0, 0 page chunks.**
 **CI is green** — `.github/workflows/gates.yml`, seven gates, macOS.
 
-**Progress: 5 of 13 done-when conditions in `SHIP.md`** — measured by running
+**Progress: 4 of 11 done-when conditions in `SHIP.md`** — measured by running
 the commands, not by reading ticks. Stable across runs since the timeout fix.
-One condition drifts: *"The freeze exists on the remote"* is ticked and its
-check fails, because the sandbox denies the network by design. That is a known,
-deliberate disagreement, not a regression.
+Two conditions were removed on 2026-08-12 with the v0.1 archive: both asserted
+properties of a tag and branch that no longer exist. One of them was the only
+condition that drifted — *"The freeze exists on the remote"* was ticked while
+its check failed, because the sandbox denies the network by design.
 
 ```bash
 pnpm install
@@ -93,7 +94,7 @@ your repo, reads what you actually built, and tells you what to cut.
 
 Four things decided in the 2026-08-08 session, all of them the owner's calls:
 
-1. Same problem as v0.1 — getting a thing shipped — but a new answer to it.
+1. Same problem as before — getting a thing shipped — but a new answer to it.
 2. It lives in the agent, watches the repo, critiques rather than prescribes,
    and keeps a shared spec. All four together, not a choice between them.
 3. Judged on personal use first, not a cohort.
@@ -163,7 +164,7 @@ would specify what goes in them; nothing was invented. `v2/task.md` is written �
 **Decide how these relate to `SHIP.md`**, which already holds what ships, what
 is cut, and the done-when conditions. Either it folds into `v2/` or it stays as
 the machine-checkable one — but two files claiming to be the source of truth is
-how the last version started rotting: v0.1's README claimed 209 tests while the
+how the last version started rotting: its README claimed 209 tests while the
 code said 252, and nothing noticed for weeks.
 
 **This got worse on 2026-08-09, on request.** Six documents now describe v2's
@@ -226,8 +227,8 @@ run on every push and are green, and every module in `lib/` has a suite.
 feature and did not — three features shipped past it on 2026-08-12, each
 verified by driving the running app by hand instead. Hand-driving found real
 defects every time and is not a substitute: none of it runs in CI, so none of it
-protects the next change. v0.1 proved both that the discipline works and that
-adding it late is how it gets skipped.
+protects the next change. The last version proved both that the discipline
+works and that adding it late is how it gets skipped.
 
 ---
 
@@ -402,8 +403,8 @@ adding it late is how it gets skipped.
   `test/parse.test.ts`'s fixture opens with a word containing a `z`, and
   putting the truncation back turns sixteen tests red.
 - **A percentage height on a flex child does not resolve.** `h-full` collapsed
-  and pinned the canvas label to the top. Use `absolute inset-0`. v0.1 recorded
-  this same gotcha, which is the only time so far the archive has paid off.
+  and pinned the canvas label to the top. Use `absolute inset-0`. The previous
+  version recorded this same gotcha and it was hit again anyway.
 - **A dark gradient needs far more opacity than the value suggests.** The first
   wash pass looked correct in CSS and rendered as flat black.
 - **A layout cannot see which child is rendering.** Marking the active view tab
@@ -413,44 +414,63 @@ adding it late is how it gets skipped.
   kept importing `app/canvas/page.js` and failed the typecheck with what looked
   like a source error. `rm -rf .next`.
 - **`biome.jsonc` lists its own excludes.** `vcs.useIgnoreFile` is deprecated in
-  2.5.7, and dropping it silently pulled v0.1's leftover CodeQL database into
-  the lint run.
+  2.5.7, and dropping it silently pulled a leftover CodeQL database into the
+  lint run. **A nested `biome.jsonc` in a git worktree under `.claude/` does
+  worse** — biome errors out on the configuration and lints nothing, so the
+  gate goes red without naming a single file. Found 2026-08-12 by running it.
 - **`.env.local` in this directory holds a live Vercel OIDC token.** That is why
   `.gitignore` was the first file committed. Verified: no `.env*` or `.vercel`
   in any commit on any branch.
 
 ---
 
-## v0.1, frozen
+## The v0.1 archive was deleted on 2026-08-12
 
-Not deleted. Still deployed and still reachable.
+On request, in two passes. Gone locally and on the remote: the tag
+`v0.1-archive` and the branches `archive/v0.1`, `next` and **`main`**. `main`
+needed the repository's default branch moved to `v2` first — GitHub will not
+delete a default branch — so `origin/HEAD` now points at `v2`. Also gone: the
+leftover CodeQL database, a worktree still holding the v0.1 tree, and every
+reference to any of it in these documents. `SHIP.md` lost two done-when
+conditions, because both asserted the archive still existed.
 
-| Ref | At | What |
-|---|---|---|
-| `v0.1-archive` (tag) | `f038349` | The exact shipped tree, 123 files |
-| `archive/v0.1` | — | That tree plus `ARCHIVE.md` |
-| `main` | `f038349` | Still serving v0.1 |
+`claude/commit-push-status-c5d015`, the last ref holding `f038349`, went in a
+third pass. **`v2` is now the only branch in this repository, local and
+remote**, and there are no tags. v0.1's 54 commits are unreachable.
 
-Live: **https://devcon-hazel.vercel.app** — `/`, `/docs`, `/start`.
+**Two caveats, neither of them a loose end you can pull on.**
 
-```bash
-git show v0.1-archive:HANDOFF.md   # the densest knowledge in the old repo
-git show archive/v0.1:ARCHIVE.md   # what it proved, what it did not
-```
+- **Unreachable is not erased.** `f038349` is still an object in *this* clone
+  until git garbage-collects it, so `git cat-file -t f038349` answers. It is no
+  longer fetchable from the remote — `git fetch origin f038349` returns
+  "couldn't find remote ref". Anyone without a pre-existing clone cannot get
+  v0.1 back from here.
+- **The site is still up.** See **Deploy** — that one is real.
 
-**The archive is a record, not a parts bin.** Nothing is copied forward. If v2
-needs something from it, retype it with a fresh reason — v0.1's failure was not
-code quality, it was 20,000 well-tested lines nobody shipped a project with.
+**This reverses a rule the project had held since it started** — "frozen, not
+deleted", "the archive is a record, not a parts bin". Recorded here rather than
+quietly dropped, the same way `SHIP.md` keeps its reversed cut entries.
 
-What it proved: prompts work when an agent runs them — 2 of 63 clear the
-two-agent bar, checked by running the result. What it did not: **nobody has
-finished a project because of it.** That gap is still open, and v2 has not
-touched it either.
+What the old version proved, kept because the fact outlives the tree: prompts
+work when an agent runs them — 2 of 63 cleared a two-agent bar, checked by
+running the result. What it did not: **nobody has finished a project because of
+devcon.** That gap is still open, and v2 has not touched it either.
 
 ---
 
 ## Deploy
 
-`main` still deploys v0.1 to Vercel on merge. **`v2` is not deployed** and
-should not be until it is worth replacing what is live. `NEXT_PUBLIC_SITE_URL`
-was a v0.1 concern and does not exist in v2 yet.
+**`main` is deleted and https://devcon-hazel.vercel.app still returns 200.**
+Checked by requesting it after the delete, not assumed. **Deleting a git branch
+does not un-deploy anything** — Vercel keeps serving the last production
+deployment it built; the branch was only the source of the *next* one. v0.1 is
+therefore still live and will stay live until the Vercel project itself is
+changed, which is a dashboard action nobody has taken.
+
+Worth carrying: a repo with no branch is not a site with no deployment, and
+"we deleted the branch" is exactly the kind of ticked box this tool exists to
+catch. The exit code said the branch was gone; the HTTP status said the site
+was not.
+
+**`v2` is not deployed** and should not be until it is worth shipping.
+`NEXT_PUBLIC_SITE_URL` does not exist in v2 yet.

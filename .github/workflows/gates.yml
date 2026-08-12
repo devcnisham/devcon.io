@@ -1,7 +1,7 @@
 name: gates
 
-# Every push and every PR. There is no deploy step: `v2` is not deployed, and
-# `main` still serves v0.1.
+# Every push and every PR. There is no deploy step: `v2` has never been
+# deployed, and `main` was deleted on 2026-08-12.
 on:
   push:
   pull_request:
@@ -47,11 +47,10 @@ jobs:
           # already fetched, and the secret scan below only reads `git
           # ls-files` locally.
           persist-credentials: false
-          # Full history and tags. `SHIP.md` asserts permanent properties of
-          # this repo's history — that `v0.1-archive` exists, and that the root
-          # commit touched exactly two files — and a shallow clone has neither,
-          # so those conditions fail for a reason that is about CI rather than
-          # about the repo.
+          # Full history. `SHIP.md` asserts a permanent property of this repo's
+          # history — that the root commit touched exactly two files — and a
+          # shallow clone reaches the wrong commit, so that condition fails for
+          # a reason that is about CI rather than about the repo.
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v6

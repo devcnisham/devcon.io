@@ -7,8 +7,7 @@ Read this, then `HANDOFF.md`, then `v2/task.md`.
 A shipping critic that runs inside your coding agent, keeps one `SHIP.md` in
 your repo, reads what you actually built, and tells you what to cut.
 
-Branch `v2` is an **orphan** — it shares no history with v0.1. That is
-deliberate.
+Branch `v2` is an **orphan** — it inherits no history. That is deliberate.
 
 ## How a feature gets built
 
@@ -36,7 +35,7 @@ and pretending otherwise would be theatre:
 | CI pipeline | **Exists and is green** — `.github/workflows/gates.yml`, macOS. |
 | deploy to staging | No staging environment. |
 | QA testing | No environment to test in beyond localhost. |
-| deploy to production | **`v2` is not deployed.** `main` still serves v0.1. |
+| deploy to production | **`v2` has never been deployed.** `main` was deleted 2026-08-12, yet devcon-hazel.vercel.app still returns 200 — deleting a branch removes the build source, not the running deployment. |
 | monitor logs | Nothing deployed, so no logs. |
 | collect feedback | **No users.** Nobody has used devcon. |
 
@@ -89,8 +88,13 @@ Three gaps in this list are real, cheap and currently open:
 
 - ~~Mobile testing has never been run.~~ Run 2026-08-09 on its first use of
   this checklist, and it found a real defect immediately — see the gotcha
-  below. Still never verified below 408px: the preview pane will not go
-  narrower, so a true 375px phone is untested.
+  below. ~~Never verified below 408px.~~ **Verified at a true 375px on
+  2026-08-12**: `/work/workspace` scrolls as one document (3368px against an
+  812px viewport), has no horizontal overflow, traps nothing in a nested scroll
+  box except the deliberate `max-h-32` evidence block, and keeps the floating
+  switch `fixed` on screen after scrolling. Measured with `scrollHeight` versus
+  `clientHeight` per element, not by looking — the screenshot alone read as
+  fine the last time it was broken.
 - ~~No changelog.~~ `CHANGELOG.md`, built from `git log`. The one document that does not restate current state, so it does not worsen task 20.
 - **No end-to-end tests.** Unit and integration exist; nothing drives the app
   as a user.
@@ -111,8 +115,8 @@ pnpm dev               # localhost:3000
 ```
 
 **`pnpm build` prints "✓ Compiled successfully" before it typechecks.** That
-line is the bundler, not the gate. Read the exit code — in v0.1 that mistake
-hid 7 type errors.
+line is the bundler, not the gate. Read the exit code — that mistake once hid
+7 type errors.
 
 Tests cover `lib/ship/`, the workspace store, the detector and the canvas
 layout. **Every module in `lib/` has a suite** as of 2026-08-11, when
@@ -133,11 +137,10 @@ leaked this repo's OIDC token read as correct.
 
 ## Rules
 
-- **Nothing is copied from v0.1.** The archive is a record, not a parts bin. If
-  v2 needs something from it, retype it with a fresh reason. v0.1's failure was
-  not code quality — it was 20,000 well-tested lines nobody shipped a project
-  with, and copying any of them forward carries the assumptions that produced
-  that.
+- **Nothing is inherited.** Everything here is retyped with a fresh reason. The
+  last version's failure was not code quality — it was 20,000 well-tested lines
+  nobody shipped a project with, and carrying any of them forward carries the
+  assumptions that produced that.
 - **No secret ever enters the repo.** `.env.local` in this directory holds a
   live Vercel OIDC token. `.gitignore` was the first file committed for that
   reason. Verified: 0 occurrences of `.env`, `.env.local` or `.vercel/` in any
@@ -146,7 +149,7 @@ leaked this repo's OIDC token read as correct.
   component; the build emits 0 page chunks. If a `"use client"` goes in, say
   what it bought **and measure it** — build with and without, diff the gzipped
   chunks. `app/work/canvas/board.tsx` is the only one, and it cost 4.4 KB.
-  **Do not repeat the claim that this answers v0.1's 173 KB.** Measured on
+  **Do not repeat the claim that this answers the old 173 KB landing page.** Measured on
   2026-08-10 against a production build: every route already loads 172.5 KB
   gzip of framework runtime before any of this repo's code. 0 page chunks
   measures application code, which is real and worth keeping — it is not an
@@ -197,7 +200,13 @@ leaked this repo's OIDC token read as correct.
   keeps importing the old page and fails the typecheck like a source error.
   `rm -rf .next`.
 - **`biome.jsonc` lists its own excludes.** `vcs.useIgnoreFile` is deprecated in
-  2.5.7; dropping it silently pulled v0.1's leftover CodeQL database into lint.
+  2.5.7; dropping it silently pulled a leftover CodeQL database into lint.
+- **A git worktree under `.claude/` can turn the lint gate red and silent.** A
+  worktree checked out at an old commit brings that commit's `biome.jsonc`, and
+  biome refuses to run at all on "a nested root configuration" — exit 1, no
+  file named, nothing linted. `.claude/` being gitignored does not help,
+  because `biome.jsonc` lists its own excludes. `git worktree list` when lint
+  complains about configuration rather than code.
 - **A fixed timeout makes a verdict depend on the machine, not the code.**
   `check.ts` allowed a check 20s and ran every check at once. `pnpm exec tsc
   --noEmit` takes ~1.3s on an idle machine and over 20s at a load average of 32
@@ -222,10 +231,11 @@ leaked this repo's OIDC token read as correct.
   `git` from PATH, so any machine with a real git — Homebrew, nix, asdf — is
   fine. A machine whose only git is the shim cannot run git checks, and the
   tests assert that contract rather than wishing otherwise.
-- **CI needs `fetch-depth: 0`.** `SHIP.md` asserts permanent properties of this
-  repo's history — that `v0.1-archive` exists, that the root commit touched two
-  files — and `actions/checkout` clones shallow without tags, so those
-  conditions fail for a reason that is about CI rather than about the repo.
+- **CI needs `fetch-depth: 0`.** `SHIP.md` asserts a permanent property of this
+  repo's history — that the root commit touched exactly two files — and
+  `actions/checkout` clones shallow, so `git rev-list --max-parents=0` finds
+  the wrong commit and the condition fails for a reason that is about CI rather
+  than about the repo.
 - **Never allow a PATH entry's parent directory.** The sandbox derives its
   toolchain allowlist from PATH so nvm, asdf, volta and a CI runner's pnpm all
   work without being named. Adding each entry's `dirname` looked like a
@@ -251,6 +261,17 @@ leaked this repo's OIDC token read as correct.
   "unable to load libxcrun" message. **The first CI run caught it; no amount of
   local testing could have.** The profile now takes the developer dir as a
   parameter, probed once.
+- **Deleting a branch does not un-deploy it.** `main` was deleted from the
+  remote on 2026-08-12 and devcon-hazel.vercel.app returned **200** seconds
+  later, because Vercel keeps serving the last production deployment it built
+  — the branch was the source of the *next* build, not of the running one. The
+  git exit code was 0 and would have been reported as "the site is gone". **A
+  successful command is evidence about the command, not about the world**;
+  check the thing you actually claimed. Taking a deployment down is a Vercel
+  action.
+- **GitHub will not delete a repository's default branch.** `git push origin
+  --delete main` is rejected until the default moves — `gh repo edit
+  --default-branch v2` — which is a repository settings change, not a git one.
 - **`preview_stop` does not reap `next-server`.** Three processes kept port
   3000 after the tool reported the server stopped, and they skewed every
   timing taken afterwards. `lsof -ti:3000 | xargs kill -9`.
@@ -271,8 +292,8 @@ leaked this repo's OIDC token read as correct.
 
 **Unresolved, and worse than it was.** Six documents describe v2's state and
 **three of them are derivative restatements**. The authority column above
-is a convention, not a mechanism — and a convention is exactly what failed in
-v0.1, whose README claimed 209 tests while the code said 252 and nothing
+is a convention, not a mechanism — and a convention is exactly what failed last
+time, when the README claimed 209 tests while the code said 252 and nothing
 noticed for weeks. Three of these already went stale within one session: the
 README called the surfaces empty after the workspace shipped, and two files
 carried a progress number that had been wrong for a day.
@@ -281,19 +302,11 @@ This needed deciding before they grew. They grew. It is task 20, and the honest
 options are to fold the derivative three back into `SHIP.md` and `v2/task.md`,
 or to generate them from the checker rather than typing them.
 
-## v0.1
+## The gap none of this closes
 
-Frozen, not deleted. Still deployed at https://devcon-hazel.vercel.app.
-
-```bash
-git show v0.1-archive:HANDOFF.md   # the densest knowledge in the old repo
-git show archive/v0.1:ARCHIVE.md   # what it proved and what it did not
-```
-
-What it proved: prompts work when an agent runs them — 2 of 63 cleared a
-two-agent bar, checked by running the result. What it did not: **nobody has
-finished a project because of it.** That gap is still open and v2 has not
-touched it.
+**Nobody has finished a project because of devcon.** That gap is still open and
+v2 has not touched it. Be suspicious of any plan that answers it with more
+features.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

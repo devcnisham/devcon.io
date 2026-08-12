@@ -9,12 +9,12 @@ Deadline: none. Judged on whether Nisham uses it on his own projects.
 
 ## Not shipping
 
-The reasons matter more than the list. Each of these existed in v0.1 and none
-of them moved the only number that counted.
+The reasons matter more than the list. None of these moved the only number that
+counted.
 
-- **A web app** — v0.1 shipped a canvas, a workspace, a landing page and a docs
-  page. 7,935 lines, the largest thing in the repo, and its own `CLAUDE.md`
-  said the moat was elsewhere. The agent is already a UI.
+- **A web app** — 7,935 lines of canvas, workspace, landing page and docs page,
+  the largest thing in the tree, shipped against a `CLAUDE.md` that said the
+  moat was elsewhere. The agent is already a UI.
 - **A step catalog** — 63 pre-written steps assumed the plan is knowable in
   advance. It is not: verifying `comp-happy-path` through a second agent
   produced *nothing to do*, because the previous step had eaten its scope.
@@ -27,15 +27,9 @@ of them moved the only number that counted.
 - **Telemetry** — there is nothing to measure until one person ships one thing.
 - **A second agent to run the work** — you already have one. This tool talks to
   the one you are in.
-- **Anything copied from v0.1** — the archive is a record, not a parts bin.
-  Rewriting with a fresh reason is the point.
 
 ## Done when
 
-- [x] v0.1 is frozen and reachable, not deleted
-      `check: git rev-parse --verify --quiet v0.1-archive`
-- [x] The freeze exists on the remote, not just this laptop
-      `check: git ls-remote --exit-code --tags origin v0.1-archive`
 - [x] v2 started from an empty tree with no inherited history
       `check: test "$(git show --name-only --format= $(git rev-list --max-parents=0 HEAD) | grep -c .)" -eq 2`
 - [x] The surface typechecks
@@ -63,9 +57,9 @@ If one of these is wrong, the spec is wrong — not the build.
 - A spec is more useful than a plan. Untested. This is the whole bet, and
   hand-writing a few of these on real projects is the cheapest way to find out.
 - Reading repo structure is enough to critique usefully, without reading source.
-- Living inside the agent beats a separate surface. v0.1's surface was never
-  the thing people bounced off, so this is inference, not evidence. **A web app
-  is now being built anyway** — that reverses the "not shipping" entry above,
+- Living inside the agent beats a separate surface. The surface was never the
+  thing people bounced off, so this is inference, not evidence. **A web app is
+  now being built anyway** — that reverses the "not shipping" entry above,
   deliberately and on request, and the entry is kept rather than deleted so the
   reversal is visible.
 

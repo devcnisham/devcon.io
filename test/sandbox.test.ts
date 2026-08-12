@@ -274,7 +274,7 @@ describe("a hostile check cannot reach the network", () => {
   });
 
   test("git cannot reach a remote", async () => {
-    const r = await sh("git ls-remote --exit-code --tags origin v0.1-archive");
+    const r = await sh("git ls-remote --exit-code --tags origin some-tag");
     assert.notEqual(r.code, 0);
   });
 });
@@ -627,8 +627,11 @@ describe("checkAll, against this repo's own SHIP.md", () => {
     const byText = (needle: string) =>
       checked.find((c) => c.text.toLowerCase().includes(needle));
 
-    const frozen = byText("frozen");
-    assert.equal(frozen?.verdict, "pass", frozen?.evidence);
+    // A git check, kept in the passing set on purpose: git is the toolchain
+    // most easily broken by the profile, and it fails silently-looking when it
+    // is — see the xcrun and git-config-include gotchas.
+    const empty = byText("empty tree");
+    assert.equal(empty?.verdict, "pass", empty?.evidence);
 
     const types = byText("typechecks");
     assert.equal(types?.verdict, "pass", types?.evidence);
@@ -646,7 +649,7 @@ describe("checkAll, against this repo's own SHIP.md", () => {
         {
           text: "reaches the remote",
           claimed: true,
-          check: "git ls-remote --exit-code --tags origin v0.1-archive",
+          check: "git ls-remote --exit-code --tags origin some-tag",
         },
       ],
       REPO,

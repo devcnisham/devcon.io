@@ -24,8 +24,8 @@ const cond = (text: string, extra: Partial<Checked> = {}): Checked => ({
 
 const CHECKED: Checked[] = [
   cond("Lint is clean and stays a gate", { check: "pnpm lint" }),
-  cond("v0.1 is frozen and reachable", {
-    check: "git rev-parse --verify v0.1-archive",
+  cond("the root commit is reachable", {
+    check: "git rev-parse --verify HEAD",
     evidence: "0994fce3fdc331d0872ec235a9ed30c72bdba502",
   }),
   cond("The surface typechecks", {
@@ -80,7 +80,7 @@ describe("filterSpec", () => {
     const byHash = filterSpec(SPEC, CHECKED, "0994fce3");
     assert.deepEqual(
       byHash.conditions.map((c) => c.text),
-      ["v0.1 is frozen and reachable"],
+      ["the root commit is reachable"],
     );
 
     const byError = filterSpec(SPEC, CHECKED, "could not resolve host");

@@ -7,8 +7,8 @@
 >
 > Six documents now describe v2's state and **three of them — this one,
 > `v2/v2_features.md` and `README.md` — only restate the other three.**
-> `CLAUDE.md` flags exactly this as how v0.1 started rotting: its README
-> claimed 209 tests while the code said 252. If any of them disagree, `SHIP.md`
+> `CLAUDE.md` flags exactly this as how the last version started rotting: its
+> README claimed 209 tests while the code said 252. If any disagree, `SHIP.md`
 > wins and the rest are stale. **Consolidating them is task 20, and it is still
 > your call.**
 >
@@ -133,7 +133,6 @@
 | Accounts, backend, sync | `SHIP.md` is in your repo. Git is the sync. **Accounts reversed on request 2026-08-12** — local only. Backend and sync still cut. |
 | Telemetry | Nothing to measure until one person ships one thing. |
 | A second agent to run the work | You already have one. |
-| Anything copied from v0.1 | The archive is a record, not a parts bin. |
 | A web app | **Reversed on request** — being built anyway. Entry kept, not deleted, so the reversal stays visible. |
 
 ### Defects
@@ -160,14 +159,8 @@
 | Whether 120s and four-at-a-time are the right numbers — the mechanism is fixed, these two are judgement calls made without you |
 | `v2/product.md`, `v2/project.md` — headings only, awaiting your content |
 
-### v0.1
+### The gap none of this closes
 
-Frozen at tag `v0.1-archive`, kept on `archive/v0.1`, still deployed at
-<https://devcon-hazel.vercel.app>. Nothing deleted, nothing carried forward.
-
-Proved: prompts work when an agent runs them — 2 of 63 cleared a two-agent bar,
-checked by running the result.
-
-Did not prove: **nobody has finished a project because of devcon.** Still true
-of v2. There is no number for *"of N who started, M shipped."* Every row above
-is plumbing until that number exists.
+**Nobody has finished a project because of devcon.** There is no number for
+*"of N who started, M shipped."* Every row above is plumbing until that number
+exists.

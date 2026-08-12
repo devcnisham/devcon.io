@@ -17,10 +17,9 @@ decision) · **later**
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 1 | Freeze v0.1 — tag, branch, `ARCHIVE.md` | **done** | `v0.1-archive` at `f038349`, 123 files, on the remote. Still deployed. |
 | 2 | Start `v2` from an empty tree | **done** | Orphan branch, root commit touched exactly 2 files. |
 | 3 | `.gitignore` before anything can be staged | **done** | `.env.local` here holds a live Vercel OIDC token. Verified 0 secrets in any commit on any branch. |
-| 4 | Scaffold — Next 16, Tailwind v4, biome | **done** | Chosen fresh, not inherited. Nothing copied from v0.1. |
+| 4 | Scaffold — Next 16, Tailwind v4, biome | **done** | Chosen fresh, not inherited. Nothing carried over. |
 
 ## Surfaces
 
@@ -30,7 +29,7 @@ decision) · **later**
 | 6 | Work page, full-bleed | **done** | Three washes over lifted navy + dot grid. Matches the reference. |
 | 7 | Workspace + canvas as views inside work | **done** | `/work` → `/work/workspace`. Real routes, not a client toggle. |
 | 8 | Floating segmented switch | **done** | Lives in each view — a layout cannot see which child renders without a client hook. |
-| 9 | Zero client JS on every route | **done** | 0 page chunks — application code only. **Not the answer to v0.1's 173 KB**; see task 39 for the measurement that killed that claim. The canvas is the one exception, at 4.4 KB. |
+| 9 | Zero client JS on every route | **done** | 0 page chunks — application code only. **Not the answer to the old 173 KB landing page**; see task 39 for the measurement that killed that claim. The canvas is the one exception, at 4.4 KB. |
 | 10 | A way back from the work page | **done** | Found by clicking rather than reading: the work page had exactly two links and both kept you on it, so you could click forever and never leave. A `←` home link now sits in the floating switch — not a restored header, which would cost the full-bleed surface. |
 | 11 | Decide the 14rem workspace rail | **blocked** | A permanent commitment with nothing in it. Cheap now, expensive later. |
 
@@ -67,7 +66,7 @@ decision) · **later**
 | 34 | Open a project from its card | **done** | Clicking a card sets it active and goes to the work page, which names it on the switch. Active project is a separate `~/.devcon/active.json`, checked against the disk every read — a remembered folder that has been deleted reports as nothing open. Forgetting a project clears it. Card body and Forget are sibling forms, never nested: nested forms are invalid HTML and the inner one is dropped, which would make Forget open the project. |
 | 40 | Workspace rebuilt, against the open project | **done** | The first thing in v2 that runs `lib/ship/` against a repo that is **not this one** — which is why the sandbox exists. Stat cards, condition cards with tick, verdict, command and evidence, drift from the full set so a filter can never hide it, filter restored, cuts and assumptions. A project with no `SHIP.md` gets its detected gaps instead, urgent first. |
 | 38 | Canvas — drag, pan, selection | **done** | Cards built on the server from the open project's files; `app/work/canvas/board.tsx` only moves them. Drag, two-finger pan (wheel), shift-drag marquee, multi-select drag. Positions persist per project under `~/.devcon/canvas/`, keyed by a hash of the path so a project path cannot escape the store. Positions only — a fixed gap disappears next load rather than lingering. 12 tests. Not built: zoom, undo, edges, snapping. |
-| 39 | The zero-JS claim was overstated | **fixed** | Measured against a production build: every route loads 172.5 KB gzip of framework runtime, near-identical to v0.1's 173 KB that the rule condemns. 0 page chunks is real but measures application code only. README and CLAUDE.md now state the number; the comparison to v0.1 is removed. The canvas itself cost 4.4 KB, measured by building with and without it. |
+| 39 | The zero-JS claim was overstated | **fixed** | Measured against a production build: every route loads 172.5 KB gzip of framework runtime, near-identical to the 173 KB landing page that the rule condemns. 0 page chunks is real but measures application code only. README and CLAUDE.md now state the number; the version comparison is removed. The canvas itself cost 4.4 KB, measured by building with and without it. |
 | 36 | Console page with cards | **done** | Renamed from Settings on request; `/settings` redirects rather than 404s. Stat cards, host probes and grouped rows. Every capability is **probed**, not assumed — platform, node, sandbox, Finder dialog, git — because several features are macOS-only and listing them as working because the code exists would be a claim. Check numbers imported from the modules that use them, so the page cannot drift. No profile: there are no accounts. |
 | 37 | biome `recommended` deprecation | **done** | `rules.recommended` → `rules.preset`, deprecated in 2.5.7 and gone next major. Changed by hand, not by `biome migrate`, which rewrites the file and drops the comments recording two defects. Verified the linter still bites: a deliberate `==` was caught. |
 | 35 | Integrations page with cards | **done** | Capability coverage read from `package.json` — what nothing covers yet, in this project, rather than a list of things every project ought to have. Stat cards, letter tiles, MCP badges, Docs beside Connect. |
@@ -86,9 +85,9 @@ decision) · **later**
 | 22 | CI gates | **done, green** | `.github/workflows/gates.yml` — the five gates plus a zero-page-chunk check and a tracked-secret scan, on every push and PR. **macOS runner, not a preference:** on Linux `sandbox-exec` is missing, every attack command fails to start, and every "did not leak" assertion passes because nothing ran. **Six runs to go green, and every failure was a real portability bug this laptop could not have produced** — a hardcoded `/Applications/Xcode.app` (the runner has `Xcode_26.6.app`), the xcrun shim then wanting `xcodebuild` (refused on purpose), a shallow clone with no tags, and pnpm installed somewhere the profile had never heard of. The sandbox now derives its toolchain allowlist from `PATH` rather than naming directories, which fixes the class instead of the instances. That is the entire argument for having CI. |
 | 23 | MCP server + repo reader | **later** | Blocked behind 15/16 — do not build tooling for a format that has not proved useful. |
 | 24 | Critique pass | **later** | The actual product. Everything before it is plumbing. |
-| 25 | Cut rules | **later** | Written fresh, not ported from v0.1's 21 anti-steps. |
+| 25 | Cut rules | **later** | Written fresh, not ported from the old 21 anti-steps. |
 | 26 | `v2/product.md`, `v2/project.md` | **blocked** | Awaiting your content. |
-| 27 | Deploy v2 | **later** | `main` still serves v0.1. Do not replace what is live until v2 is better. |
+| 27 | Deploy v2 | **later** | `main` was deleted 2026-08-12, but v0.1 is **still live** — Vercel keeps serving the last production deployment, so the branch delete removed the source of the next build and nothing else. Verified with a request, not assumed. Do not replace what is live until v2 is better; taking v0.1 down is a Vercel dashboard action, not a git one. |
 
 ---
 
@@ -101,12 +100,12 @@ out costs an afternoon now versus months later.
 
 **22 has landed and 21 is still partial.** CI runs seven gates on every push and
 is green, and as of 2026-08-11 every module in `lib/` has a suite — but nothing
-drives the app end to end. v0.1 proved both that the discipline works and that
-adding it late is how it gets skipped — so that one goes in before the next
-feature, not after.
+drives the app end to end. The last version proved both that the discipline
+works and that adding it late is how it gets skipped — so that one goes in
+before the next feature, not after.
 
 ## The gap none of this closes
 
-Nobody has finished a project because of devcon — v0.1 or v2. There is still no
+Nobody has finished a project because of devcon. There is still no
 number for *"of N who started, M shipped."* Every task above is an assertion
 that it will help, and none of them is evidence.
