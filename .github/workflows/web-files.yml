@@ -1,0 +1,71 @@
+name: web files
+on:
+  push:
+    paths: ['apps/web/**', '.github/workflows/web-files.yml']
+  pull_request:
+    paths: ['apps/web/**', '.github/workflows/web-files.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: files
+          POSTGRES_PASSWORD: files_test_only
+          POSTGRES_DB: files_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      DATABASE_URL: postgres://files:files_test_only@127.0.0.1:5432/files_test
+      FILE_TEST_DATABASE_URL: postgres://files:files_test_only@127.0.0.1:5432/files_test
+      SUPABASE_URL: http://127.0.0.1:54321
+      SUPABASE_ANON_KEY: test-placeholder
+      SUPABASE_SERVICE_ROLE_KEY: test-placeholder
+      NEXT_PUBLIC_AUTH_ENABLED: 'true'
+      FILE_WORKSPACE_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -- --exclude 'src/lib/server/stores/*.integration.test.ts'
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:files:e2e
+      - run: npm run build -- --webpack
+  converter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - run: npm ci --prefix workers/files --omit=dev --ignore-scripts
+      - run: pip install -r workers/files/requirements.txt pytest
+      - run: python -m pytest -q workers/files/tests
+      - run: docker build -t devcon-files:ci -f workers/files/Dockerfile .
+      - name: LibreOffice PDF smoke test
+        run: docker run --rm --network=none --read-only --tmpfs /tmp:rw,size=768m --cap-drop ALL --security-opt no-new-privileges:true --entrypoint python devcon-files:ci -c "import runpy; runpy.run_path('tests/pdf_smoke.py', run_name='__main__')"

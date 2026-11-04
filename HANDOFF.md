@@ -474,3 +474,8 @@ was not.
 
 **`v2` is not deployed** and should not be until it is worth shipping.
 `NEXT_PUBLIC_SITE_URL` does not exist in v2 yet.
+
+
+## November2026 source consolidation
+
+The local007 Supabase app is preserved under `apps/web`, including the feature-flagged DeepSeek artifact workspace. The landing page is under `apps/landing`. Root v2 remains the local SHIP companion. See `apps/web/docs/file-workspace.md` for tested behavior and outstanding live-service checks, and `apps/web/docs/source-reconciliation.md` for source compatibility. The supplied329-feature tracker is preserved unchanged; file workspace additions use separate IDs.

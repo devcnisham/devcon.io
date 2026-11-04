@@ -1,0 +1,43 @@
+/* Original DevCon diagrams, inspired by Construct's flowing capability cards. */
+.card-motion-controls{display:flex;justify-content:space-between;align-items:center;margin:0 0 18px;gap:16px;color:#867794;font:9px var(--mono)}
+.cards-motion-button{background:transparent;border:1px solid #ded6e6;border-radius:20px;padding:9px 14px;font:11px var(--sans);color:#695b79}
+.animated-features{grid-template-columns:1fr 1fr;gap:22px}
+.animated-features .feature-context{grid-column:1/-1;display:grid;grid-template-columns:1fr 1.65fr;column-gap:38px;align-content:center;padding:32px}
+.animated-features .feature-context .feature-art{grid-column:2;grid-row:1/5;margin:0}
+.animated-features .feature-context>.small-label{align-self:end}
+.animated-features .feature-context>h3{font-size:34px;line-height:1.1;max-width:230px}
+.animated-features .feature-context>p{max-width:270px}
+.animated-features .feature-art{height:260px;overflow:hidden;border-radius:16px;position:relative}
+.animated-features .context-flow{padding:0;background:radial-gradient(ellipse at 75% 50%,#e4d5ff,transparent 65%),linear-gradient(135deg,#f6f1fa,#ece6f7);isolation:isolate}
+.context-routes{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#b9a6d2;stroke-width:1;stroke-dasharray:5 6;opacity:.6}
+.context-routes .route-signal{stroke:#8c65c1;stroke-width:2;stroke-dasharray:22 450;animation:context-stream 5s linear infinite}
+.context-routes .route-signal:nth-last-child(2){animation-delay:-1.6s}.context-routes .route-signal:last-child{animation-delay:-3.2s}
+.context-token{position:absolute;display:flex;align-items:center;gap:8px;background:#ffffffc9;border:1px solid white;border-radius:14px;padding:10px 12px;box-shadow:0 8px 24px #79599c12;font-size:11px;color:#69547e;animation:context-float 6s ease-in-out infinite}
+.context-token b{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#ece3f7;font:20px var(--sans)}
+.token-idea{left:8%;top:10%;transform:rotate(-5deg)}.token-code{left:3%;top:43%;animation-delay:-2s}.token-code b{font-size:15px}.token-goal{left:13%;top:73%;animation-delay:-4s}.token-time{left:40%;top:24%;animation-delay:-3s}.token-time span{display:none}
+.context-destination{position:absolute;right:7%;top:30%;display:flex;align-items:center;flex-direction:column;gap:8px;color:#71578d}
+.context-destination>b{font-size:48px;display:grid;place-items:center;width:80px;height:80px;background:linear-gradient(145deg,#fff,#e2d3f5);border:1px solid white;border-radius:25px;box-shadow:0 12px 30px #9b79c030;z-index:1;animation:context-core 5s ease-in-out infinite}
+.context-destination>span:not(.context-halo){font-size:12px;z-index:1}.context-destination small{font:6px var(--mono);letter-spacing:1px}
+.context-halo{position:absolute;top:-14px;width:108px;height:108px;border:1px solid #fff;border-radius:35px;animation:context-halo 5s ease-out infinite}
+.flow-caption{position:absolute;bottom:12px;right:16px;font:7px var(--mono);color:#9b87ac}
+.animated-features .focus-art{display:flex;flex-direction:column;justify-content:center;gap:22px;padding:28px;background:#f4eff8}
+.animated-features .focus-art>div{animation:task-filter 7s ease-in-out infinite;margin:0}
+.animated-features .focus-art .real-task{animation:task-select 7s ease-in-out infinite;position:relative;font-size:12px;padding:20px 16px;background:#e7daf4;border:1px solid #d4c2e7;box-shadow:0 8px 24px #9d7bb516}
+.animated-features .focus-art .real-task>i{font-size:7px}
+.animated-features .prompt-art{display:grid;place-items:center;background:#f0edf8;padding:25px}
+.animated-features .tiny-code{width:100%;height:auto;max-width:340px;transform:rotate(-2deg);animation:prompt-deliver 7s ease-in-out infinite;box-shadow:0 15px 30px #78619116;border:1px solid white}
+.animated-features .tiny-code p{font-size:14px;line-height:1.9}.animated-features .tiny-code>div{font-size:9px}.animated-features .tiny-code>div>span{display:inline-block;animation:handoff-arrow 3s ease-in-out infinite}
+@keyframes context-stream{to{stroke-dashoffset:-472}}
+@keyframes context-float{0%,100%{translate:0 0}50%{translate:0 -9px}}
+@keyframes context-core{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes context-halo{0%,100%{transform:scale(.95);opacity:.6}60%{transform:scale(1.2);opacity:0}}
+@keyframes task-filter{0%,100%{opacity:.85;transform:translateX(0)}40%,70%{opacity:.4;transform:translateX(9px)}}
+@keyframes task-select{0%,100%{transform:translateX(0) scale(1)}40%,70%{transform:translateX(-3px) scale(1.025)}}
+@keyframes prompt-deliver{0%,100%{transform:translateY(3px) rotate(-2deg)}50%{transform:translateY(-5px) rotate(0)}}
+@keyframes handoff-arrow{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+.animated-features .feature-art *{animation-play-state:paused}
+.animated-features .feature-art.motion-in-view *{animation-play-state:running}
+.motion-paused .animated-features .feature-art *,.page-hidden .animated-features .feature-art *{animation-play-state:paused!important}
+@media(max-width:850px){.animated-features .feature-context{display:block}.animated-features .feature-context .feature-art{margin-bottom:26px}.animated-features .feature-context>h3,.animated-features .feature-context>p{max-width:none}.animated-features .feature-card{display:block}.animated-features .feature-art{height:240px}}
+@media(max-width:600px){.animated-features{grid-template-columns:1fr}.animated-features .feature-context{padding:19px 19px 25px}.animated-features .feature-context>h3{font-size:25px}.card-motion-controls{font-size:6px}.cards-motion-button{font-size:10px}.context-token{padding:8px;gap:5px;font-size:9px}.context-token b{width:24px;height:24px;font-size:17px}.context-destination{right:5%;top:33%}.context-destination>b{width:63px;height:63px;border-radius:20px;font-size:40px}.context-destination>span:not(.context-halo){font-size:10px}.context-destination small{font-size:5px}.context-halo{width:87px;height:87px;border-radius:27px;top:-12px}.token-time{left:47%;top:16%}.flow-caption{font-size:5px}.animated-features .focus-art{padding:20px}.animated-features .focus-art .real-task{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.animated-features .feature-art *{animation:none!important}}

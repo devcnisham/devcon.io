@@ -1,3 +1,7 @@
+# November2026 — Consolidate web app and artifact workspace
+
+Preserve existing v2 at root, import local007 under apps/web and landing under apps/landing. Add DeepSeek file generation, document/slide/sheet editors, versioned PostgreSQL storage, private imports/exports and a conversion worker. Add isolated web/converter CI gates. Production build, local unit/database/browser/worker checks are recorded in apps/web/docs/file-workspace.md; live-provider/storage/container acceptance remains pending. No deployment.
+
 # Changelog
 
 Every change to `v2`, newest first. Built from `git log`, not from memory.

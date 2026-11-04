@@ -75,3 +75,17 @@ denied.
 **Nobody has finished a project because of devcon**, and there is still no
 number for *"of N who started, M shipped."* Every claim above is an assertion
 until that exists.
+
+## Consolidated application sources — November 2026
+
+This repository also preserves the Supabase application from local `007` and the DevCon landing page:
+
+| Location | Purpose | Run |
+|---|---|---|
+| Repository root | Existing local v2 SHIP/checker application | `pnpm install && pnpm dev` |
+| `apps/web` | Supabase project app with DeepSeek file/artifact workspace | `cd apps/web && npm ci && npm run dev` |
+| `apps/landing` | Standalone marketing site and illustrative file demo | `python3 -m http.server 4187 --directory apps/landing/dist` |
+
+These are separate applications. The root's local accounts/filesystem runner and the web app's Supabase accounts/storage have not been mixed. See `apps/web/docs/source-reconciliation.md`, `apps/web/docs/file-workspace.md`, and the preserved `apps/web/docs/build-tracker.html` for setup, current evidence, and the full329-feature roadmap. The file workspace is disabled by default until its private storage, DeepSeek key, and conversion worker are configured.
+
+Root TypeScript/Biome gates exclude `apps/`; the additional `web files` workflow validates the web app and converter independently. No deployment or production acceptance is claimed by importing these sources.
