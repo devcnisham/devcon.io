@@ -239,8 +239,24 @@ describe("a hostile check cannot write", () => {
   });
 
   test("…nor delete a ref", async () => {
-    const r = await sh("rm -f .git/refs/heads/v2 && echo DELETED");
-    assert.doesNotMatch(r.out, /DELETED/);
+    // CI checks out the feature branch, so refs/heads/v2 may not exist.
+    // rm -f succeeds on missing files: make real bait and verify it survives.
+    const ref = `.git/refs/heads/devcon-sandbox-delete-bait-${process.pid}`;
+    const target = join(REPO, ref);
+    const oid = execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: REPO,
+      encoding: "utf8",
+    });
+    mkdirSync(join(REPO, ".git/refs/heads"), { recursive: true });
+    writeFileSync(target, oid, { flag: "wx" });
+    try {
+      assert.equal(readFileSync(target, "utf8"), oid);
+      const r = await sh(`rm -f ${ref} && echo DELETED`);
+      assert.doesNotMatch(r.out, /DELETED/);
+      assert.equal(readFileSync(target, "utf8"), oid);
+    } finally {
+      rmSync(target, { force: true });
+    }
   });
 
   test("outside the repo", async () => {

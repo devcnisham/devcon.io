@@ -298,3 +298,17 @@ def test_absolute_references_and_exponents_export_as_formulas(tmp_path):
     assert book.active['B1'].data_type == 'f'
     assert book.active['B1'].value == '=$A$1^2'
     book.close()
+
+
+def test_pdf_renderer_uses_display_free_backend(tmp_path, monkeypatch):
+    import conversion
+    captured = {}
+    source = tmp_path / 'export.docx'
+    source.write_bytes(b'fixture')
+    monkeypatch.setattr(conversion.shutil, 'which', lambda _: '/usr/bin/libreoffice')
+    def run(command, timeout, env=None):
+        captured.update(env or {})
+        source.with_suffix('.pdf').write_bytes(b'%PDF-fixture')
+    monkeypatch.setattr(conversion, '_run_process', run)
+    conversion._libreoffice_pdf(source, tmp_path)
+    assert captured['SAL_USE_VCLPLUGIN'] == 'svp'

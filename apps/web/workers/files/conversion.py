@@ -509,7 +509,7 @@ def _libreoffice_pdf(source: Path, target_dir: Path) -> Path:
         command = [binary, '-env:UserInstallation=' + profile.as_uri(), '--headless', '--nologo', '--nodefault', '--nolockcheck', '--norestore', '--convert-to', 'pdf', '--outdir', str(target_dir), str(source)]
         if os.environ.get('FILES_NETWORK_SANDBOX') == '1':
             command = ['/usr/bin/python3', str(Path(__file__).with_name('no_network.py')), *command]
-        _run_process(command, timeout=90, env={**os.environ, 'SAL_USE_VCLPLUGIN': 'gen'})
+        _run_process(command, timeout=90, env={**os.environ, 'SAL_USE_VCLPLUGIN': 'svp'})
         result = source.with_suffix('.pdf')
         if not result.is_file() or not result.read_bytes().startswith(b'%PDF-'):
             raise ConversionError('PDF rendering did not produce a valid file. Retry the export.')

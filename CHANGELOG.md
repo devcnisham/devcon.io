@@ -1,3 +1,11 @@
+# 2026-11-05 — Branch-independent sandbox regression
+
+The ref-deletion attack now creates a dedicated real ref and verifies its contents survive. Feature-branch CI does not create refs/heads/v2; deleting that nonexistent path made rm -f report success without exercising the sandbox. No sandbox permissions were changed.
+
+# 2026-11-05 — Headless PDF rendering
+
+Select LibreOffice’s display-free SVP backend in the conversion worker. The earlier generic X11 override prevented PDF output in the hardened CI container. Add a regression check and retain the real container PDF acceptance gate.
+
 # November2026 — Consolidate web app and artifact workspace
 
 Preserve existing v2 at root, import local007 under apps/web and landing under apps/landing. Add DeepSeek file generation, document/slide/sheet editors, versioned PostgreSQL storage, private imports/exports and a conversion worker. Add isolated web/converter CI gates. Production build, local unit/database/browser/worker checks are recorded in apps/web/docs/file-workspace.md; live-provider/storage/container acceptance remains pending. No deployment.
