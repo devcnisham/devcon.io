@@ -1,0 +1,1886 @@
+{
+  "schemaVersion": 1,
+  "source": "build-tracker.html",
+  "sourcePreservedVerbatim": true,
+  "totalOriginalFeatures": 329,
+  "mvpOriginalFeatureRange": [
+    1,
+    160
+  ],
+  "phaseLabels": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6a",
+    "6b",
+    "6c",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26"
+  ],
+  "statusDefault": "todo",
+  "statusMeaning": "The supplied tracker starts with empty status data; no original feature is marked verified by this extraction.",
+  "phases": [
+    {
+      "phase": "0",
+      "title": "Product Foundation",
+      "description": "Build the platform itself",
+      "tier": "mvp",
+      "start": 1,
+      "resultHtml": "A user can create and manage a project.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 1,
+              "label": "Authentication"
+            },
+            {
+              "id": 2,
+              "label": "User profile"
+            },
+            {
+              "id": 3,
+              "label": "Workspace"
+            },
+            {
+              "id": 4,
+              "label": "Project creation"
+            },
+            {
+              "id": 5,
+              "label": "Project list"
+            },
+            {
+              "id": 6,
+              "label": "Project settings"
+            },
+            {
+              "id": 7,
+              "label": "Basic dashboard"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "1",
+      "title": "Project Import & Codebase",
+      "description": "Make the platform understand real projects",
+      "tier": "mvp",
+      "start": 8,
+      "resultHtml": "User connects <b>my-project/</b> and the platform says: “I understand your project.”",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 8,
+              "label": "Local project/folder import"
+            },
+            {
+              "id": 9,
+              "label": "GitHub repository import"
+            },
+            {
+              "id": 10,
+              "label": "Codebase scanner"
+            },
+            {
+              "id": 11,
+              "label": "File/folder analyzer"
+            },
+            {
+              "id": 12,
+              "label": "Package/dependency analyzer"
+            },
+            {
+              "id": 13,
+              "label": "Language detection"
+            },
+            {
+              "id": 14,
+              "label": "Framework detection"
+            },
+            {
+              "id": 15,
+              "label": "Runtime detection"
+            },
+            {
+              "id": 16,
+              "label": "Database detection"
+            },
+            {
+              "id": 17,
+              "label": "ORM detection"
+            },
+            {
+              "id": 18,
+              "label": "UI/styling detection"
+            },
+            {
+              "id": 19,
+              "label": "Testing framework detection"
+            },
+            {
+              "id": 20,
+              "label": "CI/CD detection"
+            },
+            {
+              "id": 21,
+              "label": "Deployment detection"
+            },
+            {
+              "id": 22,
+              "label": "Environment/config detection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "2",
+      "title": "Project Intelligence",
+      "description": "Turn raw scanning into understanding",
+      "tier": "mvp",
+      "start": 23,
+      "resultHtml": "The system can say: “This is a Next.js + Supabase application. Authentication and dashboard are complete. Testing and CI/CD are missing.”",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 23,
+              "label": "Technology map"
+            },
+            {
+              "id": 24,
+              "label": "Folder structure map"
+            },
+            {
+              "id": 25,
+              "label": "Architecture detection"
+            },
+            {
+              "id": 26,
+              "label": "Frontend detection"
+            },
+            {
+              "id": 27,
+              "label": "Backend detection"
+            },
+            {
+              "id": 28,
+              "label": "API detection"
+            },
+            {
+              "id": 29,
+              "label": "Database detection"
+            },
+            {
+              "id": 30,
+              "label": "Authentication detection"
+            },
+            {
+              "id": 31,
+              "label": "Storage detection"
+            },
+            {
+              "id": 32,
+              "label": "Existing feature detection"
+            },
+            {
+              "id": 33,
+              "label": "Existing implementation detection"
+            },
+            {
+              "id": 34,
+              "label": "Project-state detection"
+            },
+            {
+              "id": 35,
+              "label": "Project completeness"
+            },
+            {
+              "id": 36,
+              "label": "Project explainer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "3",
+      "title": "Project Roadmap Engine",
+      "description": "Turn understanding into a plan",
+      "tier": "mvp",
+      "start": 37,
+      "resultHtml": "A live roadmap: ✓ Setup · ✓ Architecture · ✓ Database · ● Authentication · ○ Testing · ○ CI/CD · ○ Deployment · ○ Production",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 37,
+              "label": "Development lifecycle"
+            },
+            {
+              "id": 38,
+              "label": "Roadmap engine"
+            },
+            {
+              "id": 39,
+              "label": "Phase generation"
+            },
+            {
+              "id": 40,
+              "label": "Task generation"
+            },
+            {
+              "id": 41,
+              "label": "Task dependencies"
+            },
+            {
+              "id": 42,
+              "label": "Milestones"
+            },
+            {
+              "id": 43,
+              "label": "Feature roadmap"
+            },
+            {
+              "id": 44,
+              "label": "Project progress"
+            },
+            {
+              "id": 45,
+              "label": "Completion percentage"
+            },
+            {
+              "id": 46,
+              "label": "Blocker detection"
+            },
+            {
+              "id": 47,
+              "label": "Next-step engine"
+            },
+            {
+              "id": 48,
+              "label": "“What should I do next?”"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "4",
+      "title": "Documentation Engine",
+      "description": "Make every step understandable",
+      "tier": "mvp",
+      "start": 49,
+      "resultHtml": "Every roadmap step has: WHAT · WHY · HOW · OFFICIAL DOCS · IMPLEMENTATION · VERIFY · NEXT",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 49,
+              "label": "Documentation system"
+            },
+            {
+              "id": 50,
+              "label": "Official documentation sources"
+            },
+            {
+              "id": 51,
+              "label": "Documentation search"
+            },
+            {
+              "id": 52,
+              "label": "Technology documentation mapping"
+            },
+            {
+              "id": 53,
+              "label": "Step → documentation mapping"
+            },
+            {
+              "id": 54,
+              "label": "Contextual documentation"
+            },
+            {
+              "id": 55,
+              "label": "“What is this?”"
+            },
+            {
+              "id": 56,
+              "label": "“Why do I need this?”"
+            },
+            {
+              "id": 57,
+              "label": "“How does this work?”"
+            },
+            {
+              "id": 58,
+              "label": "Implementation guide"
+            },
+            {
+              "id": 59,
+              "label": "Verification guide"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "5",
+      "title": "Guided Development",
+      "description": "Turn the roadmap into a development system",
+      "tier": "mvp",
+      "start": 60,
+      "resultHtml": "The user can follow: Step 1 → complete → verify → Step 2 → complete → verify → Step 3.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 60,
+              "label": "Step-by-step workflow"
+            },
+            {
+              "id": 61,
+              "label": "Development phases"
+            },
+            {
+              "id": 62,
+              "label": "Interactive checklist"
+            },
+            {
+              "id": 63,
+              "label": "Step completion"
+            },
+            {
+              "id": 64,
+              "label": "Step verification"
+            },
+            {
+              "id": 65,
+              "label": "Task status"
+            },
+            {
+              "id": 66,
+              "label": "Task dependencies"
+            },
+            {
+              "id": 67,
+              "label": "Feature workflow"
+            },
+            {
+              "id": 68,
+              "label": "Milestone workflow"
+            },
+            {
+              "id": 69,
+              "label": "Blocker handling"
+            },
+            {
+              "id": 70,
+              "label": "Build guides"
+            },
+            {
+              "id": 71,
+              "label": "Development recipes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "6a",
+      "title": "Core Integrations · GitHub",
+      "description": "Integration 1 of 3 — source of truth for code",
+      "tier": "mvp",
+      "start": 72,
+      "resultHtml": "The platform can see branches, commits, PRs, issues and Actions on the user’s repo.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 72,
+              "label": "GitHub OAuth"
+            },
+            {
+              "id": 73,
+              "label": "Repository connection"
+            },
+            {
+              "id": 74,
+              "label": "Repository detection"
+            },
+            {
+              "id": 75,
+              "label": "Branches"
+            },
+            {
+              "id": 76,
+              "label": "Commits"
+            },
+            {
+              "id": 77,
+              "label": "Pull requests"
+            },
+            {
+              "id": 78,
+              "label": "Issues"
+            },
+            {
+              "id": 79,
+              "label": "GitHub Actions"
+            },
+            {
+              "id": 80,
+              "label": "GitHub activity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "6b",
+      "title": "Core Integrations · Supabase",
+      "description": "Integration 2 of 3 — database, auth and storage",
+      "tier": "mvp",
+      "start": 81,
+      "resultHtml": "The platform can read the schema, migrations, auth and storage state of the user’s database.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 81,
+              "label": "Supabase OAuth / API connection"
+            },
+            {
+              "id": 82,
+              "label": "Project detection"
+            },
+            {
+              "id": 83,
+              "label": "Database"
+            },
+            {
+              "id": 84,
+              "label": "Schema"
+            },
+            {
+              "id": 85,
+              "label": "Migrations"
+            },
+            {
+              "id": 86,
+              "label": "Auth"
+            },
+            {
+              "id": 87,
+              "label": "Storage"
+            },
+            {
+              "id": 88,
+              "label": "Database health"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "6c",
+      "title": "Core Integrations · Vercel",
+      "description": "Integration 3 of 3 — builds, previews and production",
+      "tier": "mvp",
+      "start": 89,
+      "resultHtml": "The platform knows what is happening across the user’s whole development stack.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 89,
+              "label": "Vercel connection"
+            },
+            {
+              "id": 90,
+              "label": "Project detection"
+            },
+            {
+              "id": 91,
+              "label": "Deployments"
+            },
+            {
+              "id": 92,
+              "label": "Builds"
+            },
+            {
+              "id": 93,
+              "label": "Preview deployments"
+            },
+            {
+              "id": 94,
+              "label": "Production deployment"
+            },
+            {
+              "id": 95,
+              "label": "Domains"
+            },
+            {
+              "id": 96,
+              "label": "Environment configuration"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "7",
+      "title": "Development Workflow",
+      "description": "Connect development with those integrations",
+      "tier": "mvp",
+      "start": 97,
+      "resultHtml": "Feature → branch → code → commit → push → PR.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 97,
+              "label": "Git workflow"
+            },
+            {
+              "id": 98,
+              "label": "Branch workflow"
+            },
+            {
+              "id": 99,
+              "label": "Commit workflow"
+            },
+            {
+              "id": 100,
+              "label": "Push workflow"
+            },
+            {
+              "id": 101,
+              "label": "Pull request workflow"
+            },
+            {
+              "id": 102,
+              "label": "Code review workflow"
+            },
+            {
+              "id": 103,
+              "label": "Database workflow"
+            },
+            {
+              "id": 104,
+              "label": "API workflow"
+            },
+            {
+              "id": 105,
+              "label": "Environment workflow"
+            },
+            {
+              "id": 106,
+              "label": "Feature workflow"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "8",
+      "title": "Testing",
+      "description": "Build the testing layer",
+      "tier": "mvp",
+      "start": 107,
+      "resultHtml": "✓ Tests passed · ✓ TypeScript passed · ✓ Lint passed · ✓ Build passed — READY FOR CI",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 107,
+              "label": "Test detection"
+            },
+            {
+              "id": 108,
+              "label": "Unit tests"
+            },
+            {
+              "id": 109,
+              "label": "Integration tests"
+            },
+            {
+              "id": 110,
+              "label": "E2E tests"
+            },
+            {
+              "id": 111,
+              "label": "API tests"
+            },
+            {
+              "id": 112,
+              "label": "Test execution"
+            },
+            {
+              "id": 113,
+              "label": "Test results"
+            },
+            {
+              "id": 114,
+              "label": "Test coverage"
+            },
+            {
+              "id": 115,
+              "label": "Lint"
+            },
+            {
+              "id": 116,
+              "label": "Type checking"
+            },
+            {
+              "id": 117,
+              "label": "Build checking"
+            },
+            {
+              "id": 118,
+              "label": "Testing readiness"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "9",
+      "title": "CI/CD",
+      "description": "Automate the pipeline",
+      "tier": "mvp",
+      "start": 119,
+      "resultHtml": "Code → commit → push → CI → test → build → preview.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 119,
+              "label": "CI pipeline"
+            },
+            {
+              "id": 120,
+              "label": "Install"
+            },
+            {
+              "id": 121,
+              "label": "Lint"
+            },
+            {
+              "id": 122,
+              "label": "Type check"
+            },
+            {
+              "id": 123,
+              "label": "Unit tests"
+            },
+            {
+              "id": 124,
+              "label": "Integration tests"
+            },
+            {
+              "id": 125,
+              "label": "E2E tests"
+            },
+            {
+              "id": 126,
+              "label": "Build"
+            },
+            {
+              "id": 127,
+              "label": "Security checks"
+            },
+            {
+              "id": 128,
+              "label": "Preview deployment"
+            },
+            {
+              "id": 129,
+              "label": "Production deployment"
+            },
+            {
+              "id": 130,
+              "label": "Pipeline status"
+            },
+            {
+              "id": 131,
+              "label": "Pipeline failures"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "10",
+      "title": "Preview + QA",
+      "description": "Create the quality gate",
+      "tier": "mvp",
+      "start": 132,
+      "resultHtml": "Code → CI → preview → QA → approved.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 132,
+              "label": "Preview environment"
+            },
+            {
+              "id": 133,
+              "label": "Preview tracking"
+            },
+            {
+              "id": 134,
+              "label": "QA checklist"
+            },
+            {
+              "id": 135,
+              "label": "Feature verification"
+            },
+            {
+              "id": 136,
+              "label": "Manual verification"
+            },
+            {
+              "id": 137,
+              "label": "Automated verification"
+            },
+            {
+              "id": 138,
+              "label": "Bug reporting"
+            },
+            {
+              "id": 139,
+              "label": "Issue tracking"
+            },
+            {
+              "id": 140,
+              "label": "QA approval"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "11",
+      "title": "Production Readiness",
+      "description": "The gate before production",
+      "tier": "mvp",
+      "start": 141,
+      "resultHtml": "Production readiness: 94% — ✓ Security ✓ Database ✓ Environment ✓ Testing ✓ Monitoring ✓ Domain — READY FOR PRODUCTION",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 141,
+              "label": "Production checklist"
+            },
+            {
+              "id": 142,
+              "label": "Security checklist"
+            },
+            {
+              "id": 143,
+              "label": "Environment validation"
+            },
+            {
+              "id": 144,
+              "label": "Database validation"
+            },
+            {
+              "id": 145,
+              "label": "Backup validation"
+            },
+            {
+              "id": 146,
+              "label": "Domain validation"
+            },
+            {
+              "id": 147,
+              "label": "HTTPS validation"
+            },
+            {
+              "id": 148,
+              "label": "Rate-limit validation"
+            },
+            {
+              "id": 149,
+              "label": "Monitoring validation"
+            },
+            {
+              "id": 150,
+              "label": "Testing validation"
+            },
+            {
+              "id": 151,
+              "label": "Production readiness score"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "12",
+      "title": "Production Deployment",
+      "description": "The first true end-to-end journey — first major milestone",
+      "tier": "mvp",
+      "start": 152,
+      "resultHtml": "IDEA → PLAN → BUILD → TEST → CI → PREVIEW → QA → PRODUCTION 🚀",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 152,
+              "label": "Production deployment"
+            },
+            {
+              "id": 153,
+              "label": "Deployment tracking"
+            },
+            {
+              "id": 154,
+              "label": "Deployment history"
+            },
+            {
+              "id": 155,
+              "label": "Build status"
+            },
+            {
+              "id": 156,
+              "label": "Deployment logs"
+            },
+            {
+              "id": 157,
+              "label": "Rollback"
+            },
+            {
+              "id": 158,
+              "label": "Redeploy"
+            },
+            {
+              "id": 159,
+              "label": "Domain tracking"
+            },
+            {
+              "id": 160,
+              "label": "Production status"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "13",
+      "title": "Monitoring",
+      "description": "The product continues after deployment",
+      "tier": "v2",
+      "start": 161,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 161,
+              "label": "Monitoring"
+            },
+            {
+              "id": 162,
+              "label": "Error monitoring"
+            },
+            {
+              "id": 163,
+              "label": "Performance monitoring"
+            },
+            {
+              "id": 164,
+              "label": "Uptime"
+            },
+            {
+              "id": 165,
+              "label": "Logs"
+            },
+            {
+              "id": 166,
+              "label": "Analytics"
+            },
+            {
+              "id": 167,
+              "label": "Deployment health"
+            },
+            {
+              "id": 168,
+              "label": "Alerts"
+            },
+            {
+              "id": 169,
+              "label": "Production health"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "14",
+      "title": "Project Health",
+      "description": "Calculate the state of the entire project",
+      "tier": "v2",
+      "start": 170,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 170,
+              "label": "Project health engine"
+            },
+            {
+              "id": 171,
+              "label": "Code quality score"
+            },
+            {
+              "id": 172,
+              "label": "Security score"
+            },
+            {
+              "id": 173,
+              "label": "Testing score"
+            },
+            {
+              "id": 174,
+              "label": "Performance score"
+            },
+            {
+              "id": 175,
+              "label": "Deployment score"
+            },
+            {
+              "id": 176,
+              "label": "Documentation score"
+            },
+            {
+              "id": 177,
+              "label": "Dependency score"
+            },
+            {
+              "id": 178,
+              "label": "Monitoring score"
+            },
+            {
+              "id": 179,
+              "label": "Overall project health"
+            },
+            {
+              "id": 180,
+              "label": "Recommendations"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "15",
+      "title": "Dependency & Security Intelligence",
+      "description": "",
+      "tier": "v2",
+      "start": 181,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 181,
+              "label": "Dependency scanning"
+            },
+            {
+              "id": 182,
+              "label": "Outdated package detection"
+            },
+            {
+              "id": 183,
+              "label": "Vulnerability detection"
+            },
+            {
+              "id": 184,
+              "label": "Deprecated package detection"
+            },
+            {
+              "id": 185,
+              "label": "Dependency conflicts"
+            },
+            {
+              "id": 186,
+              "label": "Update recommendations"
+            },
+            {
+              "id": 187,
+              "label": "Security checks"
+            },
+            {
+              "id": 188,
+              "label": "Security recommendations"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "16",
+      "title": "Environment Management",
+      "description": "",
+      "tier": "v2",
+      "start": 189,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 189,
+              "label": "Environment detection"
+            },
+            {
+              "id": 190,
+              "label": "Development environment"
+            },
+            {
+              "id": 191,
+              "label": "Preview environment"
+            },
+            {
+              "id": 192,
+              "label": "Production environment"
+            },
+            {
+              "id": 193,
+              "label": "Environment comparison"
+            },
+            {
+              "id": 194,
+              "label": "Missing variable detection"
+            },
+            {
+              "id": 195,
+              "label": "Configuration validation"
+            },
+            {
+              "id": 196,
+              "label": "Environment documentation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "17",
+      "title": "Feature → Code → Ship Tracking",
+      "description": "Connect everything together",
+      "tier": "v2",
+      "start": 197,
+      "resultHtml": "Feature → task → code → commit → PR → test → deploy → production.",
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 197,
+              "label": "Feature entity"
+            },
+            {
+              "id": 198,
+              "label": "Feature requirements"
+            },
+            {
+              "id": 199,
+              "label": "Feature tasks"
+            },
+            {
+              "id": 200,
+              "label": "Feature code mapping"
+            },
+            {
+              "id": 201,
+              "label": "Feature commits"
+            },
+            {
+              "id": 202,
+              "label": "Feature PRs"
+            },
+            {
+              "id": 203,
+              "label": "Feature tests"
+            },
+            {
+              "id": 204,
+              "label": "Feature deployments"
+            },
+            {
+              "id": 205,
+              "label": "Feature production status"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "18",
+      "title": "Releases",
+      "description": "",
+      "tier": "v2",
+      "start": 206,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 206,
+              "label": "Release management"
+            },
+            {
+              "id": 207,
+              "label": "Release checklist"
+            },
+            {
+              "id": 208,
+              "label": "Release readiness"
+            },
+            {
+              "id": 209,
+              "label": "Versioning"
+            },
+            {
+              "id": 210,
+              "label": "Changelog"
+            },
+            {
+              "id": 211,
+              "label": "Release notes"
+            },
+            {
+              "id": 212,
+              "label": "Git tags"
+            },
+            {
+              "id": 213,
+              "label": "GitHub releases"
+            },
+            {
+              "id": 214,
+              "label": "Release history"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "19",
+      "title": "AI Assistant",
+      "description": "Only after the underlying system works",
+      "tier": "ai",
+      "start": 215,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 215,
+              "label": "AI project assistant"
+            },
+            {
+              "id": 216,
+              "label": "Project Q&A"
+            },
+            {
+              "id": 217,
+              "label": "Codebase Q&A"
+            },
+            {
+              "id": 218,
+              "label": "AI roadmap generation"
+            },
+            {
+              "id": 219,
+              "label": "AI planning"
+            },
+            {
+              "id": 220,
+              "label": "AI architecture advisor"
+            },
+            {
+              "id": 221,
+              "label": "AI documentation assistant"
+            },
+            {
+              "id": 222,
+              "label": "AI debugging"
+            },
+            {
+              "id": 223,
+              "label": "AI testing assistant"
+            },
+            {
+              "id": 224,
+              "label": "AI deployment assistant"
+            },
+            {
+              "id": 225,
+              "label": "AI recommendations"
+            },
+            {
+              "id": 226,
+              "label": "AI next-step engine"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "20",
+      "title": "AI Coding Agent",
+      "description": "Then let AI actually execute work",
+      "tier": "ai",
+      "start": 227,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 227,
+              "label": "Build With Me"
+            },
+            {
+              "id": 228,
+              "label": "Code generation"
+            },
+            {
+              "id": 229,
+              "label": "Code modification"
+            },
+            {
+              "id": 230,
+              "label": "File creation"
+            },
+            {
+              "id": 231,
+              "label": "File modification"
+            },
+            {
+              "id": 232,
+              "label": "Refactoring"
+            },
+            {
+              "id": 233,
+              "label": "Test generation"
+            },
+            {
+              "id": 234,
+              "label": "Bug fixing"
+            },
+            {
+              "id": 235,
+              "label": "Branch creation"
+            },
+            {
+              "id": 236,
+              "label": "Commit creation"
+            },
+            {
+              "id": 237,
+              "label": "PR creation"
+            },
+            {
+              "id": 238,
+              "label": "Test execution"
+            },
+            {
+              "id": 239,
+              "label": "Preview deployment"
+            },
+            {
+              "id": 240,
+              "label": "Deployment assistance"
+            },
+            {
+              "id": 241,
+              "label": "Agent permissions"
+            },
+            {
+              "id": 242,
+              "label": "Production confirmation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "21",
+      "title": "Debugging / Incident Management",
+      "description": "",
+      "tier": "ai",
+      "start": 243,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 243,
+              "label": "Error detection"
+            },
+            {
+              "id": 244,
+              "label": "Console errors"
+            },
+            {
+              "id": 245,
+              "label": "Build errors"
+            },
+            {
+              "id": 246,
+              "label": "API errors"
+            },
+            {
+              "id": 247,
+              "label": "Deployment errors"
+            },
+            {
+              "id": 248,
+              "label": "Production errors"
+            },
+            {
+              "id": 249,
+              "label": "Error investigation"
+            },
+            {
+              "id": 250,
+              "label": "Root-cause analysis"
+            },
+            {
+              "id": 251,
+              "label": "Fix suggestions"
+            },
+            {
+              "id": 252,
+              "label": "Incident mode"
+            },
+            {
+              "id": 253,
+              "label": "Incident history"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "22",
+      "title": "Documentation Generation",
+      "description": "",
+      "tier": "ai",
+      "start": 254,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 254,
+              "label": "README generation"
+            },
+            {
+              "id": 255,
+              "label": "Architecture documentation"
+            },
+            {
+              "id": 256,
+              "label": "API documentation"
+            },
+            {
+              "id": 257,
+              "label": "Setup documentation"
+            },
+            {
+              "id": 258,
+              "label": "Environment documentation"
+            },
+            {
+              "id": 259,
+              "label": "Deployment documentation"
+            },
+            {
+              "id": 260,
+              "label": "Feature documentation"
+            },
+            {
+              "id": 261,
+              "label": "Changelog generation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "23",
+      "title": "Learning Layer",
+      "description": "",
+      "tier": "ai",
+      "start": 262,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 262,
+              "label": "Contextual learning"
+            },
+            {
+              "id": 263,
+              "label": "Beginner explanations"
+            },
+            {
+              "id": 264,
+              "label": "Technology explanations"
+            },
+            {
+              "id": 265,
+              "label": "Architecture explanations"
+            },
+            {
+              "id": 266,
+              "label": "Git explanations"
+            },
+            {
+              "id": 267,
+              "label": "CI/CD explanations"
+            },
+            {
+              "id": 268,
+              "label": "Deployment explanations"
+            },
+            {
+              "id": 269,
+              "label": "Error explanations"
+            },
+            {
+              "id": 270,
+              "label": "“Why is this needed?”"
+            },
+            {
+              "id": 271,
+              "label": "“How does this work?”"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "24",
+      "title": "Templates & Recipes",
+      "description": "",
+      "tier": "platform",
+      "start": 272,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": "Blueprints",
+          "features": [
+            {
+              "id": 272,
+              "label": "SaaS blueprint"
+            },
+            {
+              "id": 273,
+              "label": "Next.js blueprint"
+            },
+            {
+              "id": 274,
+              "label": "Next.js + Supabase"
+            },
+            {
+              "id": 275,
+              "label": "Next.js + Stripe"
+            },
+            {
+              "id": 276,
+              "label": "AI SaaS"
+            },
+            {
+              "id": 277,
+              "label": "API"
+            },
+            {
+              "id": 278,
+              "label": "Mobile app"
+            },
+            {
+              "id": 279,
+              "label": "E-commerce"
+            },
+            {
+              "id": 280,
+              "label": "Marketplace"
+            },
+            {
+              "id": 281,
+              "label": "Admin dashboard"
+            },
+            {
+              "id": 282,
+              "label": "Social app"
+            }
+          ]
+        },
+        {
+          "title": "Recipes",
+          "features": [
+            {
+              "id": 283,
+              "label": "Authentication"
+            },
+            {
+              "id": 284,
+              "label": "Payments"
+            },
+            {
+              "id": 285,
+              "label": "Email"
+            },
+            {
+              "id": 286,
+              "label": "File uploads"
+            },
+            {
+              "id": 287,
+              "label": "Search"
+            },
+            {
+              "id": 288,
+              "label": "Notifications"
+            },
+            {
+              "id": 289,
+              "label": "Subscriptions"
+            },
+            {
+              "id": 290,
+              "label": "Webhooks"
+            },
+            {
+              "id": 291,
+              "label": "Cron jobs"
+            },
+            {
+              "id": 292,
+              "label": "Background jobs"
+            },
+            {
+              "id": 293,
+              "label": "AI features"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "25",
+      "title": "More Integrations",
+      "description": "Only after the core system is proven",
+      "tier": "platform",
+      "start": 294,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 294,
+              "label": "GitLab"
+            },
+            {
+              "id": 295,
+              "label": "Bitbucket"
+            },
+            {
+              "id": 296,
+              "label": "AWS"
+            },
+            {
+              "id": 297,
+              "label": "Cloudflare"
+            },
+            {
+              "id": 298,
+              "label": "Netlify"
+            },
+            {
+              "id": 299,
+              "label": "Railway"
+            },
+            {
+              "id": 300,
+              "label": "Render"
+            },
+            {
+              "id": 301,
+              "label": "Firebase"
+            },
+            {
+              "id": 302,
+              "label": "Neon"
+            },
+            {
+              "id": 303,
+              "label": "PlanetScale"
+            },
+            {
+              "id": 304,
+              "label": "Stripe"
+            },
+            {
+              "id": 305,
+              "label": "Razorpay"
+            },
+            {
+              "id": 306,
+              "label": "Paddle"
+            },
+            {
+              "id": 307,
+              "label": "Sentry"
+            },
+            {
+              "id": 308,
+              "label": "PostHog"
+            },
+            {
+              "id": 309,
+              "label": "Better Stack"
+            },
+            {
+              "id": 310,
+              "label": "Datadog"
+            },
+            {
+              "id": 311,
+              "label": "Figma"
+            },
+            {
+              "id": 312,
+              "label": "Slack"
+            },
+            {
+              "id": 313,
+              "label": "Discord"
+            },
+            {
+              "id": 314,
+              "label": "Linear"
+            },
+            {
+              "id": 315,
+              "label": "Notion"
+            },
+            {
+              "id": 316,
+              "label": "Jira"
+            },
+            {
+              "id": 317,
+              "label": "Trello"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "26",
+      "title": "Team Mode",
+      "description": "Later",
+      "tier": "team",
+      "start": 318,
+      "resultHtml": null,
+      "groups": [
+        {
+          "title": null,
+          "features": [
+            {
+              "id": 318,
+              "label": "Team workspace"
+            },
+            {
+              "id": 319,
+              "label": "Team members"
+            },
+            {
+              "id": 320,
+              "label": "Roles"
+            },
+            {
+              "id": 321,
+              "label": "Permissions"
+            },
+            {
+              "id": 322,
+              "label": "Shared projects"
+            },
+            {
+              "id": 323,
+              "label": "Task assignment"
+            },
+            {
+              "id": 324,
+              "label": "Shared roadmap"
+            },
+            {
+              "id": 325,
+              "label": "Code review"
+            },
+            {
+              "id": 326,
+              "label": "QA assignment"
+            },
+            {
+              "id": 327,
+              "label": "Approval workflows"
+            },
+            {
+              "id": 328,
+              "label": "Team activity"
+            },
+            {
+              "id": 329,
+              "label": "Team analytics"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "extensions": [
+    {
+      "id": "FILES",
+      "title": "File workspace — DeepSeek first",
+      "relationship": "Additional approved feature set; does not change original feature IDs, totals, MVP denominator, or phase ordering.",
+      "status": "implementation_in_progress",
+      "relatedOriginalFeatureIds": [
+        215,
+        221,
+        230,
+        231,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260,
+        261,
+        286
+      ],
+      "features": [
+        {
+          "id": "FILES-01",
+          "label": "Protected project Files workspace and library",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-02",
+          "label": "Persistent chat and DeepSeek provider adapter",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-03",
+          "label": "Structured content, immutable revisions, conflict preservation",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-04",
+          "label": "Rich document editor and DOCX/PDF/Markdown export",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-05",
+          "label": "Slide editor, themes, ordering and PPTX/PDF export",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-06",
+          "label": "Spreadsheet editor, formulas and XLSX/CSV/PDF export",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-07",
+          "label": "Private originals, exports and storage permissions",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-08",
+          "label": "DOCX/PPTX/XLSX/CSV/PDF import and conversion warnings",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-09",
+          "label": "Durable conversion jobs and isolated LibreOffice worker",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-10",
+          "label": "Authorization, concurrency, format and browser acceptance checks",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-11",
+          "label": "Feature flag, operational telemetry and release documentation",
+          "status": "not_yet_verified"
+        },
+        {
+          "id": "FILES-12",
+          "label": "Clearly labelled landing-page examples and sample downloads",
+          "status": "not_yet_verified"
+        }
+      ]
+    }
+  ]
+}

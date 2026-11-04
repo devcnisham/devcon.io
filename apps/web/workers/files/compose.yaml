@@ -1,0 +1,21 @@
+services:
+  files-worker:
+    build:
+      context: ../..
+      dockerfile: workers/files/Dockerfile
+    env_file:
+      - ../../.env.local
+    environment:
+      FILES_NETWORK_SANDBOX: "1"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=768m,mode=1777
+      - /home/converter:size=64m,uid=10001,gid=10001
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1536m
+    cpus: 1.5
+    pids_limit: 128

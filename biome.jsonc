@@ -12,7 +12,8 @@
       "!node_modules",
       "!static_analysis_codeql_1",
       "!nisham",
-      "!sumayya"
+      "!sumayya",
+      "!apps"
     ]
   },
 
